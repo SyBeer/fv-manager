@@ -10,6 +10,8 @@ bashio::log.info "Starting FV Manager on port 8010"
 bashio::log.info "Ingress path: ${INGRESS_PATH}"
 bashio::log.info "Data dir: ${DATA_PATH}"
 
+export PYTHONPATH=/app/src
+
 exec python3 -m uvicorn src.main:app \
   --host 0.0.0.0 \
   --port 8010 \
