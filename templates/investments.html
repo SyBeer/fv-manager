@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Inwestycje — FV Manager{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">Inwestycje</h1>
+
+{% if investments %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+  <div class="card">
+    <div class="stat-value" style="color:#f59e0b;">{{ total|fmtn }} zł</div>
+    <div class="stat-label">Łączna inwestycja</div>
+  </div>
+  {% if roi %}
+  <div class="card">
+    <div class="stat-value" style="color:#22c55e;">{{ roi.total_savings_pln|fmtn }} zł</div>
+    <div class="stat-label">Zaoszczędzono</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:{% if roi.roi_achieved %}#22c55e{% else %}#f87171{% endif %};">
+      {% if roi.roi_achieved %}✅ Zwrot!{% else %}{{ roi.remaining_to_roi|fmtn }} zł{% endif %}
+    </div>
+    <div class="stat-label">Pozostało do ROI</div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-bottom:1.5rem;">
+  <table>
+    <thead>
+      <tr><th>Data</th><th>Opis</th><th>Moc [kWp]</th><th>Koszt</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for inv in investments %}
+    <tr>
+      <td>{{ inv.date }}</td>
+      <td>{{ inv.description }}</td>
+      <td style="color:#94a3b8;">{% if inv.power_kwp %}{{ inv.power_kwp }} kWp{% else %}—{% endif %}</td>
+      <td style="color:#fbbf24; font-weight:600;">{{ inv.cost_pln|fmtn }} zł</td>
+      <td>
+        <form method="post" action="/inwestycje/{{ inv.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć tę inwestycję?')">
+          <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;">🗑️</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Formularz nowej inwestycji -->
+<div class="card" style="max-width:560px;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">+ Dodaj inwestycję</h2>
+  <form method="post" action="/inwestycje/nowa" style="display:flex; flex-direction:column; gap:1rem;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Data</label>
+        <input type="date" name="date" required>
+      </div>
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Koszt [zł brutto]</label>
+        <input type="number" name="cost_pln" step="0.01" required>
+      </div>
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Opis</label>
+      <input type="text" name="description" placeholder="np. Panele 10 kWp + inwerter SolarEdge" required>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Moc [kWp] (opcjonalnie)</label>
+        <input type="number" name="power_kwp" step="0.01">
+      </div>
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Notatki</label>
+        <input type="text" name="notes">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary" style="align-self:flex-start;">💾 Dodaj</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — FV Manager{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">Dashboard</h1>
+
+{% if not readings %}
+<div class="card" style="text-align:center; padding:3rem;">
+  <div style="font-size:3rem; margin-bottom:1rem;">☀️</div>
+  <div style="font-size:1.1rem; margin-bottom:1.5rem; color:#94a3b8;">Brak danych. Zaimportuj z Excela lub dodaj pierwszy odczyt.</div>
+  <a href="/import" class="btn btn-primary" style="margin-right:.75rem;">📥 Importuj Excel</a>
+  <a href="/odczyty/nowy" class="btn btn-ghost">+ Dodaj odczyt</a>
+</div>
+{% else %}
+
+<!-- ROI baner -->
+{% if roi %}
+<div class="card" style="margin-bottom:1.5rem; border-color:{% if roi.roi_achieved %}#22c55e{% else %}#f59e0b{% endif %};">
+  <div style="display:flex; gap:2rem; flex-wrap:wrap; align-items:center;">
+    <div>
+      <div class="stat-value" style="color:{% if roi.roi_achieved %}#22c55e{% else %}#f59e0b{% endif %};">
+        {{ "✅ ROI osiągnięty!" if roi.roi_achieved else "⏳ Do zwrotu: " ~ roi.remaining_to_roi|fmtn ~ " zł" }}
+      </div>
+      <div class="stat-label">Inwestycja: {{ roi.total_investment_pln|fmtn }} zł</div>
+    </div>
+    <div>
+      <div class="stat-value" style="color:#22c55e;">{{ roi.total_savings_pln|fmtn }} zł</div>
+      <div class="stat-label">Łączne oszczędności</div>
+    </div>
+    <div>
+      <div class="stat-value">{{ roi.total_production_kwh }} kWh</div>
+      <div class="stat-label">Łączna produkcja</div>
+    </div>
+    {% if not roi.roi_achieved and roi.months_to_roi > 0 %}
+    <div>
+      <div class="stat-value" style="color:#93c5fd;">{{ roi.months_to_roi }} mies.</div>
+      <div class="stat-label">Do zwrotu inwestycji</div>
+    </div>
+    {% endif %}
+    <a href="/roi" class="btn btn-ghost" style="margin-left:auto;">Szczegóły ROI →</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Ostatnie 12 miesięcy -->
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+    <h2 style="font-size:1.1rem; font-weight:600;">Ostatnie {{ readings|length }} miesięcy</h2>
+    <a href="/odczyty/nowy" class="btn btn-primary" style="font-size:.85rem; padding:.4rem 1rem;">+ Dodaj odczyt</a>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Okres</th>
+        <th>Produkcja</th>
+        <th>Autokonsumpcja</th>
+        <th>Oddane <small style="color:#475569;">(2.8.0)</small></th>
+        <th>Pobrane <small style="color:#475569;">(1.8.0)</small></th>
+        <th>Zużycie</th>
+        <th>Oszczędności</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in readings|reverse %}
+    <tr>
+      <td><strong>{{ r.period }}</strong></td>
+      <td style="color:#fbbf24;">{{ r.production_kwh|fmtn(1) }} kWh</td>
+      <td style="color:#22c55e;">{{ r.auto_consumption|fmtn(1) }} kWh</td>
+      <td style="color:#94a3b8;">{{ r.sent_to_grid_kwh|fmtn(1) }} kWh</td>
+      <td style="color:#f87171;">{{ r.taken_from_grid_kwh|fmtn(1) }} kWh</td>
+      <td>{{ r.total_consumed|fmtn(1) }} kWh</td>
+      <td style="color:#22c55e;">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }} zł{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if total_months > 12 %}
+  <div style="text-align:center; margin-top:1rem;">
+    <a href="/odczyty" class="btn btn-ghost" style="font-size:.85rem;">Zobacz wszystkie {{ total_months }} miesięcy</a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

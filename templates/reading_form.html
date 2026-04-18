@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}{% if reading %}Edytuj odczyt{% else %}Nowy odczyt{% endif %} — FV Manager{% endblock %}
+{% block content %}
+<div style="max-width:560px;">
+  <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">
+    {% if reading %}Edytuj odczyt {{ reading.period }}{% else %}Nowy odczyt{% endif %}
+  </h1>
+  <form id="edit-form" method="post" action="{% if reading %}/odczyty/{{ reading.id }}/edytuj{% else %}/odczyty/nowy{% endif %}">
+    <div class="card" style="display:flex; flex-direction:column; gap:1rem;">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Okres (RRRR.MM)</label>
+          <input type="text" name="period" placeholder="2026.04" value="{{ reading.period if reading else '' }}" required pattern="\d{4}\.\d{2}">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Rok</label>
+          <input type="number" name="year" value="{{ reading.year if reading else '' }}" required min="2000" max="2100">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Miesiąc</label>
+          <input type="number" name="month" value="{{ reading.month if reading else '' }}" required min="1" max="12">
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Liczba dni w okresie</label>
+        <input type="number" name="days" value="{{ reading.days if reading else '' }}" min="1" max="31">
+      </div>
+
+      <div style="border-top:1px solid #334155; padding-top:1rem;">
+        <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Energia [kWh]</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+          <div>
+            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#fbbf24;">☀️ Produkcja</label>
+            <input type="number" name="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
+            <input type="number" name="sent_to_grid_kwh" step="0.001" value="{{ reading.sent_to_grid_kwh if reading else '' }}" required>
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569;">(1.8.0)</span></label>
+            <input type="number" name="taken_from_grid_kwh" step="0.001" value="{{ reading.taken_from_grid_kwh if reading else '' }}" required>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #334155; padding-top:1rem;">
+        <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem;">
+          <div style="font-size:.8rem; color:#64748b; text-transform:uppercase; letter-spacing:.05em;">EV (opcjonalnie)</div>
+          <button type="button" id="ha-fetch-btn" class="btn btn-ghost" style="font-size:.75rem; padding:.25rem .6rem;" onclick="fetchFromHA()">🏠 Pobierz z HA</button>
+          <span id="ha-status" style="font-size:.75rem; color:#64748b;"></span>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#93c5fd;">🚗 kWh zużyte przez auta</label>
+          <input type="number" name="ev_kwh" id="ev_kwh" step="0.01" value="{{ reading.ev_kwh if reading else '' }}" placeholder="np. 120.5">
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #334155; padding-top:1rem;">
+        <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Faktura (opcjonalnie)</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+          <div>
+            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Cena kWh [zł]</label>
+            <input type="number" name="price_per_kwh" step="0.0001" value="{{ reading.price_per_kwh if reading else '' }}">
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Nr faktury</label>
+            <input type="text" name="invoice_number" value="{{ reading.invoice_number if reading else '' }}">
+          </div>
+          <div>
+            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Faktura brutto [zł]</label>
+            <input type="number" name="invoice_gross" step="0.01" value="{{ reading.invoice_gross if reading else '' }}">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Notatki</label>
+        <textarea name="notes" rows="2">{{ reading.notes if reading else '' }}</textarea>
+      </div>
+
+      {% if reading %}
+      <div style="background:#713f12; border:1px solid #f59e0b; border-radius:8px; padding:.75rem; font-size:.85rem; color:#fde68a;">
+        ⚠️ Edytujesz historyczny odczyt. Zmiana danych energetycznych wpłynie na obliczenia ROI dla wszystkich miesięcy.
+      </div>
+      {% endif %}
+
+      <div style="display:flex; gap:.75rem;">
+        {% if reading %}
+        <button type="button" class="btn btn-primary" onclick="showRoiPreview()">💾 Zapisz</button>
+        {% else %}
+        <button type="submit" class="btn btn-primary">💾 Zapisz</button>
+        {% endif %}
+        <a href="/odczyty" class="btn btn-ghost">Anuluj</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ROI preview modal -->
+{% if reading %}
+<div id="roi-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:100; align-items:center; justify-content:center;">
+  <div class="card" style="max-width:480px; width:90%; padding:2rem;">
+    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; color:#f59e0b;">⚠️ Wpływ zmiany na ROI</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+      <div style="background:#0f172a; border-radius:8px; padding:1rem;">
+        <div style="font-size:.75rem; color:#64748b; margin-bottom:.5rem;">PRZED ZMIANĄ</div>
+        <div id="before-savings" style="font-size:1.2rem; font-weight:700; color:#94a3b8;"></div>
+        <div style="font-size:.75rem; color:#64748b; margin-top:.25rem;">oszczędności łącznie</div>
+        <div id="before-roi" style="font-size:.85rem; margin-top:.5rem; color:#94a3b8;"></div>
+      </div>
+      <div style="background:#0f172a; border-radius:8px; padding:1rem;">
+        <div style="font-size:.75rem; color:#64748b; margin-bottom:.5rem;">PO ZMIANIE</div>
+        <div id="after-savings" style="font-size:1.2rem; font-weight:700; color:#22c55e;"></div>
+        <div style="font-size:.75rem; color:#64748b; margin-top:.25rem;">oszczędności łącznie</div>
+        <div id="after-roi" style="font-size:.85rem; margin-top:.5rem; color:#22c55e;"></div>
+      </div>
+    </div>
+    <div id="roi-diff" style="text-align:center; font-size:.9rem; margin-bottom:1.5rem; color:#94a3b8;"></div>
+    <div style="display:flex; gap:.75rem; justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('roi-modal').style.display='none'">Anuluj</button>
+      <button class="btn btn-primary" onclick="document.getElementById('edit-form').submit()">✅ Potwierdź i zapisz</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+{% if reading %}
+async function showRoiPreview() {
+  const form = document.getElementById('edit-form');
+  const data = {
+    id: {{ reading.id }},
+    production_kwh: parseFloat(form.production_kwh.value) || 0,
+    sent_to_grid_kwh: parseFloat(form.sent_to_grid_kwh.value) || 0,
+    taken_from_grid_kwh: parseFloat(form.taken_from_grid_kwh.value) || 0,
+    price_per_kwh: parseFloat(form.price_per_kwh.value) || null,
+  };
+  const modal = document.getElementById('roi-modal');
+  modal.style.display = 'flex';
+  document.getElementById('before-savings').textContent = '⏳';
+  document.getElementById('after-savings').textContent = '⏳';
+  try {
+    const res = await fetch('/api/roi-preview', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    const d = await res.json();
+    const fmt = v => v.toFixed(0) + ' zł';
+    document.getElementById('before-savings').textContent = fmt(d.before.total_savings_pln);
+    document.getElementById('before-roi').textContent = d.before.roi_achieved ? '✅ ROI osiągnięty' : `Pozostało: ${fmt(d.before.remaining_to_roi)} (${d.before.months_to_roi} mies.)`;
+    document.getElementById('after-savings').textContent = fmt(d.after.total_savings_pln);
+    document.getElementById('after-roi').textContent = d.after.roi_achieved ? '✅ ROI osiągnięty' : `Pozostało: ${fmt(d.after.remaining_to_roi)} (${d.after.months_to_roi} mies.)`;
+    const diff = d.after.total_savings_pln - d.before.total_savings_pln;
+    document.getElementById('roi-diff').textContent = diff >= 0
+      ? `Zmiana zwiększa oszczędności o ${Math.abs(diff).toFixed(0)} zł`
+      : `Zmiana zmniejsza oszczędności o ${Math.abs(diff).toFixed(0)} zł`;
+  } catch(e) { document.getElementById('before-savings').textContent = 'Błąd'; }
+}
+{% endif %}
+
+function fetchFromHA() {
+  const period = document.querySelector('[name="period"]').value;
+  if (!period) { alert('Najpierw wpisz okres.'); return; }
+  document.getElementById('ha-status').textContent = '⏳ Pobieranie...';
+  fetch('/ev/ha-fetch?period=' + period)
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { document.getElementById('ha-status').textContent = '❌ ' + d.error; return; }
+      document.getElementById('ev_kwh').value = parseFloat(d.state).toFixed(2);
+      document.getElementById('ha-status').textContent = '✅ ' + d.state + ' ' + (d.unit || 'kWh');
+    })
+    .catch(() => document.getElementById('ha-status').textContent = '❌ Błąd połączenia');
+}
+</script>
+{% endblock %}

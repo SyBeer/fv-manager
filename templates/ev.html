@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}EV — FV Manager{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">🚗 Oszczędności EV</h1>
+
+<!-- Podsumowanie -->
+{% if monthly_ev %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+  <div class="card">
+    <div class="stat-value" style="color:#22c55e;">{{ total_ev_savings|fmtn }} zł</div>
+    <div class="stat-label">Oszczędności EV vs paliwo</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:#93c5fd;">{{ total_km|fmtn }} km</div>
+    <div class="stat-label">Łącznie przejechane (z EV kWh)</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:#fbbf24;">{{ total_liters_saved|fmtn }} L</div>
+    <div class="stat-label">Paliwa zaoszczędzono</div>
+  </div>
+  {% if latest_fuel %}
+  <div class="card">
+    <div class="stat-value">{{ latest_fuel.price_per_liter|fmtn(2) }} zł/L</div>
+    <div class="stat-label">{{ latest_fuel.fuel_type }} ({{ latest_fuel.date }})</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Tabela miesięczna -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Historia miesięczna</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Okres</th>
+        <th>kWh EV</th>
+        <th>km (est.)</th>
+        <th>Koszt paliwa (gdyby)</th>
+        <th>Koszt prądu</th>
+        <th>Oszczędność netto</th>
+        <th>Litrów zaoszczędzono</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in monthly_ev %}
+    <tr>
+      <td><strong>{{ r.period }}</strong></td>
+      <td style="color:#93c5fd;">{{ r.ev_kwh|fmtn(1) }} kWh</td>
+      <td>{{ r.km_driven|fmtn }} km</td>
+      <td style="color:#f87171;">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
+      <td style="color:#94a3b8;">{{ r.electricity_cost|fmtn(2) }} zł</td>
+      <td style="color:#22c55e; font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
+      <td style="color:#fbbf24;">{{ r.liters_saved|fmtn(1) }} L</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:2rem; color:#94a3b8; margin-bottom:1.5rem;">
+  Brak danych EV. Wpisz kWh zużyte przez auta przy dodawaniu odczytów miesięcznych.
+</div>
+{% endif %}
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; flex-wrap:wrap;">
+
+  <!-- Ceny paliw -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">⛽ Ceny paliw</h2>
+    {% if prices %}
+    <table style="margin-bottom:1rem;">
+      <thead><tr><th>Data</th><th>Rodzaj</th><th>Cena/L</th><th>Źródło</th><th></th></tr></thead>
+      <tbody>
+      {% for p in prices %}
+      <tr>
+        <td>{{ p.date }}</td>
+        <td><span class="badge-blue">{{ p.fuel_type }}</span></td>
+        <td style="color:#fbbf24; font-weight:600;">{{ p.price_per_liter|fmtn(2) }} zł</td>
+        <td style="color:#64748b; font-size:.8rem;">{{ p.source or '—' }}</td>
+        <td>
+          <form method="post" action="/ev/fuel-price/{{ p.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć?')">
+            <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;">🗑️</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <form method="post" action="/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Data</label>
+          <input type="date" name="date" required>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Cena [zł/L]</label>
+          <input type="number" name="price_per_liter" step="0.01" placeholder="6.50" required>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Rodzaj</label>
+          <select name="fuel_type">
+            <option value="PB95">PB95</option>
+            <option value="PB98">PB98</option>
+            <option value="ON">ON (diesel)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Źródło</label>
+          <input type="text" name="source" placeholder="np. Orlen, PKN">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">+ Dodaj cenę</button>
+    </form>
+  </div>
+
+  <!-- Ustawienia EV -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">⚙️ Ustawienia EV</h2>
+    <form method="post" action="/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
+      <div>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie EV [kWh/100km]</label>
+        <input type="number" name="efficiency_kwh_per_100km" step="0.1" value="{{ settings.efficiency_kwh_per_100km or 16 }}" required>
+        <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Tesla Model Y ~16, BMW i3 ~16</div>
+      </div>
+      <div>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie paliwa [L/100km]</label>
+        <input type="number" name="fuel_consumption_l_per_100km" step="0.1" value="{{ settings.fuel_consumption_l_per_100km or 10 }}" required>
+      </div>
+      <div>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Roczne km</label>
+        <input type="number" name="annual_km" value="{{ settings.annual_km or 25000 }}" required>
+      </div>
+      <div style="border-top:1px solid #334155; padding-top:.75rem;">
+        <div style="font-size:.75rem; color:#64748b; margin-bottom:.5rem; text-transform:uppercase;">Home Assistant (opcjonalnie)</div>
+        <input type="text" name="ha_url" placeholder="http://homeassistant.local:8123" value="{{ settings.ha_url or '' }}" style="margin-bottom:.5rem;">
+        <input type="text" name="ha_token" placeholder="Long-lived access token" value="{{ settings.ha_token or '' }}" style="margin-bottom:.5rem;">
+        <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">💾 Zapisz</button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

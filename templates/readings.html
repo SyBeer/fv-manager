@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Odczyty — FV Manager{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+  <h1 style="font-size:1.5rem; font-weight:700;">Odczyty miesięczne</h1>
+  <a href="/odczyty/nowy" class="btn btn-primary">+ Nowy odczyt</a>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Okres</th>
+        <th>Produkcja</th>
+        <th>Autokons.</th>
+        <th>Oddane <small style="color:#475569;">(2.8.0)</small></th>
+        <th>Pobrane <small style="color:#475569;">(1.8.0)</small></th>
+        <th>Zużycie</th>
+        <th>Oszczędności</th>
+        <th>Cena kWh</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in readings %}
+    <tr>
+      <td><strong>{{ r.period }}</strong></td>
+      <td style="color:#fbbf24;">{{ r.production_kwh|fmtn(1) }}</td>
+      <td style="color:#22c55e;">{{ r.auto_consumption|fmtn(1) }}</td>
+      <td style="color:#94a3b8;">{{ r.sent_to_grid_kwh|fmtn(1) }}</td>
+      <td style="color:#f87171;">{{ r.taken_from_grid_kwh|fmtn(1) }}</td>
+      <td>{{ r.total_consumed|fmtn(1) }}</td>
+      <td style="color:#22c55e;">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }} zł{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
+      <td style="color:#64748b;">{% if r.price_per_kwh %}{{ r.price_per_kwh|fmtn(4) }}{% else %}—{% endif %}</td>
+      <td style="white-space:nowrap;">
+        <a href="/odczyty/{{ r.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
+        <form method="post" action="/odczyty/{{ r.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ r.period }}?')">
+          <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;">🗑️</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

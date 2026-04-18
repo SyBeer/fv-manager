@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Import — FV Manager{% endblock %}
+{% block content %}
+<div style="max-width:700px;">
+  <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">📥 Import z Excela</h1>
+
+  {% if error %}
+  <div style="background:#450a0a; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#fca5a5;">
+    ❌ {{ error }}
+  </div>
+  {% endif %}
+
+  {% if request.query_params.get('imported') %}
+  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
+    ✅ Zaimportowano <strong>{{ request.query_params.get('imported') }}</strong> rekordów
+    (pominięto duplikatów: {{ request.query_params.get('skipped', 0) }})
+  </div>
+  {% endif %}
+
+  {% if request.query_params.get('rejected') and request.query_params.get('rejected') != '0' %}
+  {% set rejected_list = request.query_params.get('rejected_list', '') %}
+  <div style="background:#450a0a; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#fca5a5;">
+    <strong>⚠️ Odrzucono {{ request.query_params.get('rejected') }} rekordów</strong> — oddane do sieci przekraczają produkcję:
+    <div style="margin-top:.5rem; font-size:.85rem; font-family:monospace; white-space:pre-wrap; color:#fecaca;">{{ rejected_list | urldecode if rejected_list else '' }}</div>
+  </div>
+  {% endif %}
+
+  <!-- Upload -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
+      Wybierz plik Excel z arkuszem <strong>„Moja instalacja"</strong>.
+      Istniejące okresy nie zostaną nadpisane.
+    </p>
+    <form method="post" action="/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik Excel (.xlsx)</label>
+        <input type="file" name="file" accept=".xlsx" required>
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj</button>
+    </form>
+  </div>
+
+  <!-- Struktura pliku -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📋 Wymagana struktura pliku Excel</h2>
+    <p style="color:#94a3b8; font-size:.85rem; margin-bottom:1.25rem;">
+      Plik musi zawierać arkusz o nazwie <code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Moja instalacja</code>.
+      Dane miesięczne zaczynają się od wiersza 5. Nagłówki muszą być w wierszach 1–4.
+    </p>
+
+    <table style="font-size:.82rem;">
+      <thead>
+        <tr>
+          <th style="width:60px;">Kolumna</th>
+          <th style="width:80px;">Indeks</th>
+          <th>Nazwa</th>
+          <th>Opis</th>
+          <th>Wymagane</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>A</strong></td><td style="color:#64748b;">0</td>
+          <td>Data</td>
+          <td>Okres w formacie <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">RRRR.MM</code> np. <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">2024.06</code></td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><strong>B</strong></td><td style="color:#64748b;">1</td>
+          <td>Dni</td>
+          <td>Liczba dni w okresie rozliczeniowym</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><strong>D</strong></td><td style="color:#64748b;">3</td>
+          <td>Produkcja SolarEdge</td>
+          <td>Energia wyprodukowana przez panele [kWh]</td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><strong>E</strong></td><td style="color:#64748b;">4</td>
+          <td>Oddane 2.8.0 – Licznik</td>
+          <td>Narastający odczyt licznika energii oddanej do sieci [kWh]</td>
+          <td><span class="badge-green">TAK*</span></td>
+        </tr>
+        <tr>
+          <td><strong>F</strong></td><td style="color:#64748b;">5</td>
+          <td>Pobrane 1.8.0 – Licznik</td>
+          <td>Narastający odczyt licznika energii pobranej z sieci [kWh]</td>
+          <td><span class="badge-green">TAK*</span></td>
+        </tr>
+        <tr>
+          <td><strong>G</strong></td><td style="color:#64748b;">6</td>
+          <td>Oddane obliczenia</td>
+          <td>Energia oddana do sieci w danym miesiącu [kWh] (delta między miesiącami)</td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><strong>I</strong></td><td style="color:#64748b;">8</td>
+          <td>Pobrane obliczenia</td>
+          <td>Energia pobrana z sieci w danym miesiącu [kWh] (delta między miesiącami)</td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><strong>Q</strong></td><td style="color:#64748b;">16</td>
+          <td>Nr Faktury PGE</td>
+          <td>Numer faktury za prąd</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><strong>V</strong></td><td style="color:#64748b;">21</td>
+          <td>Cena za kWh z faktury</td>
+          <td>Cena energii elektrycznej z faktury [zł/kWh] — używana do obliczenia oszczędności</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><strong>AA</strong></td><td style="color:#64748b;">26</td>
+          <td>FAKTURA brutto</td>
+          <td>Kwota faktury brutto [zł]</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:1.25rem; padding:.75rem; background:#0f172a; border-radius:8px; font-size:.82rem; color:#64748b; line-height:1.7;">
+      <strong style="color:#94a3b8;">* Kolumny E i F (odczyty licznika)</strong> — wymagane do odróżnienia rzeczywistych danych od przyszłych prognoz.
+      Wiersze bez odczytów licznika (projekcje) są automatycznie pomijane przy imporcie.<br><br>
+      <strong style="color:#f87171;">Walidacja:</strong> Rekordy gdzie <em>oddane do sieci &gt; produkcja</em> są odrzucane — to fizycznie niemożliwe
+      i wskazuje na błąd w danych źródłowych.
+    </div>
+  </div>
+</div>
+{% endblock %}

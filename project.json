@@ -1,0 +1,10 @@
+{
+  "name": "fv-manager",
+  "title": "FV Manager — Efektywność Fotowoltaiki",
+  "description": "Zarządzanie efektywnością kosztową instalacji fotowoltaicznej. Śledzenie produkcji, zużycia, oszczędności i ROI. Import z Excela, panel w Home Assistant.",
+  "status": "active",
+  "port": 8010,
+  "start_cmd": "cd fv-manager && source .venv/bin/activate && PYTHONPATH=src uvicorn src.main:app --reload --port 8010",
+  "tags": ["FastAPI", "Python", "FV", "energia", "ROI", "Home Assistant"],
+  "integrations": ["SolarEdge", "PGE", "Home Assistant"]
+}
