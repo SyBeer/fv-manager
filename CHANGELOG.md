@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3] — 2026-04-19
+
+### Naprawiono
+- Przeniesienie plików add-ona na root repo — fix COPY paths w Dockerfile
+- Dodanie domyślnej wartości BUILD_FROM w Dockerfile
+- Dodanie PYTHONPATH=/app/src w run.sh — fix ModuleNotFoundError w kontenerze HA
+
 ## [1.0.0] — 2026-04-18
 
 ### Dodano
