@@ -1,5 +1,5 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/aarch64-base:3.20
-FROM $BUILD_FROM
+FROM ${BUILD_FROM}
 
 RUN apk add --no-cache python3 py3-pip
 
