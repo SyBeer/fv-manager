@@ -1,6 +1,6 @@
 name: "FV Manager"
 description: "Zarządzanie efektywnością kosztową fotowoltaiki — ROI, EV, import z Excela"
-version: "1.0.3"
+version: "1.1.0"
 slug: "fv-manager"
 init: false
 host_network: false

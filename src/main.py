@@ -44,6 +44,13 @@ def _fmt(value, decimals: int = 0) -> str:
 
 templates.env.filters["fmtn"] = _fmt
 
+
+def _t(request: Request, name: str, context: dict | None = None):
+    """TemplateResponse helper — injects root_path into every context."""
+    ctx = {"request": request, "rp": request.scope.get("root_path", ""), **(context or {})}
+    return templates.TemplateResponse(name=name, context=ctx)
+
+
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -82,8 +89,8 @@ async def dashboard(request: Request):
         c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh"))
         enriched.append({**r, **c})
 
-    return templates.TemplateResponse(request=request, name="dashboard.html", context={
-        "readings": enriched[-12:],  # last 12 months on dashboard
+    return _t(request, "dashboard.html", {
+        "readings": enriched[-12:],
         "investments": investments,
         "roi": roi,
         "total_months": len(readings),
@@ -103,14 +110,12 @@ async def readings_list(request: Request):
         c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh"))
         enriched.append({**r, **c})
 
-    return templates.TemplateResponse(request=request, name="readings.html", context={
-        "readings": list(reversed(enriched)),
-    })
+    return _t(request, "readings.html", {"readings": list(reversed(enriched))})
 
 
 @app.get("/odczyty/nowy", response_class=HTMLResponse)
 async def new_reading_form(request: Request):
-    return templates.TemplateResponse(request=request, name="reading_form.html", context={})
+    return _t(request, "reading_form.html")
 
 
 @app.post("/odczyty/nowy")
@@ -154,7 +159,7 @@ async def edit_reading_form(request: Request, reading_id: int):
         await db.close()
     if not row:
         return HTMLResponse("Nie znaleziono.", status_code=404)
-    return templates.TemplateResponse(request=request, name="reading_form.html", context={"reading": dict(row)})
+    return _t(request, "reading_form.html", {"reading": dict(row)})
 
 
 @app.post("/odczyty/{reading_id}/edytuj")
@@ -211,11 +216,7 @@ async def investments_list(request: Request):
         await db.close()
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
-    return templates.TemplateResponse(request=request, name="investments.html", context={
-        "investments": investments,
-        "total": total,
-        "roi": roi,
-    })
+    return _t(request, "investments.html", {"investments": investments, "total": total, "roi": roi})
 
 
 @app.post("/inwestycje/nowa")
@@ -272,12 +273,9 @@ async def roi_page(request: Request):
         cumulative += c["savings_pln"] or 0
         monthly_savings.append({"period": r["period"], "cumulative": round(cumulative, 2)})
 
-    return templates.TemplateResponse(request=request, name="roi.html", context={
-        "roi": roi,
-        "sensitivity": sensitivity,
-        "monthly_savings": monthly_savings,
-        "total_investment": total,
-        "investments": investments,
+    return _t(request, "roi.html", {
+        "roi": roi, "sensitivity": sensitivity,
+        "monthly_savings": monthly_savings, "total_investment": total, "investments": investments,
     })
 
 
@@ -285,7 +283,7 @@ async def roi_page(request: Request):
 
 @app.get("/import", response_class=HTMLResponse)
 async def import_page(request: Request):
-    return templates.TemplateResponse(request=request, name="import.html", context={})
+    return _t(request, "import.html")
 
 
 @app.post("/import")
@@ -300,9 +298,7 @@ async def do_import(request: Request, file: UploadFile = File(...)):
         try:
             result = import_excel(tmp_path)
         except ValueError as e:
-            return templates.TemplateResponse(request=request, name="import.html", context={
-                "error": str(e)
-            })
+            return _t(request, "import.html", {"error": str(e)})
 
         db = await get_db()
         imported = 0
@@ -388,10 +384,8 @@ async def ev_page(request: Request):
         total_km += s["km_driven"]
         total_liters_saved += s["liters_saved"]
 
-    return templates.TemplateResponse(request=request, name="ev.html", context={
-        "settings": settings,
-        "prices": prices,
-        "latest_fuel": latest_fuel,
+    return _t(request, "ev.html", {
+        "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
         "monthly_ev": list(reversed(monthly_ev)),
         "total_ev_savings": round(total_ev_savings, 2),
         "total_km": round(total_km, 1),

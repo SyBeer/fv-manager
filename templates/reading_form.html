@@ -5,7 +5,7 @@
   <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">
     {% if reading %}Edytuj odczyt {{ reading.period }}{% else %}Nowy odczyt{% endif %}
   </h1>
-  <form id="edit-form" method="post" action="{% if reading %}/odczyty/{{ reading.id }}/edytuj{% else %}/odczyty/nowy{% endif %}">
+  <form id="edit-form" method="post" action="{% if reading %}{{ rp }}/odczyty/{{ reading.id }}/edytuj{% else %}{{ rp }}/odczyty/nowy{% endif %}">
     <div class="card" style="display:flex; flex-direction:column; gap:1rem;">
 
       <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
@@ -93,7 +93,7 @@
         {% else %}
         <button type="submit" class="btn btn-primary">💾 Zapisz</button>
         {% endif %}
-        <a href="/odczyty" class="btn btn-ghost">Anuluj</a>
+        <a href="{{ rp }}/odczyty" class="btn btn-ghost">Anuluj</a>
       </div>
     </div>
   </form>
@@ -143,7 +143,7 @@ async function showRoiPreview() {
   document.getElementById('before-savings').textContent = '⏳';
   document.getElementById('after-savings').textContent = '⏳';
   try {
-    const res = await fetch('/api/roi-preview', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    const res = await fetch('{{ rp }}/api/roi-preview', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
     const d = await res.json();
     const fmt = v => v.toFixed(0) + ' zł';
     document.getElementById('before-savings').textContent = fmt(d.before.total_savings_pln);
@@ -162,7 +162,7 @@ function fetchFromHA() {
   const period = document.querySelector('[name="period"]').value;
   if (!period) { alert('Najpierw wpisz okres.'); return; }
   document.getElementById('ha-status').textContent = '⏳ Pobieranie...';
-  fetch('/ev/ha-fetch?period=' + period)
+  fetch('{{ rp }}/ev/ha-fetch?period=' + period)
     .then(r => r.json())
     .then(d => {
       if (d.error) { document.getElementById('ha-status').textContent = '❌ ' + d.error; return; }

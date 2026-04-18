@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0] — 2026-04-19
+
+### Naprawiono
+- Wszystkie linki i formularze używają teraz `root_path` — poprawne działanie przez HA ingress proxy
+- Nawigacja sidebar działa poprawnie w HA (bez błędów 404 przy klikaniu menu)
+
 ## [1.0.3] — 2026-04-19
 
 ### Naprawiono

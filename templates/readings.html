@@ -3,7 +3,7 @@
 {% block content %}
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
   <h1 style="font-size:1.5rem; font-weight:700;">Odczyty miesięczne</h1>
-  <a href="/odczyty/nowy" class="btn btn-primary">+ Nowy odczyt</a>
+  <a href="{{ rp }}/odczyty/nowy" class="btn btn-primary">+ Nowy odczyt</a>
 </div>
 
 <div class="card">
@@ -33,8 +33,8 @@
       <td style="color:#22c55e;">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }} zł{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
       <td style="color:#64748b;">{% if r.price_per_kwh %}{{ r.price_per_kwh|fmtn(4) }}{% else %}—{% endif %}</td>
       <td style="white-space:nowrap;">
-        <a href="/odczyty/{{ r.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
-        <form method="post" action="/odczyty/{{ r.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ r.period }}?')">
+        <a href="{{ rp }}/odczyty/{{ r.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
+        <form method="post" action="{{ rp }}/odczyty/{{ r.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ r.period }}?')">
           <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;">🗑️</button>
         </form>
       </td>

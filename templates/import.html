@@ -31,7 +31,7 @@
       Wybierz plik Excel z arkuszem <strong>„Moja instalacja"</strong>.
       Istniejące okresy nie zostaną nadpisane.
     </p>
-    <form method="post" action="/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
+    <form method="post" action="{{ rp }}/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
       <div style="flex:1; min-width:200px;">
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik Excel (.xlsx)</label>
         <input type="file" name="file" accept=".xlsx" required>

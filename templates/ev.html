@@ -78,7 +78,7 @@
         <td style="color:#fbbf24; font-weight:600;">{{ p.price_per_liter|fmtn(2) }} zł</td>
         <td style="color:#64748b; font-size:.8rem;">{{ p.source or '—' }}</td>
         <td>
-          <form method="post" action="/ev/fuel-price/{{ p.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć?')">
+          <form method="post" action="{{ rp }}/ev/fuel-price/{{ p.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć?')">
             <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;">🗑️</button>
           </form>
         </td>
@@ -87,7 +87,7 @@
       </tbody>
     </table>
     {% endif %}
-    <form method="post" action="/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
+    <form method="post" action="{{ rp }}/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
         <div>
           <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Data</label>
@@ -119,7 +119,7 @@
   <!-- Ustawienia EV -->
   <div class="card">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">⚙️ Ustawienia EV</h2>
-    <form method="post" action="/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
+    <form method="post" action="{{ rp }}/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
       <div>
         <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie EV [kWh/100km]</label>
         <input type="number" name="efficiency_kwh_per_100km" step="0.1" value="{{ settings.efficiency_kwh_per_100km or 16 }}" required>

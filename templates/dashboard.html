@@ -7,8 +7,8 @@
 <div class="card" style="text-align:center; padding:3rem;">
   <div style="font-size:3rem; margin-bottom:1rem;">☀️</div>
   <div style="font-size:1.1rem; margin-bottom:1.5rem; color:#94a3b8;">Brak danych. Zaimportuj z Excela lub dodaj pierwszy odczyt.</div>
-  <a href="/import" class="btn btn-primary" style="margin-right:.75rem;">📥 Importuj Excel</a>
-  <a href="/odczyty/nowy" class="btn btn-ghost">+ Dodaj odczyt</a>
+  <a href="{{ rp }}/import" class="btn btn-primary" style="margin-right:.75rem;">📥 Importuj Excel</a>
+  <a href="{{ rp }}/odczyty/nowy" class="btn btn-ghost">+ Dodaj odczyt</a>
 </div>
 {% else %}
 
@@ -36,7 +36,7 @@
       <div class="stat-label">Do zwrotu inwestycji</div>
     </div>
     {% endif %}
-    <a href="/roi" class="btn btn-ghost" style="margin-left:auto;">Szczegóły ROI →</a>
+    <a href="{{ rp }}/roi" class="btn btn-ghost" style="margin-left:auto;">Szczegóły ROI →</a>
   </div>
 </div>
 {% endif %}
@@ -45,7 +45,7 @@
 <div class="card">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
     <h2 style="font-size:1.1rem; font-weight:600;">Ostatnie {{ readings|length }} miesięcy</h2>
-    <a href="/odczyty/nowy" class="btn btn-primary" style="font-size:.85rem; padding:.4rem 1rem;">+ Dodaj odczyt</a>
+    <a href="{{ rp }}/odczyty/nowy" class="btn btn-primary" style="font-size:.85rem; padding:.4rem 1rem;">+ Dodaj odczyt</a>
   </div>
   <table>
     <thead>
@@ -75,7 +75,7 @@
   </table>
   {% if total_months > 12 %}
   <div style="text-align:center; margin-top:1rem;">
-    <a href="/odczyty" class="btn btn-ghost" style="font-size:.85rem;">Zobacz wszystkie {{ total_months }} miesięcy</a>
+    <a href="{{ rp }}/odczyty" class="btn btn-ghost" style="font-size:.85rem;">Zobacz wszystkie {{ total_months }} miesięcy</a>
   </div>
   {% endif %}
 </div>

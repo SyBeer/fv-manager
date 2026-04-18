@@ -31,18 +31,19 @@
 </style>
 </head>
 <body>
+{% set rp = request.scope.get("root_path", "") %}
 <div style="display:flex; min-height:100vh;">
   <!-- Sidebar -->
   <nav style="width:220px; background:#1e293b; border-right:1px solid #334155; padding:1.5rem 1rem; flex-shrink:0; display:flex; flex-direction:column; gap:.25rem;">
     <div style="font-size:1.1rem; font-weight:700; color:#f59e0b; margin-bottom:1.25rem; padding-left:.5rem;">
       ☀️ FV Manager
     </div>
-    <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">📊 Dashboard</a>
-    <a href="/roi" class="nav-link {% if request.url.path == '/roi' %}active{% endif %}">💰 ROI</a>
-    <a href="/odczyty" class="nav-link {% if '/odczyty' in request.url.path %}active{% endif %}">📋 Odczyty</a>
-    <a href="/inwestycje" class="nav-link {% if '/inwestycje' in request.url.path %}active{% endif %}">🏗️ Inwestycje</a>
-    <a href="/ev" class="nav-link {% if request.url.path == '/ev' %}active{% endif %}">🚗 EV</a>
-    <a href="/import" class="nav-link {% if request.url.path == '/import' %}active{% endif %}">📥 Import</a>
+    <a href="{{ rp }}/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">📊 Dashboard</a>
+    <a href="{{ rp }}/roi" class="nav-link {% if request.url.path == '/roi' %}active{% endif %}">💰 ROI</a>
+    <a href="{{ rp }}/odczyty" class="nav-link {% if '/odczyty' in request.url.path %}active{% endif %}">📋 Odczyty</a>
+    <a href="{{ rp }}/inwestycje" class="nav-link {% if '/inwestycje' in request.url.path %}active{% endif %}">🏗️ Inwestycje</a>
+    <a href="{{ rp }}/ev" class="nav-link {% if request.url.path == '/ev' %}active{% endif %}">🚗 EV</a>
+    <a href="{{ rp }}/import" class="nav-link {% if request.url.path == '/import' %}active{% endif %}">📥 Import</a>
   </nav>
   <!-- Content -->
   <main style="flex:1; padding:2rem; overflow:auto;">
