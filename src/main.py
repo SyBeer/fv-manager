@@ -47,8 +47,8 @@ templates.env.filters["fmtn"] = _fmt
 
 def _t(request: Request, name: str, context: dict | None = None):
     """TemplateResponse helper — injects root_path into every context."""
-    ctx = {"request": request, "rp": request.scope.get("root_path", ""), **(context or {})}
-    return templates.TemplateResponse(name=name, context=ctx)
+    ctx = {"rp": request.scope.get("root_path", ""), **(context or {})}
+    return templates.TemplateResponse(request=request, name=name, context=ctx)
 
 
 if STATIC_DIR.exists():

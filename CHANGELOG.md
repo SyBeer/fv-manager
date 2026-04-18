@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] — 2026-04-19
+
+### Naprawiono
+- TypeError w `_t` helper — `request` przekazywany jako keyword arg do `TemplateResponse`
+
 ## [1.1.0] — 2026-04-19
 
 ### Naprawiono
