@@ -162,6 +162,7 @@ async def new_reading_form(request: Request):
 
 @app.post("/odczyty/nowy")
 async def create_reading(
+    request: Request,
     period: str = Form(...),
     year: int = Form(...),
     month: int = Form(...),
@@ -188,7 +189,8 @@ async def create_reading(
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/odczyty", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/odczyty", status_code=303)
 
 
 @app.get("/odczyty/{reading_id}/edytuj", response_class=HTMLResponse)
@@ -206,6 +208,7 @@ async def edit_reading_form(request: Request, reading_id: int):
 
 @app.post("/odczyty/{reading_id}/edytuj")
 async def update_reading(
+    request: Request,
     reading_id: int,
     period: str = Form(...),
     year: int = Form(...),
@@ -232,18 +235,20 @@ async def update_reading(
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/odczyty", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/odczyty", status_code=303)
 
 
 @app.post("/odczyty/{reading_id}/usun")
-async def delete_reading(reading_id: int):
+async def delete_reading(request: Request, reading_id: int):
     db = await get_db()
     try:
         await db.execute("DELETE FROM readings WHERE id=?", (reading_id,))
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/odczyty", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/odczyty", status_code=303)
 
 
 # ── Investments ───────────────────────────────────────────────────────────────
@@ -263,6 +268,7 @@ async def investments_list(request: Request):
 
 @app.post("/inwestycje/nowa")
 async def create_investment(
+    request: Request,
     date: str = Form(...),
     description: str = Form(...),
     cost_pln: float = Form(...),
@@ -278,18 +284,20 @@ async def create_investment(
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/inwestycje", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/inwestycje", status_code=303)
 
 
 @app.post("/inwestycje/{inv_id}/usun")
-async def delete_investment(inv_id: int):
+async def delete_investment(request: Request, inv_id: int):
     db = await get_db()
     try:
         await db.execute("DELETE FROM investments WHERE id=?", (inv_id,))
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/inwestycje", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/inwestycje", status_code=303)
 
 
 # ── ROI ───────────────────────────────────────────────────────────────────────
@@ -372,8 +380,9 @@ async def do_import(request: Request, file: UploadFile = File(...)):
     rejected_json = urllib.parse.quote_plus(
         str([r["period"] + ": " + r["reason"] for r in result.rejected])
     ) if result.rejected else ""
+    rp = request.scope.get("root_path", "")
     return RedirectResponse(
-        f"/import?imported={imported}&skipped={skipped}&rejected={len(result.rejected)}&rejected_list={rejected_json}",
+        f"{rp}/import?imported={imported}&skipped={skipped}&rejected={len(result.rejected)}&rejected_list={rejected_json}",
         status_code=303,
     )
 
@@ -438,6 +447,7 @@ async def ev_page(request: Request):
 
 @app.post("/ev/settings")
 async def save_ev_settings(
+    request: Request,
     efficiency_kwh_per_100km: float = Form(...),
     fuel_consumption_l_per_100km: float = Form(...),
     annual_km: float = Form(...),
@@ -457,11 +467,13 @@ async def save_ev_settings(
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/ev", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
 @app.post("/ev/fuel-price")
 async def add_fuel_price(
+    request: Request,
     date: str = Form(...),
     price_per_liter: float = Form(...),
     fuel_type: str = Form("PB95"),
@@ -476,18 +488,20 @@ async def add_fuel_price(
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/ev", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
 @app.post("/ev/fuel-price/{price_id}/usun")
-async def delete_fuel_price(price_id: int):
+async def delete_fuel_price(request: Request, price_id: int):
     db = await get_db()
     try:
         await db.execute("DELETE FROM fuel_prices WHERE id=?", (price_id,))
         await db.commit()
     finally:
         await db.close()
-    return RedirectResponse("/ev", status_code=303)
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
 @app.get("/ev/ha-fetch")

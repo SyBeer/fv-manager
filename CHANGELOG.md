@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.2] — 2026-04-19
+
+### Naprawiono
+- 404 po zapisie/usunięciu — wszystkie RedirectResponse używają teraz ingress root_path
+
 ## [1.3.1] — 2026-04-19
 
 ### Zmieniono
