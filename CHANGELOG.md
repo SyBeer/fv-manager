@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.0] — 2026-04-19
+
+### Dodano
+- Eksport odczytów do CSV (`/odczyty/export.csv`) — separator `;`, wszystkie kolumny z obliczeniami
+
 ## [1.2.1] — 2026-04-19
 
 ### Naprawiono

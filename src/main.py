@@ -7,7 +7,7 @@ load_dotenv()
 
 import aiosqlite
 from fastapi import FastAPI, Request, Form, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -114,6 +114,45 @@ async def readings_list(request: Request):
         enriched.append({**r, **c})
 
     return _t(request, "readings.html", {"readings": list(reversed(enriched))})
+
+
+@app.get("/odczyty/export.csv")
+async def export_readings_csv():
+    import csv, io
+    db = await get_db()
+    try:
+        readings = await _get_readings(db)
+    finally:
+        await db.close()
+
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";")
+    writer.writerow([
+        "Okres", "Rok", "Miesiąc", "Dni",
+        "Produkcja [kWh]", "Oddane [kWh]", "Pobrane [kWh]",
+        "Autokonsumpcja [kWh]", "Zużycie [kWh]", "Oszczędności [kWh]",
+        "Cena kWh [zł]", "Oszczędności [zł]", "Wartość produkcji [zł]",
+        "EV [kWh]", "Nr faktury", "Faktura brutto [zł]", "Notatki",
+    ])
+    for r in readings:
+        price = r.get("price_per_kwh") or default_price
+        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
+        writer.writerow([
+            r["period"], r["year"], r["month"], r.get("days", ""),
+            r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+            c["auto_consumption"], c["total_consumed"], c["savings_kwh"],
+            price, c["savings_pln"], c["production_value_pln"],
+            r.get("ev_kwh", ""), r.get("invoice_number", ""),
+            r.get("invoice_gross", ""), r.get("notes", ""),
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=odczyty-fv.csv"},
+    )
 
 
 @app.get("/odczyty/nowy", response_class=HTMLResponse)
