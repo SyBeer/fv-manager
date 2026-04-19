@@ -1,6 +1,6 @@
 name: "FV Manager"
 description: "Zarządzanie efektywnością kosztową fotowoltaiki — ROI, EV, import z Excela"
-version: "1.10.1"
+version: "1.10.2"
 slug: "fv-manager"
 init: false
 host_network: false
@@ -16,10 +16,5 @@ arch:
   - armv7
   - armhf
 
-options:
-  ha_token: ""
-  ha_entity: "sensor.ev_energy_total"
-
-schema:
-  ha_token: str?
-  ha_entity: str?
+options: {}
+schema: {}

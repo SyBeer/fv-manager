@@ -198,30 +198,19 @@
 
 <!-- Ustawienia HA -->
 <div class="card" style="max-width:560px;">
-  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">🏠 Home Assistant (opcjonalnie)</h2>
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;">🏠 Home Assistant</h2>
+  <p style="font-size:.82rem; color:#64748b; margin-bottom:1rem;">Połączenie używa wewnętrznego API Supervisora — nie wymaga tokenu ani adresu URL.</p>
   <form method="post" action="{{ rp }}/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
     <input type="hidden" name="efficiency_kwh_per_100km" value="{{ settings.efficiency_kwh_per_100km or 16 }}">
     <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
     <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
-    <div style="font-size:.8rem; color:#64748b; margin-bottom:.25rem; text-transform:uppercase; letter-spacing:.05em;">Połączenie</div>
     <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">URL Home Assistant</label>
-      <input type="text" name="ha_url" placeholder="http://homeassistant.local:8123" value="{{ settings.ha_url or '' }}">
-    </div>
-    <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Long-lived access token</label>
-      <input type="text" name="ha_token" placeholder="eyJ..." value="{{ settings.ha_token or '' }}">
-    </div>
-    <div style="border-top:1px solid #334155; padding-top:.75rem;">
-      <div style="font-size:.8rem; color:#64748b; margin-bottom:.5rem; text-transform:uppercase; letter-spacing:.05em;">Encje</div>
-    </div>
-    <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">☀️ Produkcja solarna (Statistics)</label>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">☀️ Encja produkcji solarnej</label>
       <input type="text" name="ha_solar_entity" placeholder="sensor.solaredge_energy_today" value="{{ settings.ha_solar_entity or '' }}">
-      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Encja z zakładki Energy → Solar Production. Musi mieć statystyki (sensor_type: total_increasing).</div>
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Encja z zakładki Energy → Solar Production (typ: total_increasing z włączonymi statystykami).</div>
     </div>
     <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">🚗 Licznik EV (narastający)</label>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">🚗 Encja licznika EV (narastający)</label>
       <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
     </div>
     <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">

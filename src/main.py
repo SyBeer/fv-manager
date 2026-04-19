@@ -5,6 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def _ha_conn() -> tuple[str, str]:
+    """Return (ha_url, ha_token) using Supervisor internals — no config needed."""
+    url = "http://supervisor/core"
+    token = os.getenv("SUPERVISOR_TOKEN", "")
+    return url, token
+
+
 def _default_price() -> float:
     raw = os.getenv("DEFAULT_PRICE_KWH", "0.75")
     try:
@@ -710,8 +717,6 @@ async def save_ev_settings(
     fuel_consumption_l_per_100km: float = Form(...),
     annual_km: float = Form(...),
     fuel_type: str = Form("PB95"),
-    ha_url: str = Form(None),
-    ha_token: str = Form(None),
     ha_entity: str = Form(None),
     ha_solar_entity: str = Form(None),
 ):
@@ -719,9 +724,9 @@ async def save_ev_settings(
     try:
         await db.execute(
             """UPDATE ev_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
-               annual_km=?, fuel_type=?, ha_url=?, ha_token=?, ha_entity=?, ha_solar_entity=? WHERE id=1""",
+               annual_km=?, fuel_type=?, ha_entity=?, ha_solar_entity=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
-             fuel_type, ha_url, ha_token, ha_entity, ha_solar_entity),
+             fuel_type, ha_entity, ha_solar_entity),
         )
         await db.commit()
     finally:
@@ -831,12 +836,11 @@ async def ha_fetch(period: str):
     finally:
         await db.close()
 
-    ha_url = (settings.get("ha_url") or os.getenv("HA_URL", "")).rstrip("/")
-    ha_token = settings.get("ha_token") or os.getenv("HA_TOKEN", "")
+    ha_url, ha_token = _ha_conn()
     ha_entity = settings.get("ha_entity") or os.getenv("HA_ENTITY", "")
 
-    if not all([ha_url, ha_token, ha_entity]):
-        return JSONResponse({"error": "Skonfiguruj HA w ustawieniach EV"}, status_code=400)
+    if not ha_entity:
+        return JSONResponse({"error": "Skonfiguruj encję EV w ustawieniach"}, status_code=400)
 
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -861,13 +865,8 @@ async def ha_test():
     finally:
         await db.close()
 
-    ha_url = (settings.get("ha_url") or os.getenv("HA_URL", "")).rstrip("/")
-    ha_token = settings.get("ha_token") or os.getenv("HA_TOKEN", "")
+    ha_url, ha_token = _ha_conn()
     ha_solar = settings.get("ha_solar_entity") or ""
-
-    if not all([ha_url, ha_token]):
-        return JSONResponse({"error": "Brak URL lub tokenu HA"}, status_code=400)
-
     headers = {"Authorization": f"Bearer {ha_token}"}
     try:
         async with httpx.AsyncClient(timeout=8) as client:
@@ -923,12 +922,11 @@ async def ha_solar_fetch(period: str):
     finally:
         await db.close()
 
-    ha_url = (settings.get("ha_url") or os.getenv("HA_URL", "")).rstrip("/")
-    ha_token = settings.get("ha_token") or os.getenv("HA_TOKEN", "")
+    ha_url, ha_token = _ha_conn()
     ha_solar = settings.get("ha_solar_entity") or ""
 
-    if not all([ha_url, ha_token, ha_solar]):
-        return JSONResponse({"error": "Skonfiguruj URL, token i encję Solar w ustawieniach HA"}, status_code=400)
+    if not ha_solar:
+        return JSONResponse({"error": "Skonfiguruj encję Solar w ustawieniach HA"}, status_code=400)
 
     try:
         year, month = int(period.split(".")[0]), int(period.split(".")[1])
