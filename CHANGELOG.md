@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.10.0] — 2026-04-19
+
+### Dodano
+- Przycisk "🔌 Test połączenia" w ustawieniach HA — sprawdza URL/token i pobiera ostatnią miesięczną wartość encji solarnej
+
+### Usunięto
+- `default_price_kwh` z konfiguracji add-ona HA (cena kWh ustawiana jest przy odczytach/fakturach)
+
 ## [1.9.0] — 2026-04-19
 
 ### Dodano

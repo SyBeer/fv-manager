@@ -843,6 +843,69 @@ async def ha_fetch(period: str):
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
+@app.get("/api/ha-test")
+async def ha_test():
+    """Test HA connection and return last monthly value for solar entity."""
+    import httpx
+    from datetime import date
+    db = await get_db()
+    try:
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+
+    ha_url = (settings.get("ha_url") or os.getenv("HA_URL", "")).rstrip("/")
+    ha_token = settings.get("ha_token") or os.getenv("HA_TOKEN", "")
+    ha_solar = settings.get("ha_solar_entity") or ""
+
+    if not all([ha_url, ha_token]):
+        return JSONResponse({"error": "Brak URL lub tokenu HA"}, status_code=400)
+
+    headers = {"Authorization": f"Bearer {ha_token}"}
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            # 1. Test connection
+            ping = await client.get(f"{ha_url}/api/", headers=headers)
+            if ping.status_code == 401:
+                return JSONResponse({"error": "Token nieprawidłowy (401 Unauthorized)"}, status_code=401)
+            if ping.status_code != 200:
+                return JSONResponse({"error": f"HA odpowiedział {ping.status_code}"}, status_code=502)
+
+            if not ha_solar:
+                return JSONResponse({"ok": True, "message": "Połączenie OK — brak skonfigurowanej encji solarnej"})
+
+            # 2. Fetch last 3 months of statistics to find latest non-null value
+            today = date.today()
+            start = f"{today.year - 1}-{today.month:02d}-01T00:00:00"
+            end = f"{today.year}-{today.month:02d}-28T23:59:59"
+            r = await client.post(
+                f"{ha_url}/api/recorder/statistics_during_period",
+                headers={**headers, "Content-Type": "application/json"},
+                json={
+                    "start_time": start,
+                    "end_time": end,
+                    "statistic_ids": [ha_solar],
+                    "period": "month",
+                    "types": ["change"],
+                },
+            )
+            data = r.json()
+            entries = data.get(ha_solar, [])
+            if not entries:
+                return JSONResponse({"ok": True, "message": f"Połączenie OK — brak danych statystyk dla {ha_solar}. Sprawdź nazwę encji."})
+
+            last = entries[-1]
+            return JSONResponse({
+                "ok": True,
+                "entity": ha_solar,
+                "last_period_start": last.get("start", "")[:7],
+                "production_kwh": round(float(last.get("change") or 0), 2),
+                "message": f"OK — ostatni odczyt: {round(float(last.get('change') or 0), 2)} kWh",
+            })
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
 @app.get("/api/ha-solar-fetch")
 async def ha_solar_fetch(period: str):
     """Fetch monthly solar production from HA statistics API."""

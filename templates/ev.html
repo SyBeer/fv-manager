@@ -224,7 +224,38 @@
       <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">🚗 Licznik EV (narastający)</label>
       <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
     </div>
-    <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">💾 Zapisz</button>
+    <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
+      <button type="submit" class="btn btn-primary" style="font-size:.85rem;">💾 Zapisz</button>
+      <button type="button" class="btn btn-ghost" style="font-size:.85rem;" onclick="testHA()">🔌 Test połączenia</button>
+    </div>
+    <div id="ha-test-result" style="display:none; margin-top:.75rem; padding:.6rem .9rem; border-radius:6px; font-size:.85rem;"></div>
   </form>
 </div>
+
+<script>
+async function testHA() {
+  const el = document.getElementById('ha-test-result');
+  el.style.display = 'block';
+  el.style.background = '#0f172a';
+  el.style.color = '#94a3b8';
+  el.textContent = '⏳ Testowanie połączenia...';
+  try {
+    const r = await fetch('{{ rp }}/api/ha-test');
+    const d = await r.json();
+    if (d.error) {
+      el.style.background = '#450a0a';
+      el.style.color = '#fca5a5';
+      el.textContent = '❌ ' + d.error;
+    } else {
+      el.style.background = '#166534';
+      el.style.color = '#86efac';
+      el.textContent = '✅ ' + d.message + (d.last_period_start ? ' (okres: ' + d.last_period_start + ')' : '');
+    }
+  } catch(e) {
+    el.style.background = '#450a0a';
+    el.style.color = '#fca5a5';
+    el.textContent = '❌ Błąd połączenia: ' + e.message;
+  }
+}
+</script>
 {% endblock %}
