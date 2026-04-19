@@ -846,14 +846,24 @@ async def _ha_fetch_history(entity: str, year: int, month: int) -> tuple[float |
     """Fetch history for entity in given month. Returns (delta_kwh, error_msg)."""
     import httpx, calendar
     ha_url, ha_token = _ha_conn()
+    headers = {"Authorization": f"Bearer {ha_token}"}
     last_day = calendar.monthrange(year, month)[1]
     start = f"{year}-{month:02d}-01T00:00:00+00:00"
     end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
     try:
         async with httpx.AsyncClient(timeout=15) as client:
+            # Fetch unit from current state
+            unit = "kWh"
+            state_r = await client.get(f"{ha_url}/api/states/{entity}", headers=headers)
+            if state_r.status_code == 200:
+                try:
+                    unit = state_r.json().get("attributes", {}).get("unit_of_measurement", "kWh")
+                except Exception:
+                    pass
+
             r = await client.get(
                 f"{ha_url}/api/history/period/{start}",
-                headers={"Authorization": f"Bearer {ha_token}"},
+                headers=headers,
                 params={"filter_entity_id": entity, "end_time": end,
                         "minimal_response": "true", "significant_changes_only": "false"},
             )
@@ -870,6 +880,8 @@ async def _ha_fetch_history(entity: str, year: int, month: int) -> tuple[float |
         delta = _ha_history_delta(data[0])
         if delta is None:
             return None, f"Za mało punktów danych dla {entity}"
+        if unit == "Wh":
+            delta /= 1000.0
         return delta, ""
     except Exception as e:
         return None, str(e)
