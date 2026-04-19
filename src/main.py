@@ -5,6 +5,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def _default_price() -> float:
+    raw = os.getenv("DEFAULT_PRICE_KWH", "0.75")
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        return 0.75
+
 import aiosqlite
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
@@ -101,7 +108,7 @@ def _ev_enrich(
     if not fuel_prices:
         return readings
     prices_desc = sorted(fuel_prices, key=lambda p: p["date"], reverse=True)
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    default_price = _default_price()
 
     def _fuel_price_for(period: str) -> float | None:
         year, month = period.split(".")
@@ -176,7 +183,7 @@ async def dashboard(request: Request):
     total_investment = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total_investment) if readings and total_investment > 0 else None
 
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    default_price = _default_price()
     enriched = []
     for r in readings:
         price = r.get("price_per_kwh") or default_price
@@ -199,7 +206,7 @@ async def readings_list(request: Request):
     finally:
         await db.close()
 
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    default_price = _default_price()
     enriched = []
     for r in readings:
         price = r.get("price_per_kwh") or default_price
@@ -218,7 +225,7 @@ async def export_readings_csv():
     finally:
         await db.close()
 
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    default_price = _default_price()
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
@@ -486,7 +493,7 @@ async def roi_page(request: Request):
     monthly_savings = []
     cumulative_fv = 0.0
     cumulative_ev = 0.0
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    default_price = _default_price()
     for r in readings:
         c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh") or default_price)
         cumulative_fv += c["savings_pln"] or 0
@@ -630,7 +637,7 @@ async def ev_page(request: Request):
         by_period.setdefault(e["period"], []).append(e)
 
     prices_desc = sorted(all_fuel_prices, key=lambda p: p["date"], reverse=True)
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    default_price = _default_price()
 
     monthly_ev = []
     total_ev_savings = 0.0
