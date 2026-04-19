@@ -8,25 +8,29 @@
   <form id="edit-form" method="post" action="{% if reading %}{{ rp }}/odczyty/{{ reading.id }}/edytuj{% else %}{{ rp }}/odczyty/nowy{% endif %}">
     <div class="card" style="display:flex; flex-direction:column; gap:1rem;">
 
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
-        <div>
-          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Okres (RRRR.MM)</label>
-          <input type="text" name="period" placeholder="2026.04" value="{{ reading.period if reading else '' }}" required pattern="\d{4}\.\d{2}">
-        </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Rok</label>
-          <input type="number" name="year" value="{{ reading.year if reading else '' }}" required min="2000" max="2100">
+          <select name="year" id="sel-year" required onchange="updatePeriod()">
+            {% set cur_year = reading.year if reading else 2026 %}
+            {% for y in range(2020, 2031) %}
+            <option value="{{ y }}" {% if y == cur_year %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
         </div>
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Miesiąc</label>
-          <input type="number" name="month" value="{{ reading.month if reading else '' }}" required min="1" max="12">
+          <select name="month" id="sel-month" required onchange="updatePeriod()">
+            {% set cur_month = reading.month if reading else 1 %}
+            {% set months = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'] %}
+            {% for i in range(1, 13) %}
+            <option value="{{ i }}" {% if i == cur_month %}selected{% endif %}>{{ '%02d' % i }} — {{ months[i-1] }}</option>
+            {% endfor %}
+          </select>
         </div>
       </div>
-
-      <div>
-        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Liczba dni w okresie</label>
-        <input type="number" name="days" value="{{ reading.days if reading else '' }}" min="1" max="31">
-      </div>
+      <input type="hidden" name="period" id="period-hidden" value="{{ reading.period if reading else '2026.01' }}">
+      <input type="hidden" name="days" id="days-hidden" value="{{ reading.days if reading else '' }}">
 
       <div style="border-top:1px solid #334155; padding-top:1rem;">
         <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Energia [kWh]</div>
@@ -140,6 +144,18 @@
 {% endif %}
 
 <script>
+function daysInMonth(year, month) {
+  return new Date(year, month, 0).getDate();
+}
+function updatePeriod() {
+  const y = document.getElementById('sel-year').value;
+  const m = parseInt(document.getElementById('sel-month').value);
+  document.getElementById('period-hidden').value = y + '.' + String(m).padStart(2, '0');
+  document.getElementById('days-hidden').value = daysInMonth(parseInt(y), m);
+}
+// Init on load
+updatePeriod();
+
 {% if reading %}
 async function showRoiPreview() {
   const form = document.getElementById('edit-form');
