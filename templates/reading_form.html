@@ -67,15 +67,23 @@
         {% if vehicles %}
           {% for v in vehicles %}
           <div style="margin-bottom:.75rem;">
-            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#93c5fd;">🚗 {{ v.name }} [kWh]</label>
-            <input type="number" name="ev_v_{{ v.id }}" step="0.01"
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+              <label style="font-size:.85rem; color:#93c5fd;">🚗 {{ v.name }} [kWh]</label>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchTesla('ev_v_{{ v.id }}', 'tesla-ev-status-{{ v.id }}')">⚡ Tesla</button>
+              <span id="tesla-ev-status-{{ v.id }}" style="font-size:.72rem; color:#64748b;"></span>
+            </div>
+            <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
               value="{{ ev_rows[v.id] if ev_rows is defined and v.id in ev_rows else '' }}"
               placeholder="np. 80.0">
           </div>
           {% endfor %}
         {% else %}
         <div>
-          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#93c5fd;">🚗 kWh zużyte przez auta</label>
+          <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+            <label style="font-size:.85rem; color:#93c5fd;">🚗 kWh zużyte przez auta</label>
+            <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchTesla('ev_kwh', 'tesla-ev-status-legacy')">⚡ Tesla</button>
+            <span id="tesla-ev-status-legacy" style="font-size:.72rem; color:#64748b;"></span>
+          </div>
           <input type="number" name="ev_kwh" id="ev_kwh" step="0.01" value="{{ reading.ev_kwh if reading else '' }}" placeholder="np. 120.5">
           <div style="font-size:.75rem; color:#475569; margin-top:.3rem;">Dodaj pojazdy w module EV aby śledzić każde auto osobno.</div>
         </div>
@@ -206,6 +214,20 @@ function fetchSolar() {
       document.getElementById('solar-status').textContent = '✅ ' + d.production_kwh + ' kWh';
     })
     .catch(() => document.getElementById('solar-status').textContent = '❌ Błąd połączenia');
+}
+
+function fetchTesla(fieldId, statusId) {
+  const period = document.getElementById('period-hidden').value;
+  if (!period) { alert('Najpierw wybierz rok i miesiąc.'); return; }
+  document.getElementById(statusId).textContent = '⏳';
+  fetch('{{ rp }}/api/tesla-charging-fetch?period=' + period)
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { document.getElementById(statusId).textContent = '❌ ' + d.error; return; }
+      document.getElementById(fieldId).value = d.kwh;
+      document.getElementById(statusId).textContent = '✅ ' + d.kwh + ' kWh';
+    })
+    .catch(() => document.getElementById(statusId).textContent = '❌ Błąd połączenia');
 }
 
 function fetchGrid(direction, fieldId, statusId) {

@@ -95,6 +95,9 @@ async def init_db() -> None:
             ("ha_solar_entity", "TEXT"),
             ("ha_grid_consumed_entity", "TEXT"),
             ("ha_grid_returned_entity", "TEXT"),
+            ("tesla_access_token", "TEXT"),
+            ("tesla_site_id", "TEXT"),
+            ("tesla_api_base", "TEXT"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE ev_settings ADD COLUMN {col} {definition}")

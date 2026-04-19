@@ -720,15 +720,21 @@ async def save_ev_settings(
     ha_solar_entity: str = Form(None),
     ha_grid_consumed_entity: str = Form(None),
     ha_grid_returned_entity: str = Form(None),
+    tesla_access_token: str = Form(None),
+    tesla_site_id: str = Form(None),
+    tesla_api_base: str = Form("https://fleet-api.prd.eu.vn.cloud.tesla.com"),
 ):
     db = await get_db()
     try:
         await db.execute(
             """UPDATE ev_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
                annual_km=?, fuel_type=?, ha_solar_entity=?,
-               ha_grid_consumed_entity=?, ha_grid_returned_entity=? WHERE id=1""",
+               ha_grid_consumed_entity=?, ha_grid_returned_entity=?,
+               tesla_access_token=?, tesla_site_id=?, tesla_api_base=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
-             fuel_type, ha_solar_entity, ha_grid_consumed_entity, ha_grid_returned_entity),
+             fuel_type, ha_solar_entity, ha_grid_consumed_entity, ha_grid_returned_entity,
+             tesla_access_token or None, tesla_site_id or None,
+             tesla_api_base or "https://fleet-api.prd.eu.vn.cloud.tesla.com"),
         )
         await db.commit()
     finally:
@@ -909,6 +915,36 @@ async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | 
         return None, str(e)
 
 
+async def _tesla_fetch_charging(token: str, site_id: str, api_base: str, year: int, month: int) -> tuple[float | None, str]:
+    import httpx, calendar
+    last_day = calendar.monthrange(year, month)[1]
+    start = f"{year}-{month:02d}-01"
+    end = f"{year}-{month:02d}-{last_day}"
+    url = f"{api_base}/api/1/energy_sites/{site_id}/telemetry_history"
+    params = {"kind": "charge", "start_date": start, "end_date": end, "time_zone": "Europe/Warsaw"}
+    headers = {"Authorization": f"Bearer {token}"}
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get(url, headers=headers, params=params)
+        if r.status_code == 401:
+            return None, "Brak autoryzacji (401) — sprawdź token Tesla"
+        if r.status_code != 200:
+            return None, f"Tesla API: {r.status_code} — {r.text[:300]}"
+        try:
+            data = r.json()
+        except Exception as e:
+            return None, f"Nieprawidłowy JSON: {e} | {r.text[:200]}"
+        response = data.get("response", {})
+        time_series = response.get("time_series", [])
+        total_kwh = 0.0
+        for entry in time_series:
+            total_kwh += float(entry.get("charge_energy_added", 0) or 0)
+        if not time_series:
+            return None, f"Brak danych Tesla za {year}-{month:02d}. Surowa odpowiedź: {str(data)[:300]}"
+        return round(total_kwh, 3), ""
+    except Exception as e:
+        return None, str(e)
+
 
 @app.get("/api/ha-test")
 async def ha_test():
@@ -1067,3 +1103,63 @@ async def api_summary():
     roi = calc_roi(readings, total) if readings and total > 0 else {}
     last = readings[-1] if readings else {}
     return JSONResponse({**roi, "last_period": last.get("period"), "last_production_kwh": last.get("production_kwh")})
+
+
+@app.get("/api/tesla-sites")
+async def tesla_sites():
+    """Discover Tesla energy sites for the configured access token."""
+    import httpx
+    db = await get_db()
+    try:
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+
+    token = (settings.get("tesla_access_token") or "").strip()
+    api_base = (settings.get("tesla_api_base") or "https://fleet-api.prd.eu.vn.cloud.tesla.com").strip()
+    if not token:
+        return JSONResponse({"error": "Brak tokenu Tesla — zapisz go najpierw w ustawieniach."})
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(f"{api_base}/api/1/products", headers={"Authorization": f"Bearer {token}"})
+        if r.status_code == 401:
+            return JSONResponse({"error": "Brak autoryzacji (401) — sprawdź token Tesla"})
+        if r.status_code != 200:
+            return JSONResponse({"error": f"Tesla API: {r.status_code} — {r.text[:200]}"})
+        products = r.json().get("response", [])
+        sites = [
+            {"id": str(p.get("energy_site_id") or p.get("id")), "name": p.get("site_name") or p.get("display_name") or "—"}
+            for p in products
+            if p.get("energy_site_id") or p.get("resource_type") == "battery"
+        ]
+        return JSONResponse({"sites": sites})
+    except Exception as e:
+        return JSONResponse({"error": str(e)})
+
+
+@app.get("/api/tesla-charging-fetch")
+async def tesla_charging_fetch(period: str):
+    """Fetch monthly EV charging kWh from Tesla Fleet API."""
+    db = await get_db()
+    try:
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+
+    token = (settings.get("tesla_access_token") or "").strip()
+    site_id = (settings.get("tesla_site_id") or "").strip()
+    api_base = (settings.get("tesla_api_base") or "https://fleet-api.prd.eu.vn.cloud.tesla.com").strip()
+
+    if not token:
+        return JSONResponse({"error": "Brak tokenu Tesla — skonfiguruj w Ustawieniach EV."})
+    if not site_id:
+        return JSONResponse({"error": "Brak site_id Tesla — użyj przycisku 'Wykryj' w Ustawieniach EV."})
+    try:
+        year, month = int(period[:4]), int(period[5:])
+    except (ValueError, IndexError):
+        return JSONResponse({"error": f"Nieprawidłowy format okresu: {period}"})
+
+    kwh, err = await _tesla_fetch_charging(token, site_id, api_base, year, month)
+    if err:
+        return JSONResponse({"error": err})
+    return JSONResponse({"kwh": kwh})
