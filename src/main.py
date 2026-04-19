@@ -413,7 +413,8 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
     import csv, io
     rp = request.scope.get("root_path", "")
     content = (await file.read()).decode("utf-8-sig")
-    reader = csv.DictReader(io.StringIO(content), delimiter=";")
+    delimiter = ";" if ";" in content.split("\n")[0] else ","
+    reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
     db = await get_db()
     imported = skipped = 0
     try:
