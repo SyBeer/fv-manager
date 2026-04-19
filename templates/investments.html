@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Inwestycje — FV Manager{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+{% endblock %}
 {% block content %}
 <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">Inwestycje</h1>
 
@@ -35,7 +41,8 @@
       <td>{{ inv.description }}</td>
       <td style="color:#94a3b8;">{% if inv.power_kwp %}{{ inv.power_kwp }} kWp{% else %}—{% endif %}</td>
       <td style="color:#fbbf24; font-weight:600;">{{ inv.cost_pln|fmtn }} zł</td>
-      <td>
+      <td style="white-space:nowrap;">
+        <a href="{{ rp }}/inwestycje/{{ inv.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
         <form method="post" action="{{ rp }}/inwestycje/{{ inv.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć tę inwestycję?')">
           <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;">🗑️</button>
         </form>
@@ -54,7 +61,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
       <div>
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Data</label>
-        <input type="date" name="date" required>
+        <input type="text" name="date" id="date-new" placeholder="RRRR-MM-DD" required autocomplete="off">
       </div>
       <div>
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Koszt [zł brutto]</label>
@@ -78,4 +85,13 @@
     <button type="submit" class="btn btn-primary" style="align-self:flex-start;">💾 Dodaj</button>
   </form>
 </div>
+
+<script>
+flatpickr("#date-new", {
+  locale: "pl",
+  dateFormat: "Y-m-d",
+  allowInput: true,
+  disableMobile: true,
+});
+</script>
 {% endblock %}

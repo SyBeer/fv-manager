@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Edytuj inwestycję — FV Manager{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+{% endblock %}
+{% block content %}
+<div style="max-width:560px;">
+  <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+    <a href="{{ rp }}/inwestycje" class="btn btn-ghost" style="font-size:.85rem;">← Wróć</a>
+    <h1 style="font-size:1.5rem; font-weight:700;">Edytuj inwestycję</h1>
+  </div>
+
+  <div class="card">
+    <form method="post" action="{{ rp }}/inwestycje/{{ inv.id }}/edytuj" style="display:flex; flex-direction:column; gap:1rem;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Data</label>
+          <input type="text" name="date" id="date-edit" value="{{ inv.date }}" required autocomplete="off">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Koszt [zł brutto]</label>
+          <input type="number" name="cost_pln" step="0.01" value="{{ inv.cost_pln }}" required>
+        </div>
+      </div>
+      <div>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Opis</label>
+        <input type="text" name="description" value="{{ inv.description }}" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Moc [kWp] (opcjonalnie)</label>
+          <input type="number" name="power_kwp" step="0.01" value="{{ inv.power_kwp or '' }}">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Notatki</label>
+          <input type="text" name="notes" value="{{ inv.notes or '' }}">
+        </div>
+      </div>
+      <div style="display:flex; gap:.75rem;">
+        <button type="submit" class="btn btn-primary">💾 Zapisz</button>
+        <a href="{{ rp }}/inwestycje" class="btn btn-ghost">Anuluj</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+flatpickr("#date-edit", {
+  locale: "pl",
+  dateFormat: "Y-m-d",
+  allowInput: true,
+  disableMobile: true,
+});
+</script>
+{% endblock %}

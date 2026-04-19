@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.0] — 2026-04-19
+
+### Dodano
+- Edycja istniejących inwestycji (przycisk ✏️ w tabeli)
+- Flatpickr jako picker daty — dropdown roku/miesiąca, obsługa wpisywania ręcznego
+
+### Naprawiono
+- Czyszczenie bazy usuwa tylko odczyty (nie inwestycje ani ceny paliw)
+
 ## [1.5.0] — 2026-04-19
 
 ### Zmieniono

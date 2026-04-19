@@ -287,6 +287,42 @@ async def create_investment(
     return RedirectResponse(f"{rp}/inwestycje", status_code=303)
 
 
+@app.get("/inwestycje/{inv_id}/edytuj", response_class=HTMLResponse)
+async def edit_investment_form(request: Request, inv_id: int):
+    db = await get_db()
+    try:
+        cur = await db.execute("SELECT * FROM investments WHERE id=?", (inv_id,))
+        inv = await cur.fetchone()
+    finally:
+        await db.close()
+    if not inv:
+        return RedirectResponse(request.scope.get("root_path", "") + "/inwestycje", status_code=303)
+    return _t(request, "investment_form.html", {"inv": dict(inv)})
+
+
+@app.post("/inwestycje/{inv_id}/edytuj")
+async def update_investment(
+    request: Request,
+    inv_id: int,
+    date: str = Form(...),
+    description: str = Form(...),
+    cost_pln: float = Form(...),
+    power_kwp: float | None = Form(None),
+    notes: str | None = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE investments SET date=?, description=?, cost_pln=?, power_kwp=?, notes=? WHERE id=?",
+            (date, description, cost_pln, power_kwp or None, notes or None, inv_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/inwestycje", status_code=303)
+
+
 @app.post("/inwestycje/{inv_id}/usun")
 async def delete_investment(request: Request, inv_id: int):
     db = await get_db()
@@ -410,7 +446,7 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
 async def clear_db(request: Request):
     db = await get_db()
     try:
-        await db.executescript("DELETE FROM readings; DELETE FROM investments; DELETE FROM fuel_prices;")
+        await db.execute("DELETE FROM readings")
         await db.commit()
     finally:
         await db.close()

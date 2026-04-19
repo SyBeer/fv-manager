@@ -29,6 +29,7 @@
   .stat-value { font-size: 1.8rem; font-weight: 700; }
   .stat-label { font-size: .8rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
 </style>
+{% block head %}{% endblock %}
 </head>
 <body>
 {% set rp = request.scope.get("root_path", "") %}
