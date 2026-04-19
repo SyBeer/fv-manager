@@ -15,7 +15,7 @@
   .btn-green { background: #22c55e; color: #0f172a; }
   .btn-red { background: #ef4444; color: white; }
   .btn-ghost { background: #334155; color: #e2e8f0; }
-  .nav-link { padding: .5rem .75rem; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: .9rem; }
+  .nav-link { padding: .5rem .75rem; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: .9rem; display:block; }
   .nav-link:hover, .nav-link.active { background: #334155; color: #f1f5f9; }
   input, select, textarea { background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: .5rem .75rem; color: #e2e8f0; width: 100%; }
   input:focus, select:focus { outline: none; border-color: #f59e0b; }
@@ -28,28 +28,115 @@
   tr:hover td { background: #1e293b; }
   .stat-value { font-size: 1.8rem; font-weight: 700; }
   .stat-label { font-size: .8rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
+
+  /* Sidebar */
+  #sidebar { width: 220px; background: #1e293b; border-right: 1px solid #334155; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: .25rem; transition: width .2s, padding .2s; overflow: hidden; position: relative; }
+  #sidebar.collapsed { width: 56px; padding: 1rem .5rem; }
+  #sidebar.collapsed .nav-text { display: none; }
+  #sidebar.collapsed .nav-link { justify-content: center; padding: .5rem; font-size: 1.1rem; }
+  #sidebar.collapsed #sidebar-title { display: none; }
+  #sidebar.collapsed #sidebar-version { display: none; }
+  #sidebar-toggle { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; padding: .25rem .5rem; border-radius: 6px; line-height: 1; }
+  #sidebar-toggle:hover { background: #334155; color: #f1f5f9; }
+  .nav-link { display: flex; align-items: center; gap: .6rem; }
+  .nav-icon { flex-shrink: 0; }
+
+  /* Mobile: sidebar overlay */
+  @media (max-width: 640px) {
+    #sidebar { position: fixed; top: 0; left: 0; height: 100vh; z-index: 50; transform: translateX(0); transition: transform .2s; }
+    #sidebar.collapsed { transform: translateX(-100%); width: 220px; padding: 1.5rem 1rem; }
+    #sidebar.collapsed .nav-text { display: inline; }
+    #sidebar.collapsed .nav-link { justify-content: flex-start; padding: .5rem .75rem; font-size: .9rem; }
+    #sidebar.collapsed #sidebar-title { display: block; }
+    #sidebar.collapsed #sidebar-version { display: block; }
+    #mobile-toggle { display: flex; }
+    #main-content { padding: 1rem; }
+  }
+  @media (min-width: 641px) {
+    #mobile-toggle { display: none; }
+  }
+  #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; }
+  #sidebar-overlay.visible { display: block; }
 </style>
 {% block head %}{% endblock %}
 </head>
 <body>
 {% set rp = request.scope.get("root_path", "") %}
+
+<!-- Mobile top bar -->
+<div id="mobile-toggle" style="display:none; align-items:center; gap:.75rem; background:#1e293b; border-bottom:1px solid #334155; padding:.75rem 1rem; position:sticky; top:0; z-index:30;">
+  <button onclick="toggleSidebar()" style="background:none; border:none; color:#f59e0b; font-size:1.4rem; cursor:pointer; line-height:1;">☰</button>
+  <span style="font-size:1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</span>
+</div>
+
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <div style="display:flex; min-height:100vh;">
   <!-- Sidebar -->
-  <nav style="width:220px; background:#1e293b; border-right:1px solid #334155; padding:1.5rem 1rem; flex-shrink:0; display:flex; flex-direction:column; gap:.25rem;">
-    <div style="font-size:1.1rem; font-weight:700; color:#f59e0b; margin-bottom:1.25rem; padding-left:.5rem;">
-      ☀️ FV Manager
+  <nav id="sidebar">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; padding-left:.25rem;">
+      <div id="sidebar-title" style="font-size:1.1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</div>
+      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Zwiń menu">◀</button>
     </div>
-    <a href="{{ rp }}/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">📊 Dashboard</a>
-    <a href="{{ rp }}/roi" class="nav-link {% if request.url.path == '/roi' %}active{% endif %}">💰 ROI</a>
-    <a href="{{ rp }}/odczyty" class="nav-link {% if '/odczyty' in request.url.path %}active{% endif %}">📋 Odczyty</a>
-    <a href="{{ rp }}/inwestycje" class="nav-link {% if '/inwestycje' in request.url.path %}active{% endif %}">🏗️ Inwestycje</a>
-    <a href="{{ rp }}/ev" class="nav-link {% if request.url.path == '/ev' %}active{% endif %}">🚗 EV</a>
-    <a href="{{ rp }}/import" class="nav-link {% if request.url.path == '/import' %}active{% endif %}">📥 Import</a>
+
+    <a href="{{ rp }}/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
+      <span class="nav-icon">📊</span><span class="nav-text">Dashboard</span>
+    </a>
+    <a href="{{ rp }}/roi" class="nav-link {% if request.url.path == '/roi' %}active{% endif %}">
+      <span class="nav-icon">💰</span><span class="nav-text">ROI</span>
+    </a>
+    <a href="{{ rp }}/odczyty" class="nav-link {% if '/odczyty' in request.url.path %}active{% endif %}">
+      <span class="nav-icon">📋</span><span class="nav-text">Odczyty</span>
+    </a>
+    <a href="{{ rp }}/inwestycje" class="nav-link {% if '/inwestycje' in request.url.path %}active{% endif %}">
+      <span class="nav-icon">🏗️</span><span class="nav-text">Inwestycje</span>
+    </a>
+    <a href="{{ rp }}/ev" class="nav-link {% if request.url.path == '/ev' %}active{% endif %}">
+      <span class="nav-icon">🚗</span><span class="nav-text">EV</span>
+    </a>
+    <a href="{{ rp }}/import" class="nav-link {% if request.url.path == '/import' %}active{% endif %}">
+      <span class="nav-icon">📥</span><span class="nav-text">Import</span>
+    </a>
+
+    <!-- Spacer -->
+    <div style="flex:1;"></div>
+
+    <!-- Version -->
+    <div id="sidebar-version" style="font-size:.7rem; color:#475569; padding:.5rem .25rem; border-top:1px solid #334155; margin-top:.5rem;">
+      v1.11.7
+    </div>
   </nav>
+
   <!-- Content -->
-  <main style="flex:1; padding:2rem; overflow:auto;">
+  <main id="main-content" style="flex:1; padding:2rem; overflow:auto; min-width:0;">
     {% block content %}{% endblock %}
   </main>
 </div>
+
+<script>
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebar-toggle');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isMobile = () => window.innerWidth <= 640;
+
+  const saved = localStorage.getItem('sidebar-collapsed');
+  if (saved === 'true' && !isMobile()) {
+    sidebar.classList.add('collapsed');
+    toggle.textContent = '▶';
+  }
+
+  window.toggleSidebar = function() {
+    sidebar.classList.toggle('collapsed');
+    const collapsed = sidebar.classList.contains('collapsed');
+    if (isMobile()) {
+      overlay.classList.toggle('visible', collapsed);
+    } else {
+      toggle.textContent = collapsed ? '▶' : '◀';
+      localStorage.setItem('sidebar-collapsed', collapsed);
+    }
+  };
+})();
+</script>
 </body>
 </html>
