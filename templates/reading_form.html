@@ -44,12 +44,20 @@
             <input type="number" name="production_kwh" id="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
           </div>
           <div>
-            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
-            <input type="number" name="sent_to_grid_kwh" step="0.001" value="{{ reading.sent_to_grid_kwh if reading else '' }}" required>
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+              <label style="font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('returned','sent_to_grid_kwh','grid-returned-status')">🏠 HA</button>
+              <span id="grid-returned-status" style="font-size:.72rem; color:#64748b;"></span>
+            </div>
+            <input type="number" name="sent_to_grid_kwh" id="sent_to_grid_kwh" step="0.001" value="{{ reading.sent_to_grid_kwh if reading else '' }}" required>
           </div>
           <div>
-            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569;">(1.8.0)</span></label>
-            <input type="number" name="taken_from_grid_kwh" step="0.001" value="{{ reading.taken_from_grid_kwh if reading else '' }}" required>
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+              <label style="font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569;">(1.8.0)</span></label>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('consumed','taken_from_grid_kwh','grid-consumed-status')">🏠 HA</button>
+              <span id="grid-consumed-status" style="font-size:.72rem; color:#64748b;"></span>
+            </div>
+            <input type="number" name="taken_from_grid_kwh" id="taken_from_grid_kwh" step="0.001" value="{{ reading.taken_from_grid_kwh if reading else '' }}" required>
           </div>
         </div>
       </div>
@@ -66,10 +74,6 @@
           </div>
           {% endfor %}
         {% else %}
-        <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.75rem;">
-          <button type="button" id="ha-fetch-btn" class="btn btn-ghost" style="font-size:.75rem; padding:.25rem .6rem;" onclick="fetchFromHA()">🏠 Pobierz z HA</button>
-          <span id="ha-status" style="font-size:.75rem; color:#64748b;"></span>
-        </div>
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#93c5fd;">🚗 kWh zużyte przez auta</label>
           <input type="number" name="ev_kwh" id="ev_kwh" step="0.01" value="{{ reading.ev_kwh if reading else '' }}" placeholder="np. 120.5">
@@ -204,18 +208,18 @@ function fetchSolar() {
     .catch(() => document.getElementById('solar-status').textContent = '❌ Błąd połączenia');
 }
 
-function fetchFromHA() {
-  const period = document.querySelector('[name="period"]').value;
-  if (!period) { alert('Najpierw wpisz okres.'); return; }
-  document.getElementById('ha-status').textContent = '⏳ Pobieranie...';
-  fetch('{{ rp }}/ev/ha-fetch?period=' + period)
+function fetchGrid(direction, fieldId, statusId) {
+  const period = document.getElementById('period-hidden').value;
+  if (!period) { alert('Najpierw wybierz rok i miesiąc.'); return; }
+  document.getElementById(statusId).textContent = '⏳';
+  fetch('{{ rp }}/api/ha-grid-fetch?period=' + period + '&direction=' + direction)
     .then(r => r.json())
     .then(d => {
-      if (d.error) { document.getElementById('ha-status').textContent = '❌ ' + d.error; return; }
-      document.getElementById('ev_kwh').value = parseFloat(d.state).toFixed(2);
-      document.getElementById('ha-status').textContent = '✅ ' + d.state + ' ' + (d.unit || 'kWh');
+      if (d.error) { document.getElementById(statusId).textContent = '❌ ' + d.error; return; }
+      document.getElementById(fieldId).value = d.kwh;
+      document.getElementById(statusId).textContent = '✅ ' + d.kwh + ' kWh';
     })
-    .catch(() => document.getElementById('ha-status').textContent = '❌ Błąd połączenia');
+    .catch(() => document.getElementById(statusId).textContent = '❌ Błąd');
 }
 </script>
 {% endblock %}

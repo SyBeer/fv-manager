@@ -717,16 +717,18 @@ async def save_ev_settings(
     fuel_consumption_l_per_100km: float = Form(...),
     annual_km: float = Form(...),
     fuel_type: str = Form("PB95"),
-    ha_entity: str = Form(None),
     ha_solar_entity: str = Form(None),
+    ha_grid_consumed_entity: str = Form(None),
+    ha_grid_returned_entity: str = Form(None),
 ):
     db = await get_db()
     try:
         await db.execute(
             """UPDATE ev_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
-               annual_km=?, fuel_type=?, ha_entity=?, ha_solar_entity=? WHERE id=1""",
+               annual_km=?, fuel_type=?, ha_solar_entity=?,
+               ha_grid_consumed_entity=?, ha_grid_returned_entity=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
-             fuel_type, ha_entity, ha_solar_entity),
+             fuel_type, ha_solar_entity, ha_grid_consumed_entity, ha_grid_returned_entity),
         )
         await db.commit()
     finally:
@@ -826,33 +828,6 @@ async def delete_fuel_price(request: Request, price_id: int):
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
-@app.get("/ev/ha-fetch")
-async def ha_fetch(period: str):
-    """Pull EV kWh from Home Assistant entity for given period."""
-    import httpx
-    db = await get_db()
-    try:
-        settings = await _get_ev_settings(db)
-    finally:
-        await db.close()
-
-    ha_url, ha_token = _ha_conn()
-    ha_entity = settings.get("ha_entity") or os.getenv("HA_ENTITY", "")
-
-    if not ha_entity:
-        return JSONResponse({"error": "Skonfiguruj encję EV w ustawieniach"}, status_code=400)
-
-    try:
-        async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.get(
-                f"{ha_url}/api/states/{ha_entity}",
-                headers={"Authorization": f"Bearer {ha_token}"},
-            )
-        data = r.json()
-        return JSONResponse({"state": data.get("state"), "unit": data.get("attributes", {}).get("unit_of_measurement")})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
 
 @app.get("/api/ha-test")
 async def ha_test():
@@ -908,6 +883,46 @@ async def ha_test():
                 "production_kwh": round(float(last.get("change") or 0), 2),
                 "message": f"OK — ostatni odczyt: {round(float(last.get('change') or 0), 2)} kWh",
             })
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/ha-grid-fetch")
+async def ha_grid_fetch(period: str, direction: str = "consumed"):
+    """Fetch monthly grid energy from HA statistics. direction: consumed|returned."""
+    import httpx, calendar
+    db = await get_db()
+    try:
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+
+    entity = settings.get(f"ha_grid_{direction}_entity") or ""
+    if not entity:
+        return JSONResponse({"error": f"Skonfiguruj encję grid_{direction} w ustawieniach HA"}, status_code=400)
+
+    ha_url, ha_token = _ha_conn()
+    try:
+        year, month = int(period.split(".")[0]), int(period.split(".")[1])
+        last_day = calendar.monthrange(year, month)[1]
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(
+                f"{ha_url}/api/recorder/statistics_during_period",
+                headers={"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"},
+                json={
+                    "start_time": f"{year}-{month:02d}-01T00:00:00",
+                    "end_time": f"{year}-{month:02d}-{last_day}T23:59:59",
+                    "statistic_ids": [entity],
+                    "period": "month",
+                    "types": ["change"],
+                },
+            )
+        data = r.json()
+        entries = data.get(entity, [])
+        if not entries:
+            return JSONResponse({"error": f"Brak danych dla {entity} w {period}"}, status_code=404)
+        change = entries[0].get("change")
+        return JSONResponse({"kwh": round(float(change), 3), "entity": entity})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 

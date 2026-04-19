@@ -93,6 +93,8 @@ async def init_db() -> None:
 
         for col, definition in [
             ("ha_solar_entity", "TEXT"),
+            ("ha_grid_consumed_entity", "TEXT"),
+            ("ha_grid_returned_entity", "TEXT"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE ev_settings ADD COLUMN {col} {definition}")

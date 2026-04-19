@@ -205,13 +205,19 @@
     <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
     <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
     <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">☀️ Encja produkcji solarnej</label>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">☀️ Produkcja solarna</label>
       <input type="text" name="ha_solar_entity" placeholder="sensor.solaredge_energy_today" value="{{ settings.ha_solar_entity or '' }}">
-      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Encja z zakładki Energy → Solar Production (typ: total_increasing z włączonymi statystykami).</div>
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Solar Production (total_increasing).</div>
     </div>
     <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">🚗 Encja licznika EV (narastający)</label>
-      <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">⬇️ Pobrane z sieci (Total forward active energy)</label>
+      <input type="text" name="ha_grid_consumed_entity" placeholder="sensor.zamel_mew01_total_forward_active_energy" value="{{ settings.ha_grid_consumed_entity or '' }}">
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Electricity grid → pierwsza encja (licznik 1.8.0).</div>
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">⬆️ Oddane do sieci (Total reverse active energy)</label>
+      <input type="text" name="ha_grid_returned_entity" placeholder="sensor.zamel_mew01_total_reverse_active_energy" value="{{ settings.ha_grid_returned_entity or '' }}">
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Electricity grid → druga encja (licznik 2.8.0).</div>
     </div>
     <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary" style="font-size:.85rem;">💾 Zapisz</button>
