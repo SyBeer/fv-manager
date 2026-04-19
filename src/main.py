@@ -829,6 +829,52 @@ async def delete_fuel_price(request: Request, price_id: int):
 
 
 
+def _ha_history_delta(states: list) -> float | None:
+    """Calculate delta (last - first) for a total_increasing sensor from history states."""
+    valid = []
+    for s in states:
+        try:
+            valid.append(float(s.get("state", "")))
+        except (ValueError, TypeError):
+            pass
+    if len(valid) < 2:
+        return None
+    return valid[-1] - valid[0]
+
+
+async def _ha_fetch_history(entity: str, year: int, month: int) -> tuple[float | None, str]:
+    """Fetch history for entity in given month. Returns (delta_kwh, error_msg)."""
+    import httpx, calendar
+    ha_url, ha_token = _ha_conn()
+    last_day = calendar.monthrange(year, month)[1]
+    start = f"{year}-{month:02d}-01T00:00:00+00:00"
+    end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get(
+                f"{ha_url}/api/history/period/{start}",
+                headers={"Authorization": f"Bearer {ha_token}"},
+                params={"filter_entity_id": entity, "end_time": end,
+                        "minimal_response": "true", "significant_changes_only": "false"},
+            )
+        if r.status_code == 401:
+            return None, "Brak autoryzacji (401) — sprawdź homeassistant_api: true w config.yaml"
+        if r.status_code != 200:
+            return None, f"History API: {r.status_code} — {r.text[:200]}"
+        try:
+            data = r.json()
+        except Exception as je:
+            return None, f"Nieprawidłowy JSON: {je} | {r.text[:200]}"
+        if not data or not data[0]:
+            return None, f"Brak historii dla {entity} w {year}-{month:02d}"
+        delta = _ha_history_delta(data[0])
+        if delta is None:
+            return None, f"Za mało punktów danych dla {entity}"
+        return delta, ""
+    except Exception as e:
+        return None, str(e)
+
+
 @app.get("/api/ha-test")
 async def ha_test():
     """Test HA connection and return last monthly value for solar entity."""
@@ -841,61 +887,47 @@ async def ha_test():
         await db.close()
 
     ha_url, ha_token = _ha_conn()
-    ha_solar = settings.get("ha_solar_entity") or ""
     headers = {"Authorization": f"Bearer {ha_token}"}
     try:
         async with httpx.AsyncClient(timeout=8) as client:
-            # 1. Test connection
             ping = await client.get(f"{ha_url}/api/", headers=headers)
-            if ping.status_code == 401:
-                return JSONResponse({"error": "Token nieprawidłowy (401 Unauthorized)"}, status_code=401)
-            if ping.status_code != 200:
-                return JSONResponse({"error": f"HA odpowiedział {ping.status_code}"}, status_code=502)
-
-            if not ha_solar:
-                return JSONResponse({"ok": True, "message": "Połączenie OK — brak skonfigurowanej encji solarnej"})
-
-            # 2. Fetch last 3 months of statistics to find latest non-null value
-            today = date.today()
-            start = f"{today.year - 1}-{today.month:02d}-01T00:00:00"
-            end = f"{today.year}-{today.month:02d}-28T23:59:59"
-            r = await client.post(
-                f"{ha_url}/api/recorder/statistics_during_period",
-                headers={**headers, "Content-Type": "application/json"},
-                json={
-                    "start_time": start,
-                    "end_time": end,
-                    "statistic_ids": [ha_solar],
-                    "period": "month",
-                    "types": ["change"],
-                },
-            )
-            if r.status_code != 200:
-                return JSONResponse({"error": f"Statistics API: {r.status_code} — {r.text[:200]}"}, status_code=502)
-            try:
-                data = r.json()
-            except Exception as je:
-                return JSONResponse({"error": f"Nieprawidłowa odpowiedź JSON: {je} | Treść: {r.text[:300]}"}, status_code=502)
-            entries = data.get(ha_solar, [])
-            if not entries:
-                return JSONResponse({"ok": True, "message": f"Połączenie OK — brak danych statystyk dla {ha_solar}. Sprawdź nazwę encji."})
-
-            last = entries[-1]
-            return JSONResponse({
-                "ok": True,
-                "entity": ha_solar,
-                "last_period_start": last.get("start", "")[:7],
-                "production_kwh": round(float(last.get("change") or 0), 2),
-                "message": f"OK — ostatni odczyt: {round(float(last.get('change') or 0), 2)} kWh",
-            })
+        if ping.status_code == 401:
+            return JSONResponse({"error": "Brak autoryzacji (401) — dodaj homeassistant_api: true do config.yaml"})
+        if ping.status_code != 200:
+            return JSONResponse({"error": f"HA odpowiedział {ping.status_code} — {ping.text[:100]}"})
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": f"Błąd połączenia: {e}"})
+
+    ha_solar = settings.get("ha_solar_entity") or ""
+    if not ha_solar:
+        return JSONResponse({"ok": True, "message": "Połączenie OK — brak skonfigurowanej encji solarnej"})
+
+    today = date.today()
+    delta, err = await _ha_fetch_history(ha_solar, today.year, today.month)
+    if err:
+        # try previous month if current has no data yet
+        prev_month = today.month - 1 or 12
+        prev_year = today.year if today.month > 1 else today.year - 1
+        delta, err = await _ha_fetch_history(ha_solar, prev_year, prev_month)
+        period_label = f"{prev_year}-{prev_month:02d}"
+    else:
+        period_label = f"{today.year}-{today.month:02d}"
+
+    if err:
+        return JSONResponse({"error": err})
+
+    return JSONResponse({
+        "ok": True,
+        "entity": ha_solar,
+        "last_period_start": period_label,
+        "production_kwh": round(delta, 2),
+        "message": f"OK — {period_label}: {round(delta, 2)} kWh",
+    })
 
 
 @app.get("/api/ha-grid-fetch")
 async def ha_grid_fetch(period: str, direction: str = "consumed"):
-    """Fetch monthly grid energy from HA statistics. direction: consumed|returned."""
-    import httpx, calendar
+    """Fetch monthly grid energy from HA history. direction: consumed|returned."""
     db = await get_db()
     try:
         settings = await _get_ev_settings(db)
@@ -906,86 +938,39 @@ async def ha_grid_fetch(period: str, direction: str = "consumed"):
     if not entity:
         return JSONResponse({"error": f"Skonfiguruj encję grid_{direction} w ustawieniach HA"}, status_code=400)
 
-    ha_url, ha_token = _ha_conn()
     try:
         year, month = int(period.split(".")[0]), int(period.split(".")[1])
-        last_day = calendar.monthrange(year, month)[1]
-        async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(
-                f"{ha_url}/api/recorder/statistics_during_period",
-                headers={"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"},
-                json={
-                    "start_time": f"{year}-{month:02d}-01T00:00:00",
-                    "end_time": f"{year}-{month:02d}-{last_day}T23:59:59",
-                    "statistic_ids": [entity],
-                    "period": "month",
-                    "types": ["change"],
-                },
-            )
-        if r.status_code != 200:
-            return JSONResponse({"error": f"Statistics API: {r.status_code} — {r.text[:200]}"}, status_code=502)
-        try:
-            data = r.json()
-        except Exception as je:
-            return JSONResponse({"error": f"Nieprawidłowa odpowiedź JSON: {je} | Treść: {r.text[:300]}"}, status_code=502)
-        entries = data.get(entity, [])
-        if not entries:
-            return JSONResponse({"error": f"Brak danych dla {entity} w {period}"}, status_code=404)
-        change = entries[0].get("change")
-        return JSONResponse({"kwh": round(float(change), 3), "entity": entity})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    except Exception:
+        return JSONResponse({"error": "Nieprawidłowy format okresu"}, status_code=400)
+
+    delta, err = await _ha_fetch_history(entity, year, month)
+    if err:
+        return JSONResponse({"error": err}, status_code=502)
+    return JSONResponse({"kwh": round(delta, 3), "entity": entity})
 
 
 @app.get("/api/ha-solar-fetch")
 async def ha_solar_fetch(period: str):
-    """Fetch monthly solar production from HA statistics API."""
-    import httpx, calendar
+    """Fetch monthly solar production from HA history API."""
     db = await get_db()
     try:
         settings = await _get_ev_settings(db)
     finally:
         await db.close()
 
-    ha_url, ha_token = _ha_conn()
     ha_solar = settings.get("ha_solar_entity") or ""
-
     if not ha_solar:
         return JSONResponse({"error": "Skonfiguruj encję Solar w ustawieniach HA"}, status_code=400)
 
     try:
         year, month = int(period.split(".")[0]), int(period.split(".")[1])
-        start = f"{year}-{month:02d}-01T00:00:00"
-        last_day = calendar.monthrange(year, month)[1]
-        end = f"{year}-{month:02d}-{last_day}T23:59:59"
+    except Exception:
+        return JSONResponse({"error": "Nieprawidłowy format okresu"}, status_code=400)
 
-        async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.post(
-                f"{ha_url}/api/recorder/statistics_during_period",
-                headers={"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"},
-                json={
-                    "start_time": start,
-                    "end_time": end,
-                    "statistic_ids": [ha_solar],
-                    "period": "month",
-                    "types": ["change"],
-                },
-            )
-        if r.status_code != 200:
-            return JSONResponse({"error": f"Statistics API: {r.status_code} — {r.text[:200]}"}, status_code=502)
-        try:
-            data = r.json()
-        except Exception as je:
-            return JSONResponse({"error": f"Nieprawidłowa odpowiedź JSON: {je} | Treść: {r.text[:300]}"}, status_code=502)
-        entries = data.get(ha_solar, [])
-        if not entries:
-            return JSONResponse({"error": f"Brak danych statystyk dla {ha_solar} w okresie {period}"}, status_code=404)
-        change = entries[0].get("change")
-        if change is None:
-            return JSONResponse({"error": "Brak wartości 'change' w odpowiedzi HA"}, status_code=500)
-        return JSONResponse({"production_kwh": round(float(change), 3), "entity": ha_solar, "period": period})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    delta, err = await _ha_fetch_history(ha_solar, year, month)
+    if err:
+        return JSONResponse({"error": err}, status_code=502)
+    return JSONResponse({"production_kwh": round(delta, 3), "entity": ha_solar, "period": period})
 
 
 # ── ROI preview ───────────────────────────────────────────────────────────────
