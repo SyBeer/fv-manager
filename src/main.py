@@ -848,8 +848,12 @@ async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | 
     ha_url, ha_token = _ha_conn()
     headers = {"Authorization": f"Bearer {ha_token}"}
     last_day = calendar.monthrange(year, month)[1]
-    start = f"{year}-{month:02d}-01T00:00:00+00:00"
-    end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
+    # No timezone suffix — HA Statistics API expects local time
+    start = f"{year}-{month:02d}-01T00:00:00"
+    end = f"{year}-{month:02d}-{last_day}T23:59:59"
+    # Wider window for History API fallback
+    hist_start = f"{year}-{month:02d}-01T00:00:00+00:00"
+    hist_end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
     try:
         async with httpx.AsyncClient(timeout=15) as client:
             unit = "kWh"
@@ -880,9 +884,9 @@ async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | 
 
             # 2. Fallback: History API — only recent ~10 days
             hist_r = await client.get(
-                f"{ha_url}/api/history/period/{start}",
+                f"{ha_url}/api/history/period/{hist_start}",
                 headers=headers,
-                params={"filter_entity_id": entity, "end_time": end,
+                params={"filter_entity_id": entity, "end_time": hist_end,
                         "minimal_response": "true", "significant_changes_only": "false"},
             )
         if hist_r.status_code == 401:
@@ -904,28 +908,6 @@ async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | 
     except Exception as e:
         return None, str(e)
 
-
-@app.get("/api/ha-debug")
-async def ha_debug(entity: str = "sensor.solaredge_lifetime_energy", year: int = 2026, month: int = 2):
-    """Debug: show raw Statistics API response for an entity/month."""
-    import httpx, calendar
-    ha_url, ha_token = _ha_conn()
-    headers = {"Authorization": f"Bearer {ha_token}"}
-    last_day = calendar.monthrange(year, month)[1]
-    start = f"{year}-{month:02d}-01T00:00:00+00:00"
-    end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            r = await client.post(
-                f"{ha_url}/api/recorder/statistics_during_period",
-                headers={**headers, "Content-Type": "application/json"},
-                json={"start_time": start, "end_time": end,
-                      "statistic_ids": [entity], "period": "month", "types": ["change"]},
-            )
-        return JSONResponse({"status": r.status_code, "body": r.text[:2000],
-                             "start": start, "end": end, "entity": entity})
-    except Exception as e:
-        return JSONResponse({"error": str(e)})
 
 
 @app.get("/api/ha-test")
