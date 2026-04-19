@@ -20,7 +20,6 @@
         <th>Pobrane <small style="color:#475569;">(1.8.0)</small></th>
         <th>Zużycie</th>
         <th>Oszczędności</th>
-        <th>Wartość produkcji</th>
         <th>Cena kWh</th>
         <th></th>
       </tr>
@@ -35,8 +34,7 @@
       <td style="color:#f87171;">{{ r.taken_from_grid_kwh|fmtn(1) }}</td>
       <td>{{ r.total_consumed|fmtn(1) }}</td>
       <td style="color:#22c55e;">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }} zł{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
-      <td style="color:#fbbf24;">{% if r.production_value_pln %}{{ r.production_value_pln|fmtn(2) }} zł{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
-      <td style="color:#64748b;">{% if r.price_per_kwh %}{{ r.price_per_kwh|fmtn(4) }}{% else %}—{% endif %}</td>
+      <td style="color:#64748b;">{{ r.price_per_kwh|fmtn(4) if r.price_per_kwh else r.effective_price|fmtn(4) }}</td>
       <td style="white-space:nowrap;">
         <a href="{{ rp }}/odczyty/{{ r.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
         <form method="post" action="{{ rp }}/odczyty/{{ r.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ r.period }}?')">

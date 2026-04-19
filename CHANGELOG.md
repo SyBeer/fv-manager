@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] — 2026-04-19
+
+### Zmieniono
+- Usunięto kolumnę "Wartość produkcji"
+- Cena kWh wyświetlana w każdym wierszu — z faktury lub domyślna
+
 ## [1.3.0] — 2026-04-19
 
 ### Dodano

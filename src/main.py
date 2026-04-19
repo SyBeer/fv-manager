@@ -111,7 +111,7 @@ async def readings_list(request: Request):
     for r in readings:
         price = r.get("price_per_kwh") or default_price
         c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
-        enriched.append({**r, **c})
+        enriched.append({**r, **c, "effective_price": price})
 
     return _t(request, "readings.html", {"readings": list(reversed(enriched))})
 
