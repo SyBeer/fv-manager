@@ -23,21 +23,17 @@
   </div>
   {% endif %}
 
-  {% if request.query_params.get('rejected') and request.query_params.get('rejected') != '0' %}
-  {% set rejected_list = request.query_params.get('rejected_list', '') %}
-  <div style="background:#450a0a; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#fca5a5;">
-    <strong>⚠️ Odrzucono {{ request.query_params.get('rejected') }} rekordów</strong> — oddane do sieci przekraczają produkcję:
-    <div style="margin-top:.5rem; font-size:.85rem; font-family:monospace; white-space:pre-wrap; color:#fecaca;">{{ rejected_list | urldecode if rejected_list else '' }}</div>
-  </div>
-  {% endif %}
-
   <!-- CSV Import -->
   <div class="card" style="margin-bottom:1.5rem;">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">📄 Import z CSV</h2>
-    <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
-      Wgraj plik CSV wyeksportowany z aplikacji (⬇️ CSV w Odczytach) lub pobierz szablon z nagłówkami.
+    <p style="color:#94a3b8; margin-bottom:.75rem; font-size:.9rem;">
+      Wgraj plik CSV wyeksportowany z aplikacji (⬇️ CSV w Odczytach) lub przygotowany ręcznie.
       Istniejące okresy nie zostaną nadpisane.
     </p>
+    <div style="background:#0f172a; border-radius:6px; padding:.6rem 1rem; margin-bottom:1.25rem; font-size:.85rem; color:#fbbf24;">
+      ⚠️ Separator kolumn musi być <strong>średnik (<code style="color:#f8fafc;">;</code>)</strong> — nie przecinek.
+      Kodowanie pliku: <strong>UTF-8</strong>.
+    </div>
     <div style="display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
       <a href="{{ rp }}/import/template.csv" class="btn btn-ghost" style="font-size:.85rem;">⬇️ Pobierz szablon CSV</a>
     </div>
@@ -46,28 +42,89 @@
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik CSV (.csv)</label>
         <input type="file" name="file" accept=".csv" required>
       </div>
-      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj CSV</button>
+      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj</button>
     </form>
   </div>
 
-  <!-- Excel Upload -->
+  <!-- Struktura pliku CSV -->
   <div class="card" style="margin-bottom:1.5rem;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">📊 Import z Excela</h2>
-    <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
-      Wybierz plik Excel z arkuszem <strong>„Moja instalacja"</strong>.
-      Istniejące okresy nie zostaną nadpisane.
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📋 Struktura pliku CSV</h2>
+    <p style="color:#94a3b8; font-size:.85rem; margin-bottom:1.25rem;">
+      Pierwszy wiersz to nagłówek. Każdy kolejny wiersz to jeden miesiąc.
+      Kolumny obliczeniowe (autokonsumpcja, zużycie, oszczędności, wartość produkcji) są ignorowane przy imporcie — aplikacja wylicza je sama.
     </p>
-    <form method="post" action="{{ rp }}/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
-      <div style="flex:1; min-width:200px;">
-        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik Excel (.xlsx)</label>
-        <input type="file" name="file" accept=".xlsx" required>
-      </div>
-      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj Excel</button>
-    </form>
+
+    <table style="font-size:.82rem; width:100%;">
+      <thead>
+        <tr>
+          <th>Kolumna (nagłówek)</th>
+          <th>Opis</th>
+          <th>Wymagane</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Okres</code></td>
+          <td>Format <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">RRRR.MM</code>, np. <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">2024.06</code></td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Produkcja [kWh]</code></td>
+          <td>Energia wyprodukowana przez panele</td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Oddane [kWh]</code></td>
+          <td>Energia oddana do sieci w danym miesiącu</td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Pobrane [kWh]</code></td>
+          <td>Energia pobrana z sieci w danym miesiącu</td>
+          <td><span class="badge-green">TAK</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Dni</code></td>
+          <td>Liczba dni w okresie rozliczeniowym</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Cena kWh [zł]</code></td>
+          <td>Cena energii z faktury — używana do obliczenia oszczędności</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Nr faktury</code></td>
+          <td>Numer faktury za prąd</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Faktura brutto [zł]</code></td>
+          <td>Kwota faktury brutto</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">EV [kWh]</code></td>
+          <td>Energia zużyta do ładowania auta elektrycznego</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+        <tr>
+          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Notatki</code></td>
+          <td>Dowolny komentarz</td>
+          <td><span class="badge-yellow">NIE</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:1.25rem; padding:.75rem; background:#0f172a; border-radius:8px; font-size:.82rem; color:#64748b; line-height:1.7;">
+      <strong style="color:#94a3b8;">Przykładowy wiersz:</strong><br>
+      <code style="color:#86efac; white-space:pre-wrap;">Okres;Produkcja [kWh];Oddane [kWh];Pobrane [kWh];Dni;Cena kWh [zł]
+2024.06;510.5;320.1;180.3;30;0.75</code>
+    </div>
   </div>
 
   <!-- Danger Zone -->
-  <div class="card" style="margin-bottom:1.5rem; border-color:#ef4444;">
+  <div class="card" style="border-color:#ef4444;">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#f87171;">⚠️ Niebezpieczna strefa</h2>
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1.5rem;">
       Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:#f87171;">nieodwracalna</strong>.
@@ -76,112 +133,6 @@
     <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Spowoduje to usunięcie WSZYSTKICH danych. Czy na pewno chcesz kontynuować?')">
       <button type="submit" class="btn btn-red">🗑️ Wyczyść całą bazę danych</button>
     </form>
-  </div>
-
-  <!-- Struktura pliku Excel -->
-  <div class="card">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📋 Wymagana struktura pliku Excel</h2>
-    <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
-      Wybierz plik Excel z arkuszem <strong>„Moja instalacja"</strong>.
-      Istniejące okresy nie zostaną nadpisane.
-    </p>
-    <form method="post" action="{{ rp }}/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
-      <div style="flex:1; min-width:200px;">
-        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik Excel (.xlsx)</label>
-        <input type="file" name="file" accept=".xlsx" required>
-      </div>
-      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj</button>
-    </form>
-  </div>
-
-  <!-- Struktura pliku -->
-  <div class="card">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📋 Wymagana struktura pliku Excel</h2>
-    <p style="color:#94a3b8; font-size:.85rem; margin-bottom:1.25rem;">
-      Plik musi zawierać arkusz o nazwie <code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Moja instalacja</code>.
-      Dane miesięczne zaczynają się od wiersza 5. Nagłówki muszą być w wierszach 1–4.
-    </p>
-
-    <table style="font-size:.82rem; width:100%;">
-      <thead>
-        <tr>
-          <th style="width:60px;">Kolumna</th>
-          <th style="width:80px;">Indeks</th>
-          <th>Nazwa</th>
-          <th>Opis</th>
-          <th>Wymagane</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>A</strong></td><td style="color:#64748b;">0</td>
-          <td>Data</td>
-          <td>Okres w formacie <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">RRRR.MM</code> np. <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">2024.06</code></td>
-          <td><span class="badge-green">TAK</span></td>
-        </tr>
-        <tr>
-          <td><strong>B</strong></td><td style="color:#64748b;">1</td>
-          <td>Dni</td>
-          <td>Liczba dni w okresie rozliczeniowym</td>
-          <td><span class="badge-yellow">NIE</span></td>
-        </tr>
-        <tr>
-          <td><strong>D</strong></td><td style="color:#64748b;">3</td>
-          <td>Produkcja SolarEdge</td>
-          <td>Energia wyprodukowana przez panele [kWh]</td>
-          <td><span class="badge-green">TAK</span></td>
-        </tr>
-        <tr>
-          <td><strong>E</strong></td><td style="color:#64748b;">4</td>
-          <td>Oddane 2.8.0 – Licznik</td>
-          <td>Narastający odczyt licznika energii oddanej do sieci [kWh]</td>
-          <td><span class="badge-green">TAK*</span></td>
-        </tr>
-        <tr>
-          <td><strong>F</strong></td><td style="color:#64748b;">5</td>
-          <td>Pobrane 1.8.0 – Licznik</td>
-          <td>Narastający odczyt licznika energii pobranej z sieci [kWh]</td>
-          <td><span class="badge-green">TAK*</span></td>
-        </tr>
-        <tr>
-          <td><strong>G</strong></td><td style="color:#64748b;">6</td>
-          <td>Oddane obliczenia</td>
-          <td>Energia oddana do sieci w danym miesiącu [kWh] (delta między miesiącami)</td>
-          <td><span class="badge-green">TAK</span></td>
-        </tr>
-        <tr>
-          <td><strong>I</strong></td><td style="color:#64748b;">8</td>
-          <td>Pobrane obliczenia</td>
-          <td>Energia pobrana z sieci w danym miesiącu [kWh] (delta między miesiącami)</td>
-          <td><span class="badge-green">TAK</span></td>
-        </tr>
-        <tr>
-          <td><strong>Q</strong></td><td style="color:#64748b;">16</td>
-          <td>Nr Faktury PGE</td>
-          <td>Numer faktury za prąd</td>
-          <td><span class="badge-yellow">NIE</span></td>
-        </tr>
-        <tr>
-          <td><strong>V</strong></td><td style="color:#64748b;">21</td>
-          <td>Cena za kWh z faktury</td>
-          <td>Cena energii elektrycznej z faktury [zł/kWh] — używana do obliczenia oszczędności</td>
-          <td><span class="badge-yellow">NIE</span></td>
-        </tr>
-        <tr>
-          <td><strong>AA</strong></td><td style="color:#64748b;">26</td>
-          <td>FAKTURA brutto</td>
-          <td>Kwota faktury brutto [zł]</td>
-          <td><span class="badge-yellow">NIE</span></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div style="margin-top:1.25rem; padding:.75rem; background:#0f172a; border-radius:8px; font-size:.82rem; color:#64748b; line-height:1.7;">
-      <strong style="color:#94a3b8;">* Kolumny E i F (odczyty licznika)</strong> — wymagane do odróżnienia rzeczywistych danych od przyszłych prognoz.
-      Wiersze bez odczytów licznika (projekcje) są automatycznie pomijane przy imporcie.<br><br>
-      <strong style="color:#f87171;">Walidacja:</strong> Rekordy gdzie <em>oddane do sieci &gt; produkcja</em> są odrzucane — to fizycznie niemożliwe
-      i wskazuje na błąd w danych źródłowych.
-    </div>
   </div>
 </div>
 {% endblock %}

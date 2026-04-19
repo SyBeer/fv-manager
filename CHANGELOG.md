@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0] — 2026-04-19
+
+### Zmieniono
+- Usunięto import z Excela — jedyną metodą importu jest teraz CSV (separator `;`, kodowanie UTF-8)
+- Strona importu zawiera opis struktury pliku CSV z przykładem i wymaganymi nagłówkami
+
 ## [1.4.0] — 2026-04-19
 
 ### Dodano

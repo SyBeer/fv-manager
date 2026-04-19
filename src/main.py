@@ -13,7 +13,6 @@ from fastapi.templating import Jinja2Templates
 
 from utils.db import init_db, get_db, DB_PATH
 from services.calculations import calc_monthly, calc_roi, roi_sensitivity, calc_ev_savings
-from services.importer import import_excel
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -336,55 +335,6 @@ async def import_page(request: Request):
     return _t(request, "import.html")
 
 
-@app.post("/import")
-async def do_import(request: Request, file: UploadFile = File(...)):
-    import tempfile, os, urllib.parse
-    suffix = Path(file.filename).suffix
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(await file.read())
-        tmp_path = tmp.name
-
-    try:
-        try:
-            result = import_excel(tmp_path)
-        except ValueError as e:
-            return _t(request, "import.html", {"error": str(e)})
-
-        db = await get_db()
-        imported = 0
-        skipped = 0
-        try:
-            for r in result.records:
-                try:
-                    await db.execute(
-                        """INSERT OR IGNORE INTO readings
-                           (period, year, month, days, production_kwh, sent_to_grid_kwh,
-                            taken_from_grid_kwh, price_per_kwh, invoice_number, invoice_gross)
-                           VALUES (?,?,?,?,?,?,?,?,?,?)""",
-                        (r["period"], r["year"], r["month"], r["days"],
-                         r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
-                         r.get("price_per_kwh"), r.get("invoice_number"), r.get("invoice_gross")),
-                    )
-                    if db.total_changes > imported:
-                        imported += 1
-                    else:
-                        skipped += 1
-                except Exception:
-                    skipped += 1
-            await db.commit()
-        finally:
-            await db.close()
-    finally:
-        os.unlink(tmp_path)
-
-    rejected_json = urllib.parse.quote_plus(
-        str([r["period"] + ": " + r["reason"] for r in result.rejected])
-    ) if result.rejected else ""
-    rp = request.scope.get("root_path", "")
-    return RedirectResponse(
-        f"{rp}/import?imported={imported}&skipped={skipped}&rejected={len(result.rejected)}&rejected_list={rejected_json}",
-        status_code=303,
-    )
 
 
 CSV_HEADERS = [
@@ -413,8 +363,7 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
     import csv, io
     rp = request.scope.get("root_path", "")
     content = (await file.read()).decode("utf-8-sig")
-    delimiter = ";" if ";" in content.split("\n")[0] else ","
-    reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
+    reader = csv.DictReader(io.StringIO(content), delimiter=";")
     db = await get_db()
     imported = skipped = 0
     try:
