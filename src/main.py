@@ -83,10 +83,11 @@ async def dashboard(request: Request):
     total_investment = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total_investment) if readings and total_investment > 0 else None
 
-    # Enrich readings with calculated fields
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
     enriched = []
     for r in readings:
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh"))
+        price = r.get("price_per_kwh") or default_price
+        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
         enriched.append({**r, **c})
 
     return _t(request, "dashboard.html", {
@@ -105,9 +106,11 @@ async def readings_list(request: Request):
     finally:
         await db.close()
 
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
     enriched = []
     for r in readings:
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh"))
+        price = r.get("price_per_kwh") or default_price
+        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
         enriched.append({**r, **c})
 
     return _t(request, "readings.html", {"readings": list(reversed(enriched))})

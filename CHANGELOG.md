@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.1] — 2026-04-19
+
+### Naprawiono
+- Oszczędności i wartość produkcji puste gdy brak ceny z faktury — teraz używa domyślnej ceny z konfiguracji
+
 ## [1.2.0] — 2026-04-19
 
 ### Dodano
