@@ -74,24 +74,83 @@ async def _get_fuel_prices(db: aiosqlite.Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def _ev_enrich(readings: list[dict], ev_settings: dict, fuel_prices: list[dict]) -> list[dict]:
-    """Add ev_savings_pln to readings that have ev_kwh, using closest fuel price."""
-    if not ev_settings or not fuel_prices:
+async def _get_vehicles(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM vehicles ORDER BY id")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+async def _get_ev_monthly_all(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM ev_monthly ORDER BY period, vehicle_id")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+def _ev_enrich(
+    readings: list[dict],
+    ev_settings: dict,
+    fuel_prices: list[dict],
+    vehicles: list[dict] | None = None,
+    ev_monthly: list[dict] | None = None,
+) -> list[dict]:
+    """Add ev_savings_pln per reading.
+
+    Prefers multi-vehicle model (vehicles + ev_monthly).
+    Falls back to single-vehicle (ev_settings + readings.ev_kwh).
+    """
+    if not fuel_prices:
+        return readings
+    prices_desc = sorted(fuel_prices, key=lambda p: p["date"], reverse=True)
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+
+    def _fuel_price_for(period: str) -> float | None:
+        year, month = period.split(".")
+        period_end = f"{year}-{month.zfill(2)}-28"
+        obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
+        return obj["price_per_liter"] if obj else None
+
+    # Multi-vehicle path
+    if vehicles and ev_monthly:
+        vmap = {v["id"]: v for v in vehicles}
+        by_period: dict[str, list[dict]] = {}
+        for e in ev_monthly:
+            by_period.setdefault(e["period"], []).append(e)
+        result = []
+        for r in readings:
+            entries = by_period.get(r["period"], [])
+            if not entries:
+                result.append(r)
+                continue
+            fuel_price = _fuel_price_for(r["period"])
+            if fuel_price is None:
+                result.append(r)
+                continue
+            price_kwh = r.get("price_per_kwh") or default_price
+            savings = sum(
+                calc_ev_savings(e["kwh"], price_kwh,
+                                vmap[e["vehicle_id"]]["efficiency_kwh_per_100km"],
+                                vmap[e["vehicle_id"]]["fuel_consumption_l_per_100km"],
+                                fuel_price)["ev_net_savings"]
+                for e in entries if e["vehicle_id"] in vmap
+            )
+            result.append({**r, "ev_savings_pln": savings})
+        return result
+
+    # Single-vehicle fallback
+    if not ev_settings:
         return readings
     efficiency = ev_settings.get("efficiency_kwh_per_100km") or 16.0
     fuel_cons = ev_settings.get("fuel_consumption_l_per_100km") or 10.0
-    prices_desc = sorted(fuel_prices, key=lambda p: p["date"], reverse=True)
-    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
     result = []
     for r in readings:
         ev_kwh = r.get("ev_kwh")
         if not ev_kwh:
             result.append(r)
             continue
-        year, month = r["period"].split(".")
-        period_end = f"{year}-{month.zfill(2)}-28"
-        fuel_price_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1])
-        fuel_price = fuel_price_obj["price_per_liter"]
+        fuel_price = _fuel_price_for(r["period"])
+        if fuel_price is None:
+            result.append(r)
+            continue
         price_kwh = r.get("price_per_kwh") or default_price
         ev = calc_ev_savings(ev_kwh, price_kwh, efficiency, fuel_cons, fuel_price)
         result.append({**r, "ev_savings_pln": ev["ev_net_savings"]})
@@ -108,10 +167,12 @@ async def dashboard(request: Request):
         investments = await _get_investments(db)
         ev_settings = await _get_ev_settings(db)
         fuel_prices = await _get_fuel_prices(db)
+        vehicles = await _get_vehicles(db)
+        ev_monthly = await _get_ev_monthly_all(db)
     finally:
         await db.close()
 
-    readings = _ev_enrich(readings, ev_settings, fuel_prices)
+    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total_investment = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total_investment) if readings and total_investment > 0 else None
 
@@ -189,25 +250,33 @@ async def export_readings_csv():
 
 @app.get("/odczyty/nowy", response_class=HTMLResponse)
 async def new_reading_form(request: Request):
-    return _t(request, "reading_form.html")
+    db = await get_db()
+    try:
+        vehicles = await _get_vehicles(db)
+    finally:
+        await db.close()
+    return _t(request, "reading_form.html", {"vehicles": vehicles})
 
 
 @app.post("/odczyty/nowy")
-async def create_reading(
-    request: Request,
-    period: str = Form(...),
-    year: int = Form(...),
-    month: int = Form(...),
-    days: int = Form(None),
-    production_kwh: float = Form(...),
-    sent_to_grid_kwh: float = Form(...),
-    taken_from_grid_kwh: float = Form(...),
-    ev_kwh: float = Form(None),
-    price_per_kwh: float = Form(None),
-    invoice_number: str = Form(None),
-    invoice_gross: float = Form(None),
-    notes: str = Form(None),
-):
+async def create_reading(request: Request):
+    form = await request.form()
+    period = form["period"]
+    year = int(form["year"])
+    month = int(form["month"])
+    days = int(form["days"]) if form.get("days") else None
+    production_kwh = float(form["production_kwh"])
+    sent_to_grid_kwh = float(form["sent_to_grid_kwh"])
+    taken_from_grid_kwh = float(form["taken_from_grid_kwh"])
+    price_per_kwh = float(form["price_per_kwh"]) if form.get("price_per_kwh") else None
+    invoice_number = form.get("invoice_number") or None
+    invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
+    notes = form.get("notes") or None
+
+    ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
+    legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
+    ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
+
     db = await get_db()
     try:
         await db.execute(
@@ -216,8 +285,13 @@ async def create_reading(
                 taken_from_grid_kwh, ev_kwh, price_per_kwh, invoice_number, invoice_gross, notes)
                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
             (period, year, month, days, production_kwh, sent_to_grid_kwh,
-             taken_from_grid_kwh, ev_kwh, price_per_kwh, invoice_number, invoice_gross, notes),
+             taken_from_grid_kwh, ev_kwh_total, price_per_kwh, invoice_number, invoice_gross, notes),
         )
+        for vid, kwh in ev_entries:
+            await db.execute(
+                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh) VALUES (?,?,?)",
+                (period, vid, kwh),
+            )
         await db.commit()
     finally:
         await db.close()
@@ -231,30 +305,35 @@ async def edit_reading_form(request: Request, reading_id: int):
     try:
         cur = await db.execute("SELECT * FROM readings WHERE id=?", (reading_id,))
         row = await cur.fetchone()
+        vehicles = await _get_vehicles(db)
+        ev_cur = await db.execute("SELECT * FROM ev_monthly WHERE period=(SELECT period FROM readings WHERE id=?)", (reading_id,))
+        ev_rows = {r["vehicle_id"]: r["kwh"] for r in [dict(r) for r in await ev_cur.fetchall()]}
     finally:
         await db.close()
     if not row:
         return HTMLResponse("Nie znaleziono.", status_code=404)
-    return _t(request, "reading_form.html", {"reading": dict(row)})
+    return _t(request, "reading_form.html", {"reading": dict(row), "vehicles": vehicles, "ev_rows": ev_rows})
 
 
 @app.post("/odczyty/{reading_id}/edytuj")
-async def update_reading(
-    request: Request,
-    reading_id: int,
-    period: str = Form(...),
-    year: int = Form(...),
-    month: int = Form(...),
-    days: int = Form(None),
-    production_kwh: float = Form(...),
-    sent_to_grid_kwh: float = Form(...),
-    taken_from_grid_kwh: float = Form(...),
-    ev_kwh: float = Form(None),
-    price_per_kwh: float = Form(None),
-    invoice_number: str = Form(None),
-    invoice_gross: float = Form(None),
-    notes: str = Form(None),
-):
+async def update_reading(request: Request, reading_id: int):
+    form = await request.form()
+    period = form["period"]
+    year = int(form["year"])
+    month = int(form["month"])
+    days = int(form["days"]) if form.get("days") else None
+    production_kwh = float(form["production_kwh"])
+    sent_to_grid_kwh = float(form["sent_to_grid_kwh"])
+    taken_from_grid_kwh = float(form["taken_from_grid_kwh"])
+    price_per_kwh = float(form["price_per_kwh"]) if form.get("price_per_kwh") else None
+    invoice_number = form.get("invoice_number") or None
+    invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
+    notes = form.get("notes") or None
+
+    ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
+    legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
+    ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
+
     db = await get_db()
     try:
         await db.execute(
@@ -262,8 +341,18 @@ async def update_reading(
                sent_to_grid_kwh=?, taken_from_grid_kwh=?, ev_kwh=?, price_per_kwh=?,
                invoice_number=?, invoice_gross=?, notes=? WHERE id=?""",
             (period, year, month, days, production_kwh, sent_to_grid_kwh,
-             taken_from_grid_kwh, ev_kwh, price_per_kwh, invoice_number, invoice_gross, notes, reading_id),
+             taken_from_grid_kwh, ev_kwh_total, price_per_kwh, invoice_number, invoice_gross, notes, reading_id),
         )
+        # Replace ev_monthly for this period
+        cur = await db.execute("SELECT period FROM readings WHERE id=?", (reading_id,))
+        orig = await cur.fetchone()
+        if orig:
+            await db.execute("DELETE FROM ev_monthly WHERE period=?", (orig["period"],))
+        for vid, kwh in ev_entries:
+            await db.execute(
+                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh) VALUES (?,?,?)",
+                (period, vid, kwh),
+            )
         await db.commit()
     finally:
         await db.close()
@@ -293,9 +382,11 @@ async def investments_list(request: Request):
         readings = await _get_readings(db)
         ev_settings = await _get_ev_settings(db)
         fuel_prices = await _get_fuel_prices(db)
+        vehicles = await _get_vehicles(db)
+        ev_monthly = await _get_ev_monthly_all(db)
     finally:
         await db.close()
-    readings = _ev_enrich(readings, ev_settings, fuel_prices)
+    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
     return _t(request, "investments.html", {"investments": investments, "total": total, "roi": roi})
@@ -381,10 +472,12 @@ async def roi_page(request: Request):
         investments = await _get_investments(db)
         ev_settings = await _get_ev_settings(db)
         fuel_prices = await _get_fuel_prices(db)
+        vehicles = await _get_vehicles(db)
+        ev_monthly = await _get_ev_monthly_all(db)
     finally:
         await db.close()
 
-    readings = _ev_enrich(readings, ev_settings, fuel_prices)
+    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
     sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20]) if readings and total > 0 else []
@@ -522,41 +615,84 @@ async def ev_page(request: Request):
     try:
         readings = await _get_readings(db)
         settings = await _get_ev_settings(db)
-        fuel_prices = await db.execute("SELECT * FROM fuel_prices ORDER BY date DESC LIMIT 12")
-        prices = [dict(r) for r in await fuel_prices.fetchall()]
+        fuel_prices_cur = await db.execute("SELECT * FROM fuel_prices ORDER BY date DESC LIMIT 12")
+        prices = [dict(r) for r in await fuel_prices_cur.fetchall()]
         latest_fuel = prices[0] if prices else None
+        vehicles = await _get_vehicles(db)
+        ev_monthly_all = await _get_ev_monthly_all(db)
+        all_fuel_prices = await _get_fuel_prices(db)
     finally:
         await db.close()
 
-    # EV savings per month
+    vmap = {v["id"]: v for v in vehicles}
+    by_period: dict[str, list[dict]] = {}
+    for e in ev_monthly_all:
+        by_period.setdefault(e["period"], []).append(e)
+
+    prices_desc = sorted(all_fuel_prices, key=lambda p: p["date"], reverse=True)
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+
     monthly_ev = []
     total_ev_savings = 0.0
     total_km = 0.0
     total_liters_saved = 0.0
 
     for r in readings:
-        if not r.get("ev_kwh"):
+        entries = by_period.get(r["period"], [])
+        # fallback: use legacy ev_kwh + settings if no ev_monthly entries
+        if not entries and r.get("ev_kwh") and settings:
+            entries = [{"vehicle_id": None, "kwh": r["ev_kwh"]}]
+        if not entries:
             continue
-        price = r.get("price_per_kwh") or 0.75
-        fuel_price = latest_fuel["price_per_liter"] if latest_fuel else 6.5
-        s = calc_ev_savings(
-            r["ev_kwh"], price,
-            settings.get("efficiency_kwh_per_100km", 16),
-            settings.get("fuel_consumption_l_per_100km", 10),
-            fuel_price,
-        )
-        monthly_ev.append({"period": r["period"], "ev_kwh": r["ev_kwh"], **s})
-        total_ev_savings += s["ev_net_savings"]
-        total_km += s["km_driven"]
-        total_liters_saved += s["liters_saved"]
+
+        year, month = r["period"].split(".")
+        period_end = f"{year}-{month.zfill(2)}-28"
+        fuel_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
+        fuel_price = fuel_obj["price_per_liter"] if fuel_obj else (latest_fuel["price_per_liter"] if latest_fuel else 6.5)
+        price_kwh = r.get("price_per_kwh") or default_price
+
+        period_total_kwh = 0.0
+        period_savings = 0.0
+        period_km = 0.0
+        period_liters = 0.0
+        vehicle_rows = []
+
+        for e in entries:
+            v = vmap.get(e["vehicle_id"]) if e["vehicle_id"] else None
+            eff = v["efficiency_kwh_per_100km"] if v else settings.get("efficiency_kwh_per_100km", 16)
+            fuel_cons = v["fuel_consumption_l_per_100km"] if v else settings.get("fuel_consumption_l_per_100km", 10)
+            s = calc_ev_savings(e["kwh"], price_kwh, eff, fuel_cons, fuel_price)
+            period_total_kwh += e["kwh"]
+            period_savings += s["ev_net_savings"]
+            period_km += s["km_driven"]
+            period_liters += s["liters_saved"]
+            vehicle_rows.append({
+                "name": v["name"] if v else "—",
+                "kwh": e["kwh"],
+                **s,
+            })
+
+        monthly_ev.append({
+            "period": r["period"],
+            "ev_kwh": period_total_kwh,
+            "ev_net_savings": round(period_savings, 2),
+            "km_driven": round(period_km, 1),
+            "liters_saved": round(period_liters, 2),
+            "fuel_cost_equivalent": round(sum(x["fuel_cost_equivalent"] for x in vehicle_rows), 2),
+            "electricity_cost": round(sum(x["electricity_cost"] for x in vehicle_rows), 2),
+            "vehicles": vehicle_rows,
+        })
+        total_ev_savings += period_savings
+        total_km += period_km
+        total_liters_saved += period_liters
 
     return _t(request, "ev.html", {
         "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
+        "vehicles": vehicles,
         "monthly_ev": list(reversed(monthly_ev)),
         "total_ev_savings": round(total_ev_savings, 2),
         "total_km": round(total_km, 1),
         "total_liters_saved": round(total_liters_saved, 2),
-        "readings_without_ev": [r for r in readings if not r.get("ev_kwh")],
     })
 
 
@@ -578,6 +714,64 @@ async def save_ev_settings(
                annual_km=?, fuel_type=?, ha_url=?, ha_token=?, ha_entity=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
              fuel_type, ha_url, ha_token, ha_entity),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
+
+
+@app.post("/ev/pojazdy/nowy")
+async def create_vehicle(
+    request: Request,
+    name: str = Form(...),
+    efficiency_kwh_per_100km: float = Form(...),
+    fuel_consumption_l_per_100km: float = Form(...),
+    fuel_type: str = Form("PB95"),
+    notes: str = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO vehicles (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes) VALUES (?,?,?,?,?)",
+            (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes or None),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
+
+
+@app.post("/ev/pojazdy/{vid}/usun")
+async def delete_vehicle(request: Request, vid: int):
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM ev_monthly WHERE vehicle_id=?", (vid,))
+        await db.execute("DELETE FROM vehicles WHERE id=?", (vid,))
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
+
+
+@app.post("/ev/pojazdy/{vid}/edytuj")
+async def update_vehicle(
+    request: Request,
+    vid: int,
+    name: str = Form(...),
+    efficiency_kwh_per_100km: float = Form(...),
+    fuel_consumption_l_per_100km: float = Form(...),
+    fuel_type: str = Form("PB95"),
+    notes: str = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE vehicles SET name=?, efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?, fuel_type=?, notes=? WHERE id=?",
+            (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes or None, vid),
         )
         await db.commit()
     finally:
@@ -659,10 +853,12 @@ async def roi_preview(data: dict):
         investments = await _get_investments(db)
         ev_settings = await _get_ev_settings(db)
         fuel_prices = await _get_fuel_prices(db)
+        vehicles = await _get_vehicles(db)
+        ev_monthly = await _get_ev_monthly_all(db)
     finally:
         await db.close()
 
-    readings = _ev_enrich(readings, ev_settings, fuel_prices)
+    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     roi_before = calc_roi(readings, total) if readings and total > 0 else {}
 
@@ -670,7 +866,7 @@ async def roi_preview(data: dict):
     reading_id = data.get("id")
     patched = _ev_enrich(
         [{**r, **data} if r["id"] == reading_id else r for r in readings],
-        ev_settings, fuel_prices,
+        ev_settings, fuel_prices, vehicles, ev_monthly,
     )
     roi_after = calc_roi(patched, total) if patched and total > 0 else {}
     return JSONResponse({

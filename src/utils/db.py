@@ -62,6 +62,23 @@ async def init_db() -> None:
                 fuel_type TEXT NOT NULL DEFAULT 'PB95',
                 source TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS vehicles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                efficiency_kwh_per_100km REAL NOT NULL DEFAULT 16.0,
+                fuel_consumption_l_per_100km REAL NOT NULL DEFAULT 10.0,
+                fuel_type TEXT NOT NULL DEFAULT 'PB95',
+                notes TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS ev_monthly (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                period TEXT NOT NULL,
+                vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
+                kwh REAL NOT NULL,
+                UNIQUE(period, vehicle_id)
+            );
         """)
 
         # Migrations — safe ALTER TABLE for columns added after initial deploy

@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.8.0] — 2026-04-19
+
+### Dodano
+- Zarządzanie wieloma pojazdami EV — każdy pojazd ma własne zużycie [kWh/100km] i odpowiednik paliwowy [L/100km]
+- Tabela `ev_monthly` — kWh per pojazd per miesiąc, zapisywane przy dodawaniu/edycji odczytu
+- Formularz odczytu pokazuje osobne pole kWh dla każdego dodanego pojazdu
+- Historia EV pokazuje podział per pojazd w danym miesiącu
+- Edycja pojazdu inline (przycisk ✏️ w tabeli pojazdów)
+- ROI uwzględnia per-pojazd efficiency przy obliczaniu oszczędności vs paliwo
+
 ## [1.7.0] — 2026-04-19
 
 ### Zmieniono

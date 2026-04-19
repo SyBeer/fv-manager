@@ -45,7 +45,13 @@
     {% for r in monthly_ev %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:#93c5fd;">{{ r.ev_kwh|fmtn(1) }} kWh</td>
+      <td style="color:#93c5fd;">{{ r.ev_kwh|fmtn(1) }} kWh
+        {% if r.vehicles|length > 1 %}
+        <div style="font-size:.75rem; color:#475569; margin-top:.2rem;">
+          {% for v in r.vehicles %}{{ v.name }}: {{ v.kwh|fmtn(1) }}{% if not loop.last %}, {% endif %}{% endfor %}
+        </div>
+        {% endif %}
+      </td>
       <td>{{ r.km_driven|fmtn }} km</td>
       <td style="color:#f87171;">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
       <td style="color:#94a3b8;">{{ r.electricity_cost|fmtn(2) }} zł</td>
@@ -58,11 +64,83 @@
 </div>
 {% else %}
 <div class="card" style="text-align:center; padding:2rem; color:#94a3b8; margin-bottom:1.5rem;">
-  Brak danych EV. Wpisz kWh zużyte przez auta przy dodawaniu odczytów miesięcznych.
+  Brak danych EV. Dodaj pojazdy poniżej, a następnie wpisz kWh przy dodawaniu odczytów miesięcznych.
 </div>
 {% endif %}
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; flex-wrap:wrap;">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+
+  <!-- Pojazdy -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">🚗 Pojazdy</h2>
+    {% if vehicles %}
+    <table style="margin-bottom:1rem;">
+      <thead><tr><th>Nazwa</th><th>kWh/100km</th><th>L/100km</th><th>Paliwo</th><th></th></tr></thead>
+      <tbody>
+      {% for v in vehicles %}
+      <tr>
+        <td><strong>{{ v.name }}</strong>{% if v.notes %}<div style="font-size:.75rem; color:#64748b;">{{ v.notes }}</div>{% endif %}</td>
+        <td style="color:#93c5fd;">{{ v.efficiency_kwh_per_100km }}</td>
+        <td style="color:#fbbf24;">{{ v.fuel_consumption_l_per_100km }}</td>
+        <td><span class="badge-blue">{{ v.fuel_type }}</span></td>
+        <td style="white-space:nowrap;">
+          <details style="display:inline;">
+            <summary class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem; display:inline-block; cursor:pointer; list-style:none;">✏️</summary>
+            <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/edytuj"
+                  style="position:absolute; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:1rem; z-index:10; min-width:280px; display:flex; flex-direction:column; gap:.5rem; margin-top:.25rem;">
+              <input type="text" name="name" value="{{ v.name }}" placeholder="Nazwa" required style="font-size:.85rem;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.5rem;">
+                <input type="number" name="efficiency_kwh_per_100km" value="{{ v.efficiency_kwh_per_100km }}" step="0.1" placeholder="kWh/100km" required style="font-size:.85rem;">
+                <input type="number" name="fuel_consumption_l_per_100km" value="{{ v.fuel_consumption_l_per_100km }}" step="0.1" placeholder="L/100km" required style="font-size:.85rem;">
+              </div>
+              <select name="fuel_type" style="font-size:.85rem;">
+                <option value="PB95" {% if v.fuel_type == 'PB95' %}selected{% endif %}>PB95</option>
+                <option value="PB98" {% if v.fuel_type == 'PB98' %}selected{% endif %}>PB98</option>
+                <option value="ON" {% if v.fuel_type == 'ON' %}selected{% endif %}>ON (diesel)</option>
+              </select>
+              <input type="text" name="notes" value="{{ v.notes or '' }}" placeholder="Notatki" style="font-size:.85rem;">
+              <button type="submit" class="btn btn-primary" style="font-size:.8rem; align-self:flex-start;">💾 Zapisz</button>
+            </form>
+          </details>
+          <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ v.name }}? Usunie też historię EV tego pojazdu.')">
+            <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;">🗑️</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <h3 style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:#94a3b8;">+ Dodaj pojazd</h3>
+    <form method="post" action="{{ rp }}/ev/pojazdy/nowy" style="display:flex; flex-direction:column; gap:.6rem;">
+      <input type="text" name="name" placeholder="Nazwa np. Tesla Model Y" required>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem;">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie EV [kWh/100km]</label>
+          <input type="number" name="efficiency_kwh_per_100km" step="0.1" value="16" required>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Paliwo gdyby [L/100km]</label>
+          <input type="number" name="fuel_consumption_l_per_100km" step="0.1" value="8" required>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.6rem;">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Rodzaj paliwa</label>
+          <select name="fuel_type">
+            <option value="PB95">PB95</option>
+            <option value="PB98">PB98</option>
+            <option value="ON">ON (diesel)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Notatki</label>
+          <input type="text" name="notes" placeholder="np. BMW i3">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">+ Dodaj</button>
+    </form>
+  </div>
 
   <!-- Ceny paliw -->
   <div class="card">
@@ -116,32 +194,20 @@
     </form>
   </div>
 
-  <!-- Ustawienia EV -->
-  <div class="card">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">⚙️ Ustawienia EV</h2>
-    <form method="post" action="{{ rp }}/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
-      <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie EV [kWh/100km]</label>
-        <input type="number" name="efficiency_kwh_per_100km" step="0.1" value="{{ settings.efficiency_kwh_per_100km or 16 }}" required>
-        <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Tesla Model Y ~16, BMW i3 ~16</div>
-      </div>
-      <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie paliwa [L/100km]</label>
-        <input type="number" name="fuel_consumption_l_per_100km" step="0.1" value="{{ settings.fuel_consumption_l_per_100km or 10 }}" required>
-      </div>
-      <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Roczne km</label>
-        <input type="number" name="annual_km" value="{{ settings.annual_km or 25000 }}" required>
-      </div>
-      <div style="border-top:1px solid #334155; padding-top:.75rem;">
-        <div style="font-size:.75rem; color:#64748b; margin-bottom:.5rem; text-transform:uppercase;">Home Assistant (opcjonalnie)</div>
-        <input type="text" name="ha_url" placeholder="http://homeassistant.local:8123" value="{{ settings.ha_url or '' }}" style="margin-bottom:.5rem;">
-        <input type="text" name="ha_token" placeholder="Long-lived access token" value="{{ settings.ha_token or '' }}" style="margin-bottom:.5rem;">
-        <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
-      </div>
-      <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">💾 Zapisz</button>
-    </form>
-  </div>
+</div>
 
+<!-- Ustawienia HA -->
+<div class="card" style="max-width:560px;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">🏠 Home Assistant (opcjonalnie)</h2>
+  <form method="post" action="{{ rp }}/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
+    <input type="hidden" name="efficiency_kwh_per_100km" value="{{ settings.efficiency_kwh_per_100km or 16 }}">
+    <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
+    <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
+    <div style="font-size:.8rem; color:#64748b; margin-bottom:.25rem;">Automatyczne pobieranie licznika kWh z encji HA</div>
+    <input type="text" name="ha_url" placeholder="http://homeassistant.local:8123" value="{{ settings.ha_url or '' }}">
+    <input type="text" name="ha_token" placeholder="Long-lived access token" value="{{ settings.ha_token or '' }}">
+    <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
+    <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">💾 Zapisz</button>
+  </form>
 </div>
 {% endblock %}
