@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.3] — 2026-04-19
+
+### Naprawiono
+- `sqlite3.OperationalError: table readings has no column named ev_kwh` — dodano migrację ALTER TABLE przy starcie
+
 ## [1.3.2] — 2026-04-19
 
 ### Naprawiono

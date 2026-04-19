@@ -63,4 +63,15 @@ async def init_db() -> None:
                 source TEXT
             );
         """)
+
+        # Migrations — safe ALTER TABLE for columns added after initial deploy
+        for col, definition in [
+            ("ev_kwh", "REAL"),
+        ]:
+            try:
+                await db.execute(f"ALTER TABLE readings ADD COLUMN {col} {definition}")
+                await db.commit()
+            except Exception:
+                pass  # column already exists
+
         await db.commit()
