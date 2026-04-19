@@ -905,6 +905,29 @@ async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | 
         return None, str(e)
 
 
+@app.get("/api/ha-debug")
+async def ha_debug(entity: str = "sensor.solaredge_lifetime_energy", year: int = 2026, month: int = 2):
+    """Debug: show raw Statistics API response for an entity/month."""
+    import httpx, calendar
+    ha_url, ha_token = _ha_conn()
+    headers = {"Authorization": f"Bearer {ha_token}"}
+    last_day = calendar.monthrange(year, month)[1]
+    start = f"{year}-{month:02d}-01T00:00:00+00:00"
+    end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.post(
+                f"{ha_url}/api/recorder/statistics_during_period",
+                headers={**headers, "Content-Type": "application/json"},
+                json={"start_time": start, "end_time": end,
+                      "statistic_ids": [entity], "period": "month", "types": ["change"]},
+            )
+        return JSONResponse({"status": r.status_code, "body": r.text[:2000],
+                             "start": start, "end": end, "entity": entity})
+    except Exception as e:
+        return JSONResponse({"error": str(e)})
+
+
 @app.get("/api/ha-test")
 async def ha_test():
     """Test HA connection and return last monthly value for solar entity."""
