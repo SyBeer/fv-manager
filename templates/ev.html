@@ -203,10 +203,27 @@
     <input type="hidden" name="efficiency_kwh_per_100km" value="{{ settings.efficiency_kwh_per_100km or 16 }}">
     <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
     <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
-    <div style="font-size:.8rem; color:#64748b; margin-bottom:.25rem;">Automatyczne pobieranie licznika kWh z encji HA</div>
-    <input type="text" name="ha_url" placeholder="http://homeassistant.local:8123" value="{{ settings.ha_url or '' }}">
-    <input type="text" name="ha_token" placeholder="Long-lived access token" value="{{ settings.ha_token or '' }}">
-    <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
+    <div style="font-size:.8rem; color:#64748b; margin-bottom:.25rem; text-transform:uppercase; letter-spacing:.05em;">Połączenie</div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">URL Home Assistant</label>
+      <input type="text" name="ha_url" placeholder="http://homeassistant.local:8123" value="{{ settings.ha_url or '' }}">
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Long-lived access token</label>
+      <input type="text" name="ha_token" placeholder="eyJ..." value="{{ settings.ha_token or '' }}">
+    </div>
+    <div style="border-top:1px solid #334155; padding-top:.75rem;">
+      <div style="font-size:.8rem; color:#64748b; margin-bottom:.5rem; text-transform:uppercase; letter-spacing:.05em;">Encje</div>
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">☀️ Produkcja solarna (Statistics)</label>
+      <input type="text" name="ha_solar_entity" placeholder="sensor.solaredge_energy_today" value="{{ settings.ha_solar_entity or '' }}">
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Encja z zakładki Energy → Solar Production. Musi mieć statystyki (sensor_type: total_increasing).</div>
+    </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">🚗 Licznik EV (narastający)</label>
+      <input type="text" name="ha_entity" placeholder="sensor.ev_energy_total" value="{{ settings.ha_entity or '' }}">
+    </div>
     <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">💾 Zapisz</button>
   </form>
 </div>

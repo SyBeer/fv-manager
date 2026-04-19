@@ -89,6 +89,15 @@ async def init_db() -> None:
                 await db.execute(f"ALTER TABLE readings ADD COLUMN {col} {definition}")
                 await db.commit()
             except Exception:
-                pass  # column already exists
+                pass
+
+        for col, definition in [
+            ("ha_solar_entity", "TEXT"),
+        ]:
+            try:
+                await db.execute(f"ALTER TABLE ev_settings ADD COLUMN {col} {definition}")
+                await db.commit()
+            except Exception:
+                pass
 
         await db.commit()

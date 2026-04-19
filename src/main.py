@@ -706,14 +706,15 @@ async def save_ev_settings(
     ha_url: str = Form(None),
     ha_token: str = Form(None),
     ha_entity: str = Form(None),
+    ha_solar_entity: str = Form(None),
 ):
     db = await get_db()
     try:
         await db.execute(
             """UPDATE ev_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
-               annual_km=?, fuel_type=?, ha_url=?, ha_token=?, ha_entity=? WHERE id=1""",
+               annual_km=?, fuel_type=?, ha_url=?, ha_token=?, ha_entity=?, ha_solar_entity=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
-             fuel_type, ha_url, ha_token, ha_entity),
+             fuel_type, ha_url, ha_token, ha_entity, ha_solar_entity),
         )
         await db.commit()
     finally:
@@ -838,6 +839,53 @@ async def ha_fetch(period: str):
             )
         data = r.json()
         return JSONResponse({"state": data.get("state"), "unit": data.get("attributes", {}).get("unit_of_measurement")})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/api/ha-solar-fetch")
+async def ha_solar_fetch(period: str):
+    """Fetch monthly solar production from HA statistics API."""
+    import httpx, calendar
+    db = await get_db()
+    try:
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+
+    ha_url = (settings.get("ha_url") or os.getenv("HA_URL", "")).rstrip("/")
+    ha_token = settings.get("ha_token") or os.getenv("HA_TOKEN", "")
+    ha_solar = settings.get("ha_solar_entity") or ""
+
+    if not all([ha_url, ha_token, ha_solar]):
+        return JSONResponse({"error": "Skonfiguruj URL, token i encję Solar w ustawieniach HA"}, status_code=400)
+
+    try:
+        year, month = int(period.split(".")[0]), int(period.split(".")[1])
+        start = f"{year}-{month:02d}-01T00:00:00"
+        last_day = calendar.monthrange(year, month)[1]
+        end = f"{year}-{month:02d}-{last_day}T23:59:59"
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.post(
+                f"{ha_url}/api/recorder/statistics_during_period",
+                headers={"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"},
+                json={
+                    "start_time": start,
+                    "end_time": end,
+                    "statistic_ids": [ha_solar],
+                    "period": "month",
+                    "types": ["change"],
+                },
+            )
+        data = r.json()
+        entries = data.get(ha_solar, [])
+        if not entries:
+            return JSONResponse({"error": f"Brak danych statystyk dla {ha_solar} w okresie {period}"}, status_code=404)
+        change = entries[0].get("change")
+        if change is None:
+            return JSONResponse({"error": "Brak wartości 'change' w odpowiedzi HA"}, status_code=500)
+        return JSONResponse({"production_kwh": round(float(change), 3), "entity": ha_solar, "period": period})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 

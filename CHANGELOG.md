@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0] — 2026-04-19
+
+### Dodano
+- Pobieranie miesięcznej produkcji solarnej z HA (`GET /api/ha-solar-fetch`) — używa Statistics API HA, zwraca `change` dla encji `total_increasing`
+- Pole `ha_solar_entity` w ustawieniach HA (moduł EV)
+- Przycisk 🏠 HA przy polu Produkcja w formularzu odczytu
+
 ## [1.8.0] — 2026-04-19
 
 ### Dodano

@@ -36,8 +36,12 @@
         <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Energia [kWh]</div>
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
           <div>
-            <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#fbbf24;">☀️ Produkcja</label>
-            <input type="number" name="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+              <label style="font-size:.85rem; color:#fbbf24;">☀️ Produkcja</label>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchSolar()">🏠 HA</button>
+              <span id="solar-status" style="font-size:.72rem; color:#64748b;"></span>
+            </div>
+            <input type="number" name="production_kwh" id="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
           </div>
           <div>
             <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
@@ -185,6 +189,20 @@ async function showRoiPreview() {
   } catch(e) { document.getElementById('before-savings').textContent = 'Błąd'; }
 }
 {% endif %}
+
+function fetchSolar() {
+  const period = document.getElementById('period-hidden').value;
+  if (!period) { alert('Najpierw wybierz rok i miesiąc.'); return; }
+  document.getElementById('solar-status').textContent = '⏳';
+  fetch('{{ rp }}/api/ha-solar-fetch?period=' + period)
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { document.getElementById('solar-status').textContent = '❌ ' + d.error; return; }
+      document.getElementById('production_kwh').value = d.production_kwh;
+      document.getElementById('solar-status').textContent = '✅ ' + d.production_kwh + ' kWh';
+    })
+    .catch(() => document.getElementById('solar-status').textContent = '❌ Błąd połączenia');
+}
 
 function fetchFromHA() {
   const period = document.querySelector('[name="period"]').value;
