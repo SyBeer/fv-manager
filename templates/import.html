@@ -2,11 +2,17 @@
 {% block title %}Import — FV Manager{% endblock %}
 {% block content %}
 <div style="max-width:700px;">
-  <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">📥 Import z Excela</h1>
+  <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">📥 Import danych</h1>
 
   {% if error %}
   <div style="background:#450a0a; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#fca5a5;">
     ❌ {{ error }}
+  </div>
+  {% endif %}
+
+  {% if request.query_params.get('cleared') %}
+  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
+    ✅ Baza danych została wyczyszczona.
   </div>
   {% endif %}
 
@@ -25,8 +31,56 @@
   </div>
   {% endif %}
 
-  <!-- Upload -->
+  <!-- CSV Import -->
   <div class="card" style="margin-bottom:1.5rem;">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">📄 Import z CSV</h2>
+    <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
+      Wgraj plik CSV wyeksportowany z aplikacji (⬇️ CSV w Odczytach) lub pobierz szablon z nagłówkami.
+      Istniejące okresy nie zostaną nadpisane.
+    </p>
+    <div style="display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+      <a href="{{ rp }}/import/template.csv" class="btn btn-ghost" style="font-size:.85rem;">⬇️ Pobierz szablon CSV</a>
+    </div>
+    <form method="post" action="{{ rp }}/import/csv" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik CSV (.csv)</label>
+        <input type="file" name="file" accept=".csv" required>
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj CSV</button>
+    </form>
+  </div>
+
+  <!-- Excel Upload -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">📊 Import z Excela</h2>
+    <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
+      Wybierz plik Excel z arkuszem <strong>„Moja instalacja"</strong>.
+      Istniejące okresy nie zostaną nadpisane.
+    </p>
+    <form method="post" action="{{ rp }}/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik Excel (.xlsx)</label>
+        <input type="file" name="file" accept=".xlsx" required>
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj Excel</button>
+    </form>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="card" style="margin-bottom:1.5rem; border-color:#ef4444;">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#f87171;">⚠️ Niebezpieczna strefa</h2>
+    <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1.5rem;">
+      Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:#f87171;">nieodwracalna</strong>.
+      Przed czyszczeniem warto wyeksportować dane do CSV.
+    </p>
+    <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Spowoduje to usunięcie WSZYSTKICH danych. Czy na pewno chcesz kontynuować?')">
+      <button type="submit" class="btn btn-red">🗑️ Wyczyść całą bazę danych</button>
+    </form>
+  </div>
+
+  <!-- Struktura pliku Excel -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📋 Wymagana struktura pliku Excel</h2>
     <p style="color:#94a3b8; margin-bottom:1.5rem; font-size:.9rem;">
       Wybierz plik Excel z arkuszem <strong>„Moja instalacja"</strong>.
       Istniejące okresy nie zostaną nadpisane.
@@ -48,7 +102,7 @@
       Dane miesięczne zaczynają się od wiersza 5. Nagłówki muszą być w wierszach 1–4.
     </p>
 
-    <table style="font-size:.82rem;">
+    <table style="font-size:.82rem; width:100%;">
       <thead>
         <tr>
           <th style="width:60px;">Kolumna</th>

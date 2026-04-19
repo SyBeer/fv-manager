@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] — 2026-04-19
+
+### Dodano
+- Import z CSV — eksportowany plik można wczytać z powrotem bez żadnych modyfikacji
+- Pobieranie szablonu CSV z nagłówkami (`/import/template.csv`)
+- Przycisk wyczyszczenia całej bazy danych (Niebezpieczna strefa na stronie Import)
+
 ## [1.3.3] — 2026-04-19
 
 ### Naprawiono

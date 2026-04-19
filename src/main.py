@@ -387,6 +387,87 @@ async def do_import(request: Request, file: UploadFile = File(...)):
     )
 
 
+CSV_HEADERS = [
+    "Okres", "Rok", "Miesiąc", "Dni",
+    "Produkcja [kWh]", "Oddane [kWh]", "Pobrane [kWh]",
+    "Autokonsumpcja [kWh]", "Zużycie [kWh]", "Oszczędności [kWh]",
+    "Cena kWh [zł]", "Oszczędności [zł]", "Wartość produkcji [zł]",
+    "EV [kWh]", "Nr faktury", "Faktura brutto [zł]", "Notatki",
+]
+
+
+@app.get("/import/template.csv")
+async def download_csv_template():
+    import csv, io
+    output = io.StringIO()
+    csv.writer(output, delimiter=";").writerow(CSV_HEADERS)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=fv-szablon.csv"},
+    )
+
+
+@app.post("/import/csv")
+async def do_import_csv(request: Request, file: UploadFile = File(...)):
+    import csv, io
+    rp = request.scope.get("root_path", "")
+    content = (await file.read()).decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(content), delimiter=";")
+    db = await get_db()
+    imported = skipped = 0
+    try:
+        for row in reader:
+            period = row.get("Okres", "").strip()
+            if not period:
+                continue
+            try:
+                year, month = int(period.split(".")[0]), int(period.split(".")[1])
+                await db.execute(
+                    """INSERT OR IGNORE INTO readings
+                       (period, year, month, days, production_kwh, sent_to_grid_kwh,
+                        taken_from_grid_kwh, ev_kwh, price_per_kwh, invoice_number, invoice_gross, notes)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (
+                        period, year, month,
+                        row.get("Dni") or None,
+                        float(row["Produkcja [kWh]"]),
+                        float(row["Oddane [kWh]"]),
+                        float(row["Pobrane [kWh]"]),
+                        row.get("EV [kWh]") or None,
+                        row.get("Cena kWh [zł]") or None,
+                        row.get("Nr faktury") or None,
+                        row.get("Faktura brutto [zł]") or None,
+                        row.get("Notatki") or None,
+                    ),
+                )
+                if db.total_changes > imported:
+                    imported += 1
+                else:
+                    skipped += 1
+            except Exception:
+                skipped += 1
+        await db.commit()
+    finally:
+        await db.close()
+    return RedirectResponse(
+        f"{rp}/import?imported={imported}&skipped={skipped}&rejected=0",
+        status_code=303,
+    )
+
+
+@app.post("/admin/clear-db")
+async def clear_db(request: Request):
+    db = await get_db()
+    try:
+        await db.executescript("DELETE FROM readings; DELETE FROM investments; DELETE FROM fuel_prices;")
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/import?cleared=1", status_code=303)
+
+
 # ── EV ───────────────────────────────────────────────────────────────────────
 
 async def _get_ev_settings(db: aiosqlite.Connection) -> dict:
