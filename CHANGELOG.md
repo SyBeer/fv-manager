@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0] — 2026-04-19
+
+### Zmieniono
+- EV savings (oszczędności vs paliwo) wliczane do ROI — dla każdego miesiąca z ev_kwh aplikacja oblicza ile zaoszczędzono vs odpowiednik benzynowy i dodaje do łącznych oszczędności
+- ROI pokazuje breakdown: ☀️ FV + 🚗 EV osobno
+- Wykres ROI ma dodatkową linię przerywana "z czego EV" gdy są dane EV
+
 ## [1.6.0] — 2026-04-19
 
 ### Dodano

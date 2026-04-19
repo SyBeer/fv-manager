@@ -68,6 +68,36 @@ async def _get_investments(db: aiosqlite.Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+async def _get_fuel_prices(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM fuel_prices ORDER BY date")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+def _ev_enrich(readings: list[dict], ev_settings: dict, fuel_prices: list[dict]) -> list[dict]:
+    """Add ev_savings_pln to readings that have ev_kwh, using closest fuel price."""
+    if not ev_settings or not fuel_prices:
+        return readings
+    efficiency = ev_settings.get("efficiency_kwh_per_100km") or 16.0
+    fuel_cons = ev_settings.get("fuel_consumption_l_per_100km") or 10.0
+    prices_desc = sorted(fuel_prices, key=lambda p: p["date"], reverse=True)
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
+    result = []
+    for r in readings:
+        ev_kwh = r.get("ev_kwh")
+        if not ev_kwh:
+            result.append(r)
+            continue
+        year, month = r["period"].split(".")
+        period_end = f"{year}-{month.zfill(2)}-28"
+        fuel_price_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1])
+        fuel_price = fuel_price_obj["price_per_liter"]
+        price_kwh = r.get("price_per_kwh") or default_price
+        ev = calc_ev_savings(ev_kwh, price_kwh, efficiency, fuel_cons, fuel_price)
+        result.append({**r, "ev_savings_pln": ev["ev_net_savings"]})
+    return result
+
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
@@ -76,9 +106,12 @@ async def dashboard(request: Request):
     try:
         readings = await _get_readings(db)
         investments = await _get_investments(db)
+        ev_settings = await _get_ev_settings(db)
+        fuel_prices = await _get_fuel_prices(db)
     finally:
         await db.close()
 
+    readings = _ev_enrich(readings, ev_settings, fuel_prices)
     total_investment = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total_investment) if readings and total_investment > 0 else None
 
@@ -258,8 +291,11 @@ async def investments_list(request: Request):
     try:
         investments = await _get_investments(db)
         readings = await _get_readings(db)
+        ev_settings = await _get_ev_settings(db)
+        fuel_prices = await _get_fuel_prices(db)
     finally:
         await db.close()
+    readings = _ev_enrich(readings, ev_settings, fuel_prices)
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
     return _t(request, "investments.html", {"investments": investments, "total": total, "roi": roi})
@@ -343,24 +379,36 @@ async def roi_page(request: Request):
     try:
         readings = await _get_readings(db)
         investments = await _get_investments(db)
+        ev_settings = await _get_ev_settings(db)
+        fuel_prices = await _get_fuel_prices(db)
     finally:
         await db.close()
 
+    readings = _ev_enrich(readings, ev_settings, fuel_prices)
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
     sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20]) if readings and total > 0 else []
 
-    # Monthly savings history for chart
+    # Monthly savings for chart — FV + EV stacked
     monthly_savings = []
-    cumulative = 0.0
+    cumulative_fv = 0.0
+    cumulative_ev = 0.0
+    default_price = float(os.getenv("DEFAULT_PRICE_KWH", 0.75))
     for r in readings:
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh") or 0.75)
-        cumulative += c["savings_pln"] or 0
-        monthly_savings.append({"period": r["period"], "cumulative": round(cumulative, 2)})
+        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh") or default_price)
+        cumulative_fv += c["savings_pln"] or 0
+        cumulative_ev += r.get("ev_savings_pln") or 0
+        monthly_savings.append({
+            "period": r["period"],
+            "cumulative": round(cumulative_fv + cumulative_ev, 2),
+            "cumulative_fv": round(cumulative_fv, 2),
+            "cumulative_ev": round(cumulative_ev, 2),
+        })
 
     return _t(request, "roi.html", {
         "roi": roi, "sensitivity": sensitivity,
         "monthly_savings": monthly_savings, "total_investment": total, "investments": investments,
+        "has_ev": any(r.get("ev_savings_pln") for r in readings),
     })
 
 
@@ -609,21 +657,21 @@ async def roi_preview(data: dict):
     try:
         readings = await _get_readings(db)
         investments = await _get_investments(db)
+        ev_settings = await _get_ev_settings(db)
+        fuel_prices = await _get_fuel_prices(db)
     finally:
         await db.close()
 
+    readings = _ev_enrich(readings, ev_settings, fuel_prices)
     total = sum(i["cost_pln"] for i in investments)
     roi_before = calc_roi(readings, total) if readings and total > 0 else {}
 
     # Apply hypothetical edit
     reading_id = data.get("id")
-    patched = []
-    for r in readings:
-        if r["id"] == reading_id:
-            patched.append({**r, **data})
-        else:
-            patched.append(r)
-
+    patched = _ev_enrich(
+        [{**r, **data} if r["id"] == reading_id else r for r in readings],
+        ev_settings, fuel_prices,
+    )
     roi_after = calc_roi(patched, total) if patched and total > 0 else {}
     return JSONResponse({
         "before": {

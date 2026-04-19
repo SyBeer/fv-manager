@@ -42,18 +42,25 @@ def calc_roi(
     total_investment_pln: float,
     default_price: float = 0.75,
 ) -> dict:
-    """Calculate ROI state and break-even projection."""
-    total_savings_pln = 0.0
+    """Calculate ROI state and break-even projection.
+
+    Readings may include pre-calculated ``ev_savings_pln`` (EV vs fuel savings)
+    which is added on top of FV grid savings.
+    """
+    total_fv_savings = 0.0
+    total_ev_savings = 0.0
     total_production = 0.0
     months_count = 0
 
     for r in readings:
         price = r.get("price_per_kwh") or default_price
         c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
-        total_savings_pln += c["savings_pln"] or 0
+        total_fv_savings += c["savings_pln"] or 0
+        total_ev_savings += r.get("ev_savings_pln") or 0
         total_production += r["production_kwh"]
         months_count += 1
 
+    total_savings_pln = total_fv_savings + total_ev_savings
     remaining = total_investment_pln - total_savings_pln
     avg_monthly_savings = total_savings_pln / months_count if months_count > 0 else 0
     months_to_roi = remaining / avg_monthly_savings if avg_monthly_savings > 0 and remaining > 0 else 0
@@ -61,6 +68,8 @@ def calc_roi(
     return {
         "total_investment_pln": round(total_investment_pln, 2),
         "total_savings_pln": round(total_savings_pln, 2),
+        "total_fv_savings_pln": round(total_fv_savings, 2),
+        "total_ev_savings_pln": round(total_ev_savings, 2),
         "remaining_to_roi": round(remaining, 2),
         "roi_achieved": remaining <= 0,
         "avg_monthly_savings": round(avg_monthly_savings, 2),
