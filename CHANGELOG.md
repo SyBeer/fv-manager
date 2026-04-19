@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.2.0] — 2026-04-19
+
+### Dodano
+- Kolumna "Wartość produkcji" w tabeli odczytów — `produkcja × cena_kWh` [zł]
+
 ## [1.1.1] — 2026-04-19
 
 ### Naprawiono

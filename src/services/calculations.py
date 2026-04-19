@@ -26,12 +26,14 @@ def calc_monthly(
     net_metering_pool = sent_to_grid * 0.8
     savings_kwh = auto_consumption + min(net_metering_pool, taken_from_grid)
     savings_pln = savings_kwh * price_per_kwh if price_per_kwh else None
+    production_value_pln = production * price_per_kwh if price_per_kwh else None
     return {
         "auto_consumption": round(auto_consumption, 3),
         "total_consumed": round(total_consumed, 3),
         "net_metering_pool": round(net_metering_pool, 3),
         "savings_kwh": round(savings_kwh, 3),
         "savings_pln": round(savings_pln, 2) if savings_pln else None,
+        "production_value_pln": round(production_value_pln, 2) if production_value_pln else None,
     }
 
 
