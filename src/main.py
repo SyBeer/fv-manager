@@ -870,7 +870,12 @@ async def ha_test():
                     "types": ["change"],
                 },
             )
-            data = r.json()
+            if r.status_code != 200:
+                return JSONResponse({"error": f"Statistics API: {r.status_code} — {r.text[:200]}"}, status_code=502)
+            try:
+                data = r.json()
+            except Exception as je:
+                return JSONResponse({"error": f"Nieprawidłowa odpowiedź JSON: {je} | Treść: {r.text[:300]}"}, status_code=502)
             entries = data.get(ha_solar, [])
             if not entries:
                 return JSONResponse({"ok": True, "message": f"Połączenie OK — brak danych statystyk dla {ha_solar}. Sprawdź nazwę encji."})
@@ -917,7 +922,12 @@ async def ha_grid_fetch(period: str, direction: str = "consumed"):
                     "types": ["change"],
                 },
             )
-        data = r.json()
+        if r.status_code != 200:
+            return JSONResponse({"error": f"Statistics API: {r.status_code} — {r.text[:200]}"}, status_code=502)
+        try:
+            data = r.json()
+        except Exception as je:
+            return JSONResponse({"error": f"Nieprawidłowa odpowiedź JSON: {je} | Treść: {r.text[:300]}"}, status_code=502)
         entries = data.get(entity, [])
         if not entries:
             return JSONResponse({"error": f"Brak danych dla {entity} w {period}"}, status_code=404)
@@ -961,7 +971,12 @@ async def ha_solar_fetch(period: str):
                     "types": ["change"],
                 },
             )
-        data = r.json()
+        if r.status_code != 200:
+            return JSONResponse({"error": f"Statistics API: {r.status_code} — {r.text[:200]}"}, status_code=502)
+        try:
+            data = r.json()
+        except Exception as je:
+            return JSONResponse({"error": f"Nieprawidłowa odpowiedź JSON: {je} | Treść: {r.text[:300]}"}, status_code=502)
         entries = data.get(ha_solar, [])
         if not entries:
             return JSONResponse({"error": f"Brak danych statystyk dla {ha_solar} w okresie {period}"}, status_code=404)
