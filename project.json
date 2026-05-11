@@ -1,10 +1,18 @@
 {
   "name": "fv-manager",
   "title": "FV Manager — Efektywność Fotowoltaiki",
-  "description": "Zarządzanie efektywnością kosztową instalacji fotowoltaicznej. Śledzenie produkcji, zużycia, oszczędności i ROI. Import z Excela, panel w Home Assistant.",
-  "status": "active",
+  "description": "Zarządzanie efektywnością kosztową instalacji fotowoltaicznej. Śledzenie produkcji, zużycia, oszczędności i ROI. Import CSV, panel w Home Assistant, integracja Tesla Fleet API.",
+  "status": "wip",
   "port": 8010,
-  "start_cmd": "cd fv-manager && source .venv/bin/activate && PYTHONPATH=src uvicorn src.main:app --reload --port 8010",
+  "start_cmd": "PYTHONPATH=src .venv/bin/uvicorn src.main:app --reload --port 8010",
   "tags": ["FastAPI", "Python", "FV", "energia", "ROI", "Home Assistant"],
-  "integrations": ["SolarEdge", "PGE", "Home Assistant"]
+  "docs": [
+    { "label": "Dashboard", "url_path": "/" },
+    { "label": "Odczyty miesięczne", "url_path": "/odczyty" },
+    { "label": "Analiza ROI", "url_path": "/roi" },
+    { "label": "Oszczędności EV", "url_path": "/ev" },
+    { "label": "Inwestycje", "url_path": "/inwestycje" },
+    { "label": "Import CSV", "url_path": "/import" }
+  ],
+  "integrations": ["Home Assistant", "Tesla Fleet API"]
 }
