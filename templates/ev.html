@@ -221,6 +221,13 @@
       <input type="text" name="ha_grid_returned_entity" placeholder="sensor.zamel_mew01_total_reverse_active_energy" value="{{ settings.ha_grid_returned_entity or '' }}">
       <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Electricity grid → druga encja (licznik 2.8.0).</div>
     </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">⚡ Współczynnik net-meteringu</label>
+      <input type="number" id="net_metering_ratio" name="net_metering_ratio"
+             step="0.01" min="0.5" max="1.0"
+             value="{{ settings.net_metering_ratio or 0.8 }}">
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Ułamek oddanej energii wracający do puli rozliczeniowej (domyślnie 0.80 = 80%)</div>
+    </div>
     <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary" style="font-size:.85rem;">💾 Zapisz</button>
       <button type="button" class="btn btn-ghost" style="font-size:.85rem;" onclick="testHA()">🔌 Test połączenia</button>

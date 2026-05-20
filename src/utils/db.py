@@ -63,7 +63,8 @@ async def init_db() -> None:
                 annual_km REAL NOT NULL DEFAULT 25000,
                 fuel_type TEXT NOT NULL DEFAULT 'PB95',
                 ha_url TEXT,
-                ha_entity TEXT
+                ha_entity TEXT,
+                net_metering_ratio REAL NOT NULL DEFAULT 0.80
             );
 
             INSERT OR IGNORE INTO app_settings (id) VALUES (1);
@@ -108,6 +109,7 @@ async def init_db() -> None:
             ("ha_solar_entity", "TEXT"),
             ("ha_grid_consumed_entity", "TEXT"),
             ("ha_grid_returned_entity", "TEXT"),
+            ("net_metering_ratio", "REAL NOT NULL DEFAULT 0.80"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE app_settings ADD COLUMN {col} {definition}")

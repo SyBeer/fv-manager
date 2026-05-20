@@ -32,7 +32,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from utils.db import init_db, get_db, DB_PATH
-from services.calculations import calc_monthly, calc_roi, roi_sensitivity, calc_ev_savings
+from services.calculations import calc_monthly, calc_roi, roi_sensitivity, calc_ev_savings, enrich_readings_sequence
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -300,14 +300,10 @@ async def dashboard(request: Request):
 
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total_investment = sum(i["cost_pln"] for i in investments)
-    roi = calc_roi(readings, total_investment) if readings and total_investment > 0 else None
-
     default_price = _default_price()
-    enriched = []
-    for r in readings:
-        price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
-        enriched.append({**r, **c})
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    roi = calc_roi(readings, total_investment, default_price, nm_ratio) if readings and total_investment > 0 else None
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price)
 
     return _t(request, "dashboard.html", {
         "readings": enriched[-12:],
@@ -322,15 +318,15 @@ async def readings_list(request: Request):
     db = await get_db()
     try:
         readings = await _get_readings(db)
+        ev_settings = await _get_ev_settings(db)
     finally:
         await db.close()
 
     default_price = _default_price()
-    enriched = []
-    for r in readings:
-        price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
-        enriched.append({**r, **c, "effective_price": price})
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price)
+    for r in enriched:
+        r["effective_price"] = r.get("price_per_kwh") or default_price
 
     return _t(request, "readings.html", {"readings": list(reversed(enriched))})
 
@@ -341,10 +337,13 @@ async def export_readings_csv():
     db = await get_db()
     try:
         readings = await _get_readings(db)
+        ev_settings = await _get_ev_settings(db)
     finally:
         await db.close()
 
     default_price = _default_price()
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    enriched_map = {r["period"]: r for r in enrich_readings_sequence(readings, nm_ratio, default_price)}
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
@@ -355,8 +354,8 @@ async def export_readings_csv():
         "EV [kWh]", "Nr faktury", "Faktura brutto [zł]", "Notatki",
     ])
     for r in readings:
+        c = enriched_map[r["period"]]
         price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
         writer.writerow([
             r["period"], r["year"], r["month"], r.get("days", ""),
             r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
@@ -634,17 +633,19 @@ async def roi_page(request: Request):
 
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
-    roi = calc_roi(readings, total) if readings and total > 0 else None
-    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20]) if readings and total > 0 else []
+    default_price = _default_price()
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+
+    roi = calc_roi(readings, total, default_price, nm_ratio) if readings and total > 0 else None
+    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio) if readings and total > 0 else []
 
     # Monthly savings for chart — FV + EV stacked
     monthly_savings = []
     cumulative_fv = 0.0
     cumulative_ev = 0.0
-    default_price = _default_price()
-    for r in readings:
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh") or default_price)
-        cumulative_fv += c["savings_pln"] or 0
+    enriched_seq = enrich_readings_sequence(readings, nm_ratio, default_price)
+    for r in enriched_seq:
+        cumulative_fv += r.get("savings_pln") or 0
         cumulative_ev += r.get("ev_savings_pln") or 0
         monthly_savings.append({
             "period": r["period"],
@@ -868,15 +869,18 @@ async def save_ev_settings(
     ha_solar_entity: str = Form(None),
     ha_grid_consumed_entity: str = Form(None),
     ha_grid_returned_entity: str = Form(None),
+    net_metering_ratio: float = Form(0.80),
 ):
     db = await get_db()
     try:
         await db.execute(
             """UPDATE app_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
                annual_km=?, fuel_type=?, ha_solar_entity=?,
-               ha_grid_consumed_entity=?, ha_grid_returned_entity=? WHERE id=1""",
+               ha_grid_consumed_entity=?, ha_grid_returned_entity=?,
+               net_metering_ratio=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
-             fuel_type, ha_solar_entity, ha_grid_consumed_entity, ha_grid_returned_entity),
+             fuel_type, ha_solar_entity, ha_grid_consumed_entity, ha_grid_returned_entity,
+             net_metering_ratio),
         )
         await db.commit()
     finally:

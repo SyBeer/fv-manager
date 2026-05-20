@@ -1,4 +1,4 @@
-from services.calculations import calc_monthly, calc_roi, roi_sensitivity
+from services.calculations import calc_monthly, calc_roi, roi_sensitivity, enrich_readings_sequence
 
 
 def test_calc_monthly_basic():
@@ -8,6 +8,7 @@ def test_calc_monthly_basic():
     assert r["net_metering_pool"] == 240      # 300 * 0.8
     assert r["savings_kwh"] == 300            # 200 auto + min(240, 100) taken
     assert r["savings_pln"] == 225.0          # 300 * 0.75
+    assert r["carry_over_out"] == 140.0       # 240 - 100 = 140
 
 
 def test_calc_monthly_no_price():
@@ -17,8 +18,8 @@ def test_calc_monthly_no_price():
 
 def test_calc_roi_not_achieved():
     readings = [
-        {"production_kwh": 500, "sent_to_grid_kwh": 300, "taken_from_grid_kwh": 100, "price_per_kwh": 0.75},
-        {"production_kwh": 400, "sent_to_grid_kwh": 200, "taken_from_grid_kwh": 200, "price_per_kwh": 0.75},
+        {"period": "2024.07", "production_kwh": 500, "sent_to_grid_kwh": 300, "taken_from_grid_kwh": 100, "price_per_kwh": 0.75},
+        {"period": "2024.08", "production_kwh": 400, "sent_to_grid_kwh": 200, "taken_from_grid_kwh": 200, "price_per_kwh": 0.75},
     ]
     roi = calc_roi(readings, total_investment_pln=10000)
     assert roi["roi_achieved"] is False
@@ -27,14 +28,18 @@ def test_calc_roi_not_achieved():
 
 
 def test_calc_roi_achieved():
-    readings = [{"production_kwh": 1000, "sent_to_grid_kwh": 0, "taken_from_grid_kwh": 0, "price_per_kwh": 1.0}] * 5
+    readings = [
+        {"period": f"2024.{str(m).zfill(2)}", "production_kwh": 1000, "sent_to_grid_kwh": 0,
+         "taken_from_grid_kwh": 0, "price_per_kwh": 1.0}
+        for m in range(5, 10)
+    ]
     roi = calc_roi(readings, total_investment_pln=100)
     assert roi["roi_achieved"] is True
     assert roi["remaining_to_roi"] <= 0
 
 
 def test_roi_sensitivity():
-    readings = [{"production_kwh": 500, "sent_to_grid_kwh": 300, "taken_from_grid_kwh": 100, "price_per_kwh": None}]
+    readings = [{"period": "2024.07", "production_kwh": 500, "sent_to_grid_kwh": 300, "taken_from_grid_kwh": 100, "price_per_kwh": None}]
     results = roi_sensitivity(readings, 10000, [0.50, 1.00])
     assert len(results) == 2
     assert results[1]["total_savings_pln"] > results[0]["total_savings_pln"]
