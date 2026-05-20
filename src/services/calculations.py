@@ -48,30 +48,99 @@ def calc_monthly(
     }
 
 
+def _get_billing_model(period: str, billing_periods: list[dict]) -> str:
+    year, month = period.split(".")
+    period_date = f"{year}-{month.zfill(2)}-01"
+    for bp in sorted(billing_periods, key=lambda b: b["start_date"], reverse=True):
+        if bp["start_date"] <= period_date:
+            if bp["end_date"] is None or bp["end_date"] >= period_date:
+                return bp["model"]
+    return "net_metering"
+
+
+def _get_rce_price(
+    period: str,
+    rce_prices: list[dict],
+    sale_price_override: float | None = None,
+) -> float | None:
+    if sale_price_override is not None:
+        return sale_price_override
+    if not rce_prices:
+        return None
+    year, month = period.split(".")
+    period_end = f"{year}-{month.zfill(2)}-28"
+    prices_desc = sorted(rce_prices, key=lambda p: p["date"], reverse=True)
+    obj = next((p for p in prices_desc if p["date"] <= period_end), None)
+    return obj["price_per_kwh"] if obj else None
+
+
+def calc_monthly_netbilling(
+    production: float,
+    sent_to_grid: float,
+    taken_from_grid: float,
+    retail_price_per_kwh: float,
+    rce_price_per_kwh: float | None,
+) -> dict:
+    auto_consumption = production - sent_to_grid
+    total_consumed = auto_consumption + taken_from_grid
+    rce = rce_price_per_kwh or 0.0
+    savings_pln = auto_consumption * retail_price_per_kwh + sent_to_grid * rce
+    production_value_pln = production * retail_price_per_kwh
+    return {
+        "auto_consumption": round(auto_consumption, 3),
+        "total_consumed": round(total_consumed, 3),
+        "net_metering_pool": 0.0,
+        "savings_kwh": round(auto_consumption, 3),
+        "savings_pln": round(savings_pln, 2),
+        "production_value_pln": round(production_value_pln, 2),
+        "carry_over_out": 0.0,
+        "net_billing_income_pln": round(sent_to_grid * rce, 2),
+        "model": "net_billing",
+    }
+
+
 def enrich_readings_sequence(
     readings: list[dict],
     net_metering_ratio: float = 0.80,
     default_price: float = 0.75,
+    billing_periods: list[dict] | None = None,
+    rce_prices: list[dict] | None = None,
 ) -> list[dict]:
-    """Przetwarza odczyty chronologicznie, przewijając carry_over w cyklu kwiecień–marzec.
+    bp_list = billing_periods or []
+    rce_list = rce_prices or []
 
-    Resetuje carry_over w kwietniu (początek nowego cyklu rocznego net-meteringu).
-    Zwraca listę odczytów wzbogaconych o wyniki calc_monthly (w tej samej kolejności co wejście).
-    """
     sorted_r = sorted(readings, key=lambda r: r["period"])
     carry_over = 0.0
+    last_model = "net_metering"
     enriched_by_period: dict[str, dict] = {}
 
     for r in sorted_r:
         month = int(r["period"].split(".")[1])
-        if month == 4:
+        model = _get_billing_model(r["period"], bp_list)
+
+        if month == 4 or (model == "net_billing" and last_model == "net_metering"):
             carry_over = 0.0
+        if model == "net_metering" and last_model == "net_billing":
+            carry_over = 0.0
+
+        last_model = model
         price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(
-            r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
-            price, carry_over, net_metering_ratio,
-        )
-        carry_over = c["carry_over_out"]
+
+        if model == "net_billing":
+            rce = _get_rce_price(r["period"], rce_list, r.get("sale_price_kwh"))
+            c = calc_monthly_netbilling(
+                r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+                price, rce,
+            )
+            carry_over = 0.0
+        else:
+            c = calc_monthly(
+                r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+                price, carry_over, net_metering_ratio,
+            )
+            carry_over = c["carry_over_out"]
+            c["model"] = "net_metering"
+
         enriched_by_period[r["period"]] = {**r, **c}
 
     return [enriched_by_period[r["period"]] for r in readings if r["period"] in enriched_by_period]
@@ -82,14 +151,19 @@ def calc_roi(
     total_investment_pln: float,
     default_price: float = 0.75,
     net_metering_ratio: float = 0.80,
+    billing_periods: list[dict] | None = None,
+    rce_prices: list[dict] | None = None,
 ) -> dict:
     """Calculate ROI state and break-even projection.
 
-    Processes readings chronologically with cumulative net-metering carry_over.
-    Readings must have 'period' key in format 'YYYY.MM'.
+    Obsługuje mieszaną historię net-metering + net-billing.
     """
+    bp_list = billing_periods or []
+    rce_list = rce_prices or []
+
     sorted_r = sorted(readings, key=lambda r: r["period"])
     carry_over = 0.0
+    last_model = "net_metering"
     total_fv_savings = 0.0
     total_ev_savings = 0.0
     total_production = 0.0
@@ -97,14 +171,30 @@ def calc_roi(
 
     for r in sorted_r:
         month = int(r["period"].split(".")[1])
-        if month == 4:
+        model = _get_billing_model(r["period"], bp_list)
+
+        if month == 4 or (model == "net_billing" and last_model == "net_metering"):
             carry_over = 0.0
+        if model == "net_metering" and last_model == "net_billing":
+            carry_over = 0.0
+
+        last_model = model
         price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(
-            r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
-            price, carry_over, net_metering_ratio,
-        )
-        carry_over = c["carry_over_out"]
+
+        if model == "net_billing":
+            rce = _get_rce_price(r["period"], rce_list, r.get("sale_price_kwh"))
+            c = calc_monthly_netbilling(
+                r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+                price, rce,
+            )
+            carry_over = 0.0
+        else:
+            c = calc_monthly(
+                r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+                price, carry_over, net_metering_ratio,
+            )
+            carry_over = c["carry_over_out"]
+
         total_fv_savings += c["savings_pln"] or 0
         total_ev_savings += r.get("ev_savings_pln") or 0
         total_production += r["production_kwh"]
@@ -161,11 +251,14 @@ def roi_sensitivity(
     total_investment_pln: float,
     prices: list[float],
     net_metering_ratio: float = 0.80,
+    billing_periods: list[dict] | None = None,
+    rce_prices: list[dict] | None = None,
 ) -> list[dict]:
-    """ROI break-even at different energy prices."""
+    """ROI break-even at different retail energy prices."""
     results = []
     for price in prices:
         patched = [{**r, "price_per_kwh": price} for r in readings]
-        roi = calc_roi(patched, total_investment_pln, price, net_metering_ratio)
+        roi = calc_roi(patched, total_investment_pln, price, net_metering_ratio,
+                      billing_periods, rce_prices)
         results.append({"price_per_kwh": price, **roi})
     return results

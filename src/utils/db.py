@@ -51,6 +51,7 @@ async def init_db() -> None:
                 taken_from_grid_kwh REAL NOT NULL,
                 ev_kwh REAL,
                 price_per_kwh REAL,
+                sale_price_kwh REAL,
                 invoice_number TEXT,
                 invoice_gross REAL,
                 notes TEXT
@@ -93,11 +94,27 @@ async def init_db() -> None:
                 kwh REAL NOT NULL,
                 UNIQUE(period, vehicle_id)
             );
+
+            CREATE TABLE IF NOT EXISTS billing_periods (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                start_date TEXT NOT NULL,
+                end_date   TEXT,
+                model      TEXT NOT NULL CHECK (model IN ('net_metering', 'net_billing')),
+                description TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS rce_prices (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                date          TEXT NOT NULL,
+                price_per_kwh REAL NOT NULL,
+                source        TEXT
+            );
         """)
 
         # Migrations — safe ALTER TABLE for columns added after initial deploy
         for col, definition in [
             ("ev_kwh", "REAL"),
+            ("sale_price_kwh", "REAL"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE readings ADD COLUMN {col} {definition}")
@@ -121,6 +138,14 @@ async def init_db() -> None:
         try:
             await db.execute(
                 "INSERT OR IGNORE INTO schema_version (version, description) VALUES (2, 'rename ev_settings to app_settings')"
+            )
+            await db.commit()
+        except Exception:
+            pass
+
+        try:
+            await db.execute(
+                "INSERT OR IGNORE INTO schema_version (version, description) VALUES (3, 'add billing_periods, rce_prices, readings.sale_price_kwh')"
             )
             await db.commit()
         except Exception:

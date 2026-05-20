@@ -32,7 +32,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from utils.db import init_db, get_db, DB_PATH
-from services.calculations import calc_monthly, calc_roi, roi_sensitivity, calc_ev_savings, enrich_readings_sequence
+from services.calculations import (
+    calc_monthly, calc_monthly_netbilling, calc_roi, roi_sensitivity,
+    calc_ev_savings, enrich_readings_sequence,
+    _get_billing_model, _get_rce_price,
+)
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -181,6 +185,18 @@ async def _get_fuel_prices(db: aiosqlite.Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+async def _get_billing_periods(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM billing_periods ORDER BY start_date")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+async def _get_rce_prices(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM rce_prices ORDER BY date")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
 async def _get_vehicles(db: aiosqlite.Connection) -> list[dict]:
     cur = await db.execute("SELECT * FROM vehicles ORDER BY id")
     rows = await cur.fetchall()
@@ -295,6 +311,8 @@ async def dashboard(request: Request):
         fuel_prices = await _get_fuel_prices(db)
         vehicles = await _get_vehicles(db)
         ev_monthly = await _get_ev_monthly_all(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
@@ -302,8 +320,8 @@ async def dashboard(request: Request):
     total_investment = sum(i["cost_pln"] for i in investments)
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    roi = calc_roi(readings, total_investment, default_price, nm_ratio) if readings and total_investment > 0 else None
-    enriched = enrich_readings_sequence(readings, nm_ratio, default_price)
+    roi = calc_roi(readings, total_investment, default_price, nm_ratio, billing_periods, rce_prices) if readings and total_investment > 0 else None
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
 
     return _t(request, "dashboard.html", {
         "readings": enriched[-12:],
@@ -319,12 +337,14 @@ async def readings_list(request: Request):
     try:
         readings = await _get_readings(db)
         ev_settings = await _get_ev_settings(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    enriched = enrich_readings_sequence(readings, nm_ratio, default_price)
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
     for r in enriched:
         r["effective_price"] = r.get("price_per_kwh") or default_price
 
@@ -338,12 +358,14 @@ async def export_readings_csv():
     try:
         readings = await _get_readings(db)
         ev_settings = await _get_ev_settings(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    enriched_map = {r["period"]: r for r in enrich_readings_sequence(readings, nm_ratio, default_price)}
+    enriched_map = {r["period"]: r for r in enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)}
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
@@ -628,6 +650,8 @@ async def roi_page(request: Request):
         fuel_prices = await _get_fuel_prices(db)
         vehicles = await _get_vehicles(db)
         ev_monthly = await _get_ev_monthly_all(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
@@ -636,14 +660,14 @@ async def roi_page(request: Request):
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
 
-    roi = calc_roi(readings, total, default_price, nm_ratio) if readings and total > 0 else None
-    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio) if readings and total > 0 else []
+    roi = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
+    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio, billing_periods, rce_prices) if readings and total > 0 else []
 
     # Monthly savings for chart — FV + EV stacked
     monthly_savings = []
     cumulative_fv = 0.0
     cumulative_ev = 0.0
-    enriched_seq = enrich_readings_sequence(readings, nm_ratio, default_price)
+    enriched_seq = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
     for r in enriched_seq:
         cumulative_fv += r.get("savings_pln") or 0
         cumulative_ev += r.get("ev_savings_pln") or 0
@@ -979,6 +1003,88 @@ async def delete_fuel_price(request: Request, price_id: int):
     rp = request.scope.get("root_path", "")
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
+
+
+# ── PV Settings ──────────────────────────────────────────────────────────────
+
+@app.get("/pv", response_class=HTMLResponse)
+async def pv_page(request: Request):
+    db = await get_db()
+    try:
+        billing_periods = await _get_billing_periods(db)
+        rce_prices_all = await db.execute("SELECT * FROM rce_prices ORDER BY date DESC LIMIT 24")
+        rce_prices = [dict(r) for r in await rce_prices_all.fetchall()]
+    finally:
+        await db.close()
+    return _t(request, "pv.html", {
+        "billing_periods": billing_periods,
+        "rce_prices": rce_prices,
+    })
+
+
+@app.post("/pv/billing-period")
+async def add_billing_period(
+    request: Request,
+    start_date: str = Form(...),
+    end_date: str = Form(None),
+    model: str = Form(...),
+    description: str = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO billing_periods (start_date, end_date, model, description) VALUES (?,?,?,?)",
+            (start_date, end_date or None, model, description or None),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/billing-period/{bp_id}/usun")
+async def delete_billing_period(request: Request, bp_id: int):
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM billing_periods WHERE id=?", (bp_id,))
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/rce-price")
+async def add_rce_price(
+    request: Request,
+    date: str = Form(...),
+    price_per_kwh: float = Form(...),
+    source: str = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO rce_prices (date, price_per_kwh, source) VALUES (?,?,?)",
+            (date, price_per_kwh, source or None),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/rce-price/{price_id}/usun")
+async def delete_rce_price(request: Request, price_id: int):
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM rce_prices WHERE id=?", (price_id,))
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
 
 
 def _ha_history_delta(states: list) -> float | None:
