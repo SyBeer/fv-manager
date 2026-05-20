@@ -16,7 +16,21 @@ async def get_db() -> aiosqlite.Connection:
 async def init_db() -> None:
     DB_PATH.parent.mkdir(exist_ok=True)
     async with aiosqlite.connect(DB_PATH) as db:
+        # Migration: ev_settings → app_settings (must run before CREATE TABLE app_settings)
+        try:
+            await db.execute("ALTER TABLE ev_settings RENAME TO app_settings")
+            await db.commit()
+        except Exception:
+            pass
+
         await db.executescript("""
+            CREATE TABLE IF NOT EXISTS schema_version (
+                version INTEGER PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT (datetime('now')),
+                description TEXT
+            );
+            INSERT OR IGNORE INTO schema_version (version, description) VALUES (1, 'initial');
+
             CREATE TABLE IF NOT EXISTS investments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date TEXT NOT NULL,
@@ -42,18 +56,17 @@ async def init_db() -> None:
                 notes TEXT
             );
 
-            CREATE TABLE IF NOT EXISTS ev_settings (
+            CREATE TABLE IF NOT EXISTS app_settings (
                 id INTEGER PRIMARY KEY CHECK (id = 1),
                 efficiency_kwh_per_100km REAL NOT NULL DEFAULT 16.0,
                 fuel_consumption_l_per_100km REAL NOT NULL DEFAULT 10.0,
                 annual_km REAL NOT NULL DEFAULT 25000,
                 fuel_type TEXT NOT NULL DEFAULT 'PB95',
                 ha_url TEXT,
-                ha_token TEXT,
                 ha_entity TEXT
             );
 
-            INSERT OR IGNORE INTO ev_settings (id) VALUES (1);
+            INSERT OR IGNORE INTO app_settings (id) VALUES (1);
 
             CREATE TABLE IF NOT EXISTS fuel_prices (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,12 +108,31 @@ async def init_db() -> None:
             ("ha_solar_entity", "TEXT"),
             ("ha_grid_consumed_entity", "TEXT"),
             ("ha_grid_returned_entity", "TEXT"),
-            ("tesla_access_token", "TEXT"),
-            ("tesla_site_id", "TEXT"),
-            ("tesla_api_base", "TEXT"),
         ]:
             try:
-                await db.execute(f"ALTER TABLE ev_settings ADD COLUMN {col} {definition}")
+                await db.execute(f"ALTER TABLE app_settings ADD COLUMN {col} {definition}")
+                await db.commit()
+            except Exception:
+                pass
+
+        # Record rename migration
+        try:
+            await db.execute(
+                "INSERT OR IGNORE INTO schema_version (version, description) VALUES (2, 'rename ev_settings to app_settings')"
+            )
+            await db.commit()
+        except Exception:
+            pass
+
+        # Drop dead columns from existing databases (SQLite >= 3.35.0)
+        try:
+            await db.execute("ALTER TABLE app_settings DROP COLUMN ha_token")
+            await db.commit()
+        except Exception:
+            pass
+        for col in ("tesla_access_token", "tesla_site_id", "tesla_api_base"):
+            try:
+                await db.execute(f"ALTER TABLE app_settings DROP COLUMN {col}")
                 await db.commit()
             except Exception:
                 pass
