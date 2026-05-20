@@ -37,6 +37,7 @@ from services.calculations import (
     calc_ev_savings, enrich_readings_sequence,
     _get_billing_model, _get_rce_price,
 )
+from services.forecast import forecast_months, breakeven_scenarios, breakeven_confidence_interval
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -678,10 +679,29 @@ async def roi_page(request: Request):
             "cumulative_ev": round(cumulative_ev, 2),
         })
 
+    # Forecast i break-even
+    degradation_rate = ev_settings.get("panel_degradation_rate") or 0.006
+    FORECAST_HORIZON = 36
+
+    has_enough_data = len(readings) >= 12
+    forecast = forecast_months(
+        readings, investments, FORECAST_HORIZON, degradation_rate,
+        default_price, billing_periods, rce_prices, nm_ratio,
+    ) if readings else []
+
+    remaining_pln = roi["remaining_to_roi"] if roi and not roi["roi_achieved"] else 0.0
+    growth_rates = [0.0, 0.03, 0.07, 0.12]
+    scenarios = breakeven_scenarios(remaining_pln, forecast, growth_rates, default_price) if forecast and remaining_pln > 0 else []
+    confidence = breakeven_confidence_interval(scenarios) if scenarios else None
+
     return _t(request, "roi.html", {
         "roi": roi, "sensitivity": sensitivity,
         "monthly_savings": monthly_savings, "total_investment": total, "investments": investments,
         "has_ev": any(r.get("ev_savings_pln") for r in readings),
+        "forecast": forecast,
+        "scenarios": scenarios,
+        "confidence": confidence,
+        "has_enough_data": has_enough_data,
     })
 
 
@@ -1014,11 +1034,13 @@ async def pv_page(request: Request):
         billing_periods = await _get_billing_periods(db)
         rce_prices_all = await db.execute("SELECT * FROM rce_prices ORDER BY date DESC LIMIT 24")
         rce_prices = [dict(r) for r in await rce_prices_all.fetchall()]
+        settings = await _get_ev_settings(db)
     finally:
         await db.close()
     return _t(request, "pv.html", {
         "billing_periods": billing_periods,
         "rce_prices": rce_prices,
+        "settings": settings,
     })
 
 
@@ -1080,6 +1102,24 @@ async def delete_rce_price(request: Request, price_id: int):
     db = await get_db()
     try:
         await db.execute("DELETE FROM rce_prices WHERE id=?", (price_id,))
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/settings")
+async def save_pv_settings(
+    request: Request,
+    panel_degradation_rate_pct: float = Form(0.6),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE app_settings SET panel_degradation_rate=? WHERE id=1",
+            (panel_degradation_rate_pct / 100,),
+        )
         await db.commit()
     finally:
         await db.close()

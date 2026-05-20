@@ -117,5 +117,125 @@ new Chart(document.getElementById('roiChart'), {
   </table>
 </div>
 {% endif %}
+
+{% if confidence %}
+<div class="card" style="margin-top:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">🎯 Przedział ufności break-even</h2>
+  {% if not has_enough_data %}
+  <div style="background:#78350f22; border:1px solid #92400e; border-radius:.5rem; padding:.6rem 1rem; margin-bottom:1rem; font-size:.82rem; color:#fbbf24;">
+    ⚠️ Mało danych historycznych ({{ forecast|length > 0 and 'mniej niż 12 miesięcy' or 'brak odczytów' }}).
+    Prognoza jest orientacyjna.
+  </div>
+  {% endif %}
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem;">
+    <div class="card" style="background:#1a2535; text-align:center;">
+      <div class="stat-value" style="color:#f87171; font-size:1.3rem;">
+        {% if confidence.pessimistic %}{{ confidence.pessimistic }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
+      </div>
+      <div class="stat-label">Pesymistyczny (0%)</div>
+    </div>
+    <div class="card" style="background:#1a2535; text-align:center; border-color:#f59e0b;">
+      <div class="stat-value" style="color:#fbbf24; font-size:1.3rem;">
+        {% if confidence.base %}{{ confidence.base }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
+      </div>
+      <div class="stat-label">Bazowy (+7%/rok)</div>
+    </div>
+    <div class="card" style="background:#1a2535; text-align:center;">
+      <div class="stat-value" style="color:#22c55e; font-size:1.3rem;">
+        {% if confidence.optimistic %}{{ confidence.optimistic }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
+      </div>
+      <div class="stat-label">Optymistyczny (+12%/rok)</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if scenarios %}
+<div class="card" style="margin-top:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;">📈 Break-even przy różnym tempie wzrostu cen energii</h2>
+  <p style="color:#94a3b8; font-size:.82rem; margin-bottom:1rem;">
+    Prognoza na {{ forecast|length }} miesięcy ({{ forecast[0].period }} – {{ forecast[-1].period }}).
+    Oszczędności prognozowane na podstawie historii sezonowej.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Wzrost cen/rok</th>
+        <th>Mies. do ROI</th>
+        <th>Prognozowane oszczędności łącznie</th>
+        <th>Scenariusz</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for s in scenarios %}
+    <tr {% if s.scenario == 'base' %}style="background:#1e3a1e22;"{% endif %}>
+      <td><strong>{{ s.label }}</strong></td>
+      <td style="color:{% if s.months_to_roi %}#22c55e{% else %}#94a3b8{% endif %}; font-weight:600;">
+        {% if s.months_to_roi %}{{ s.months_to_roi }}{% else %}&gt; {{ forecast|length }}{% endif %}
+      </td>
+      <td style="color:#93c5fd;">{{ s.cumulative_savings|fmtn }} zł</td>
+      <td>
+        {% if s.scenario == 'pessimistic' %}<span class="badge-yellow">Pesymistyczny</span>
+        {% elif s.scenario == 'base' %}<span class="badge-green">Bazowy</span>
+        {% elif s.scenario == 'optimistic' %}<span class="badge-blue">Optymistyczny</span>
+        {% else %}<span style="color:#94a3b8;">—</span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if forecast %}
+<div class="card" style="margin-top:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">
+    ☀️ Prognoza produkcji — kolejne {{ forecast|length }} miesięcy
+    {% if forecast[0].capacity_phase == 'A' %}
+    <span class="badge-yellow" style="margin-left:.5rem; font-size:.75rem;">Faza A — mnożnik rozbudowy</span>
+    {% endif %}
+  </h2>
+  <canvas id="forecastChart" style="max-height:250px;"></canvas>
+</div>
+<script>
+const fLabels = {{ forecast | map(attribute='period') | list | tojson }};
+const fMean   = {{ forecast | map(attribute='production_mean') | list | tojson }};
+const fFcast  = {{ forecast | map(attribute='production_forecast') | list | tojson }};
+const fStdU   = {{ forecast | map(attribute='std') | list | tojson }};
+new Chart(document.getElementById('forecastChart'), {
+  type: 'bar',
+  data: {
+    labels: fLabels,
+    datasets: [
+      {
+        label: 'Prognoza produkcji [kWh]',
+        data: fFcast,
+        backgroundColor: 'rgba(245,158,11,.55)',
+        borderColor: '#f59e0b',
+        borderWidth: 1,
+      },
+      {
+        label: 'Średnia historyczna [kWh]',
+        data: fMean,
+        type: 'line',
+        borderColor: '#60a5fa',
+        borderDash: [4,3],
+        pointRadius: 0,
+        fill: false,
+        tension: .4,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    scales: {
+      x: { ticks: { color: '#64748b', maxTicksLimit: 12 }, grid: { color: '#1e293b' } },
+      y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+    }
+  }
+});
+</script>
+{% endif %}
 {% endif %}
 {% endblock %}

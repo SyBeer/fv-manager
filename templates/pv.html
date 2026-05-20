@@ -3,7 +3,7 @@
 {% block content %}
 <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">☀️ Ustawienia instalacji PV</h1>
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
 
   <!-- Okresy rozliczeniowe -->
   <div class="card">
@@ -128,6 +128,24 @@
         <input type="text" name="source" placeholder="np. PSE, faktura operatora">
       </div>
       <button type="submit" class="btn btn-primary">Dodaj cenę RCE</button>
+    </form>
+  </div>
+
+  <!-- Parametry prognozowania -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📉 Parametry prognozowania</h2>
+    <p style="font-size:.82rem; color:#94a3b8; margin-bottom:1rem;">
+      Używane do korekty prognozy produkcji w czasie.
+    </p>
+    <form method="post" action="{{ rp }}/pv/settings" style="display:grid; gap:.75rem;">
+      <div>
+        <label style="font-size:.8rem; color:#94a3b8;">Degradacja paneli (%/rok)</label>
+        <input type="number" name="panel_degradation_rate_pct"
+               step="0.01" min="0" max="5"
+               value="{{ ((settings.panel_degradation_rate or 0.006) * 100) | round(2) }}">
+        <small style="color:#64748b;">Typowo 0.5–0.7%/rok. Domyślnie 0.6%.</small>
+      </div>
+      <button type="submit" class="btn btn-primary">Zapisz</button>
     </form>
   </div>
 
