@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — Wkrótce{% endblock %}
+{% block content %}
+<div style="max-width:600px; margin:4rem auto; text-align:center;">
+  <div style="font-size:4rem; margin-bottom:1rem;">{{ icon }}</div>
+  <h1 style="font-size:1.8rem; font-weight:700; margin-bottom:.75rem;">{{ title }}</h1>
+  <p style="color:#94a3b8; font-size:1rem; line-height:1.7; margin-bottom:2rem;">{{ description }}</p>
+
+  <div class="card" style="text-align:left; margin-bottom:2rem;">
+    <h2 style="font-size:.95rem; font-weight:600; margin-bottom:.75rem; color:#f59e0b;">Co planujemy</h2>
+    <ul style="color:#94a3b8; font-size:.9rem; line-height:2; padding-left:1.2rem;">
+      {% for item in planned %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if external_url %}
+  <a href="{{ external_url }}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-bottom:1rem;">
+    🔗 Dowiedz się więcej
+  </a>
+  <br>
+  {% endif %}
+
+  <a href="{{ rp }}/" class="btn btn-ghost">← Wróć do dashboardu</a>
+</div>
+{% endblock %}

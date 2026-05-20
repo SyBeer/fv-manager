@@ -104,7 +104,8 @@ def _csrf_verify(signed: str, token: str) -> bool:
 
 class CSRFMiddleware(BaseHTTPMiddleware):
     EXEMPT_PATHS = {"/api/summary", "/api/ha-fetch", "/api/ha-test",
-                    "/api/roi-preview", "/api/ha-solar-fetch", "/api/ha-grid-fetch"}
+                    "/api/roi-preview", "/api/ha-solar-fetch", "/api/ha-grid-fetch",
+                    "/backup/full"}
 
     async def dispatch(self, request, call_next):
         if request.method == "POST":
@@ -794,12 +795,150 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
 async def clear_db(request: Request):
     db = await get_db()
     try:
-        await db.execute("DELETE FROM readings")
+        for table in ["ev_monthly", "readings", "investments", "fuel_prices",
+                      "vehicles", "billing_periods", "rce_prices"]:
+            await db.execute(f"DELETE FROM {table}")
         await db.commit()
     finally:
         await db.close()
     rp = request.scope.get("root_path", "")
     return RedirectResponse(f"{rp}/import?cleared=1", status_code=303)
+
+
+@app.get("/backup/full")
+async def backup_full():
+    """Pełny backup wszystkich danych jako JSON — do pobrania."""
+    import json
+    from datetime import datetime
+
+    db = await get_db()
+    try:
+        async def fetch(query: str) -> list[dict]:
+            cur = await db.execute(query)
+            rows = await cur.fetchall()
+            return [dict(r) for r in rows]
+
+        data = {
+            "version": 2,
+            "exported_at": datetime.utcnow().isoformat(),
+            "readings":        await fetch("SELECT * FROM readings ORDER BY year, month"),
+            "investments":     await fetch("SELECT * FROM investments ORDER BY date"),
+            "app_settings":    await fetch("SELECT * FROM app_settings"),
+            "fuel_prices":     await fetch("SELECT * FROM fuel_prices ORDER BY date"),
+            "vehicles":        await fetch("SELECT * FROM vehicles ORDER BY id"),
+            "ev_monthly":      await fetch("SELECT * FROM ev_monthly ORDER BY period"),
+            "billing_periods": await fetch("SELECT * FROM billing_periods ORDER BY start_date"),
+            "rce_prices":      await fetch("SELECT * FROM rce_prices ORDER BY date"),
+        }
+    finally:
+        await db.close()
+
+    filename = f"fv-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M')}.json"
+    return StreamingResponse(
+        iter([json.dumps(data, ensure_ascii=False, indent=2)]),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/restore")
+async def restore_backup(request: Request, file: UploadFile = File(...)):
+    """Przywróć dane z pliku JSON wygenerowanego przez /backup/full.
+
+    UWAGA: nadpisuje istniejące dane (INSERT OR REPLACE).
+    app_settings NIE są nadpisywane — zostają bieżące ustawienia.
+    """
+    import json
+
+    rp = request.scope.get("root_path", "")
+
+    try:
+        content = await file.read()
+        data = json.loads(content.decode("utf-8"))
+    except Exception as e:
+        return _t(request, "import.html", {"error": f"Nie można odczytać pliku backup: {e}"})
+
+    if data.get("version") not in (1, 2):
+        return _t(request, "import.html", {"error": "Nieznany format backup (oczekiwano version=2)"})
+
+    db = await get_db()
+    try:
+        for table in ["ev_monthly", "readings", "investments", "fuel_prices",
+                      "vehicles", "billing_periods", "rce_prices"]:
+            await db.execute(f"DELETE FROM {table}")
+
+        restored = 0
+
+        for inv in data.get("investments", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO investments (id, date, description, cost_pln, power_kwp, notes) VALUES (?,?,?,?,?,?)",
+                (inv.get("id"), inv["date"], inv["description"], inv["cost_pln"],
+                 inv.get("power_kwp"), inv.get("notes")),
+            )
+            restored += 1
+
+        for r in data.get("readings", []):
+            await db.execute(
+                """INSERT OR REPLACE INTO readings
+                   (id, period, year, month, days, production_kwh, sent_to_grid_kwh,
+                    taken_from_grid_kwh, ev_kwh, price_per_kwh, sale_price_kwh,
+                    invoice_number, invoice_gross, notes)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (r.get("id"), r["period"], r["year"], r["month"], r.get("days"),
+                 r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+                 r.get("ev_kwh"), r.get("price_per_kwh"), r.get("sale_price_kwh"),
+                 r.get("invoice_number"), r.get("invoice_gross"), r.get("notes")),
+            )
+            restored += 1
+
+        for fp in data.get("fuel_prices", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO fuel_prices (id, date, price_per_liter, fuel_type, source) VALUES (?,?,?,?,?)",
+                (fp.get("id"), fp["date"], fp["price_per_liter"],
+                 fp.get("fuel_type", "PB95"), fp.get("source")),
+            )
+            restored += 1
+
+        for v in data.get("vehicles", []):
+            await db.execute(
+                """INSERT OR REPLACE INTO vehicles
+                   (id, name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes)
+                   VALUES (?,?,?,?,?,?)""",
+                (v.get("id"), v["name"], v["efficiency_kwh_per_100km"],
+                 v["fuel_consumption_l_per_100km"], v.get("fuel_type", "PB95"), v.get("notes")),
+            )
+            restored += 1
+
+        for em in data.get("ev_monthly", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO ev_monthly (id, period, vehicle_id, kwh) VALUES (?,?,?,?)",
+                (em.get("id"), em["period"], em["vehicle_id"], em["kwh"]),
+            )
+            restored += 1
+
+        for bp in data.get("billing_periods", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO billing_periods (id, start_date, end_date, model, description) VALUES (?,?,?,?,?)",
+                (bp.get("id"), bp["start_date"], bp.get("end_date"),
+                 bp["model"], bp.get("description")),
+            )
+            restored += 1
+
+        for rce in data.get("rce_prices", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO rce_prices (id, date, price_per_kwh, source) VALUES (?,?,?,?)",
+                (rce.get("id"), rce["date"], rce["price_per_kwh"], rce.get("source")),
+            )
+            restored += 1
+
+        await db.commit()
+    except Exception as e:
+        await db.close()
+        return _t(request, "import.html", {"error": f"Błąd podczas przywracania: {e}"})
+    finally:
+        await db.close()
+
+    return RedirectResponse(f"{rp}/import?restored={restored}", status_code=303)
 
 
 # ── EV ───────────────────────────────────────────────────────────────────────
@@ -1125,6 +1264,46 @@ async def save_pv_settings(
         await db.close()
     rp = request.scope.get("root_path", "")
     return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+# ── Coming Soon ───────────────────────────────────────────────────────────────
+
+@app.get("/bateria", response_class=HTMLResponse)
+async def battery_page(request: Request):
+    return _t(request, "coming_soon.html", {
+        "icon": "🔋",
+        "title": "Magazyn energii",
+        "description": (
+            "Śledzenie efektywności baterii domowej, analiza cykli ładowania/rozładowania "
+            "i optymalizacja autokonsumpcji. Ta funkcja jest w planach dla przyszłej wersji."
+        ),
+        "planned": [
+            "Śledzenie stanu naładowania baterii (SOC) przez dzień",
+            "Analiza ile % autokonsumpcji pochodzi z baterii vs PV vs sieci",
+            "Optymalizacja: kiedy ładować baterię (taryfa nocna vs dzienna)",
+            "ROI dla baterii oddzielnie od ROI instalacji PV",
+        ],
+        "external_url": None,
+    })
+
+
+@app.get("/ogrzewanie", response_class=HTMLResponse)
+async def heating_page(request: Request):
+    return _t(request, "coming_soon.html", {
+        "icon": "🔥",
+        "title": "Ogrzewanie elektryczne",
+        "description": (
+            "Monitorowanie kosztów ogrzewania pompą ciepła lub innym urządzeniem elektrycznym "
+            "i obliczanie oszczędności vs ogrzewanie gazem. Ta funkcja jest w planach."
+        ),
+        "planned": [
+            "Wpis miesięcznego zużycia energii na ogrzewanie [kWh]",
+            "Porównanie kosztu: prąd (z kWh ogrzewania) vs gaz (cena za m³ × zużycie)",
+            "Udział energii PV w pokryciu kosztów ogrzewania",
+            "Breakeven dla pompy ciepła vs kotła gazowego",
+        ],
+        "external_url": None,
+    })
 
 
 def _ha_history_delta(states: list) -> float | None:
