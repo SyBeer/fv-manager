@@ -114,6 +114,25 @@
 </div>
 
 <script>
+function getCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrf_token_plain=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const token = getCsrfToken();
+  document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(function(form) {
+    if (!form.querySelector('input[name="csrf_token"]')) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'csrf_token';
+      input.value = token;
+      form.appendChild(input);
+    }
+  });
+});
+</script>
+
+<script>
 (function() {
   const sidebar = document.getElementById('sidebar');
   const toggle = document.getElementById('sidebar-toggle');

@@ -1,4 +1,7 @@
 import os
+import re
+import secrets as _secrets
+import base64
 from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
@@ -22,6 +25,9 @@ def _default_price() -> float:
 import aiosqlite
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+from itsdangerous import URLSafeSerializer, BadSignature
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -40,6 +46,93 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="FV Manager", lifespan=lifespan)
+
+
+# ── Basic Auth middleware ────────────────────────────────────────────────────
+
+class BasicAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        password = os.getenv("FV_AUTH_PASSWORD", "").strip()
+        if not password:
+            return await call_next(request)
+
+        if request.url.path.startswith("/api/summary"):
+            return await call_next(request)
+
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Basic "):
+            try:
+                decoded = base64.b64decode(auth[6:]).decode("utf-8")
+                _, pwd = decoded.split(":", 1)
+                if _secrets.compare_digest(pwd, password):
+                    return await call_next(request)
+            except Exception:
+                pass
+
+        return Response(
+            content="Wymagane uwierzytelnienie",
+            status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="FV Manager"'},
+        )
+
+
+# ── CSRF middleware ──────────────────────────────────────────────────────────
+
+_CSRF_SECRET = os.getenv("SECRET_KEY", _secrets.token_hex(32))
+_csrf_signer = URLSafeSerializer(_CSRF_SECRET, salt="csrf")
+
+
+def _csrf_generate() -> str:
+    return _secrets.token_hex(32)
+
+
+def _csrf_sign(token: str) -> str:
+    return _csrf_signer.dumps(token)
+
+
+def _csrf_verify(signed: str, token: str) -> bool:
+    try:
+        return _csrf_signer.loads(signed) == token
+    except BadSignature:
+        return False
+
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    EXEMPT_PATHS = {"/api/summary", "/api/ha-fetch", "/api/ha-test",
+                    "/api/roi-preview", "/api/ha-solar-fetch", "/api/ha-grid-fetch"}
+
+    async def dispatch(self, request, call_next):
+        if request.method == "POST":
+            path = request.url.path
+            if not any(path.startswith(p) for p in self.EXEMPT_PATHS):
+                cookie_signed = request.cookies.get("csrf_token", "")
+                if not cookie_signed:
+                    return Response("Nieprawidłowy token CSRF", status_code=403)
+                # Read raw body to extract csrf_token without consuming the stream
+                body = await request.body()
+                form_token = ""
+                for part in body.decode("utf-8", errors="replace").split("&"):
+                    if part.startswith("csrf_token="):
+                        from urllib.parse import unquote_plus
+                        form_token = unquote_plus(part.split("=", 1)[1])
+                        break
+                if not _csrf_verify(cookie_signed, form_token):
+                    return Response("Nieprawidłowy token CSRF", status_code=403)
+
+        response = await call_next(request)
+
+        if request.method == "GET" and response.status_code == 200:
+            token = _csrf_generate()
+            signed = _csrf_sign(token)
+            response.set_cookie("csrf_token", signed, httponly=True, samesite="strict")
+            response.set_cookie("csrf_token_plain", token, httponly=False, samesite="strict")
+
+        return response
+
+
+app.add_middleware(CSRFMiddleware)
+app.add_middleware(BasicAuthMiddleware)
+
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.filters["urldecode"] = lambda s: __import__("urllib.parse", fromlist=["unquote_plus"]).unquote_plus(s)
 
@@ -171,6 +264,25 @@ def _ev_enrich(
     return result
 
 
+def _validate_reading(
+    period: str,
+    production_kwh: float,
+    sent_to_grid_kwh: float,
+    taken_from_grid_kwh: float,
+) -> str | None:
+    if not re.match(r'^\d{4}\.(0[1-9]|1[0-2])$', period):
+        return "Nieprawidłowy format okresu — wymagany: RRRR.MM (np. 2024.07)"
+    if production_kwh < 0:
+        return "Produkcja nie może być ujemna"
+    if sent_to_grid_kwh < 0:
+        return "Oddana energia nie może być ujemna"
+    if taken_from_grid_kwh < 0:
+        return "Pobrana energia nie może być ujemna"
+    if sent_to_grid_kwh > production_kwh:
+        return f"Oddana energia ({sent_to_grid_kwh} kWh) nie może przekroczyć produkcji ({production_kwh} kWh)"
+    return None
+
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
@@ -287,6 +399,19 @@ async def create_reading(request: Request):
     invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
     notes = form.get("notes") or None
 
+    error = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+    if error:
+        db = await get_db()
+        try:
+            vehicles = await _get_vehicles(db)
+        finally:
+            await db.close()
+        return _t(request, "reading_form.html", {
+            "error": error,
+            "form_data": dict(form),
+            "vehicles": vehicles,
+        })
+
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
@@ -343,6 +468,22 @@ async def update_reading(request: Request, reading_id: int):
     invoice_number = form.get("invoice_number") or None
     invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
     notes = form.get("notes") or None
+
+    error = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+    if error:
+        db = await get_db()
+        try:
+            cur = await db.execute("SELECT * FROM readings WHERE id=?", (reading_id,))
+            reading = await cur.fetchone()
+            vehicles = await _get_vehicles(db)
+        finally:
+            await db.close()
+        return _t(request, "reading_form.html", {
+            "error": error,
+            "reading": dict(reading) if reading else None,
+            "form_data": dict(form),
+            "vehicles": vehicles,
+        })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
@@ -564,6 +705,13 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
                 continue
             try:
                 year, month = int(period.split(".")[0]), int(period.split(".")[1])
+                production_kwh = float(row["Produkcja [kWh]"])
+                sent_to_grid_kwh = float(row["Oddane [kWh]"])
+                taken_from_grid_kwh = float(row["Pobrane [kWh]"])
+                err = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+                if err:
+                    skipped += 1
+                    continue
                 await db.execute(
                     """INSERT OR IGNORE INTO readings
                        (period, year, month, days, production_kwh, sent_to_grid_kwh,
@@ -572,9 +720,9 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
                     (
                         period, year, month,
                         row.get("Dni") or None,
-                        float(row["Produkcja [kWh]"]),
-                        float(row["Oddane [kWh]"]),
-                        float(row["Pobrane [kWh]"]),
+                        production_kwh,
+                        sent_to_grid_kwh,
+                        taken_from_grid_kwh,
                         row.get("EV [kWh]") or None,
                         row.get("Cena kWh [zł]") or None,
                         row.get("Nr faktury") or None,
