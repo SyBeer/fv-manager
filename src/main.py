@@ -1399,6 +1399,11 @@ async def heating_page(request: Request):
 
 
 
+@app.get("/metodologia", response_class=HTMLResponse)
+async def metodologia_page(request: Request):
+    return _t(request, "metodologia.html", {})
+
+
 @app.get("/api/ha-test")
 async def ha_test():
     """Test HA connection and return last monthly value for solar entity."""

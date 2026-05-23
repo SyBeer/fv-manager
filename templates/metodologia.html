@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Jak liczymy oszczędności — FV Manager{% endblock %}
+
+{% block content %}
+<div style="max-width: 760px;">
+
+  <h1 style="font-size:1.6rem; font-weight:700; color:#f59e0b; margin-bottom:.25rem;">
+    Jak liczymy Twoje oszczędności?
+  </h1>
+  <p style="color:#94a3b8; margin-bottom:2rem; font-size:.95rem;">
+    Jedno pytanie, na które odpowiada ta aplikacja:<br>
+    <strong style="color:#e2e8f0;">Ile zaoszczędziłem od kiedy przeszedłem na własny prąd — i kiedy cały ekosystem się zwróci?</strong>
+  </p>
+
+  <!-- BLOK 1: PV -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;">
+      <span style="font-size:1.6rem;">☀️</span>
+      <div>
+        <div style="font-weight:700; font-size:1.05rem;">Oszczędność na prądzie (PV)</div>
+        <div style="color:#64748b; font-size:.85rem;">Każdy kWh wyprodukowany przez panele to prąd, którego nie musisz kupić z sieci.</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;" class="mobile-stack">
+
+      <div style="background:#0f172a; border-radius:8px; padding:1rem;">
+        <div style="color:#f59e0b; font-weight:600; font-size:.85rem; margin-bottom:.5rem;">AUTOKONSUMPCJA</div>
+        <p style="color:#cbd5e1; font-size:.9rem; margin:0;">
+          Prąd zużyty bezpośrednio z paneli, zanim trafi do sieci. To <em>najtańszy prąd jaki możesz mieć</em> — wartość wyliczana jako cena zakupu z sieci × zużyte kWh.
+        </p>
+      </div>
+
+      <div style="background:#0f172a; border-radius:8px; padding:1rem;">
+        <div style="color:#22c55e; font-weight:600; font-size:.85rem; margin-bottom:.5rem;">ROZLICZENIE SIECIOWE</div>
+        <p style="color:#cbd5e1; font-size:.9rem; margin:0;">
+          Prąd oddany do sieci, który wraca do Ciebie w formie rozliczenia — inaczej liczone dla starej i nowej umowy (patrz niżej).
+        </p>
+      </div>
+    </div>
+
+    <!-- Net-metering vs net-billing -->
+    <div style="margin-top:.75rem; border-top:1px solid #334155; padding-top:.75rem;">
+      <div style="color:#94a3b8; font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:.5rem;">Dwa modele rozliczeniowe</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;" class="mobile-stack">
+
+        <div style="background:#1e3a5f; border-radius:8px; padding:.85rem;">
+          <div style="color:#93c5fd; font-weight:600; font-size:.85rem; margin-bottom:.4rem;">
+            Net-metering
+            <span style="font-size:.75rem; font-weight:400; opacity:.7;">(instalacje przed VII 2022)</span>
+          </div>
+          <p style="color:#cbd5e1; font-size:.88rem; margin:0;">
+            Za każdy oddany kWh dostajesz z powrotem <strong>0,80 kWh</strong> do pobrania kiedy chcesz (w cyklu rocznym). Pula kumuluje się miesiąc po miesiącu i zeruje raz w roku.
+          </p>
+        </div>
+
+        <div style="background:#1c3d2f; border-radius:8px; padding:.85rem;">
+          <div style="color:#86efac; font-weight:600; font-size:.85rem; margin-bottom:.4rem;">
+            Net-billing
+            <span style="font-size:.75rem; font-weight:400; opacity:.7;">(instalacje od VII 2022)</span>
+          </div>
+          <p style="color:#cbd5e1; font-size:.88rem; margin:0;">
+            Oddany prąd jest <strong>sprzedawany</strong> po aktualnej cenie rynkowej (RCE), a kupujesz po taryfie sprzedawcy. Dwa różne przeliczniki — aplikacja śledzi je osobno.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOK 2: EV -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;">
+      <span style="font-size:1.6rem;">🚗</span>
+      <div>
+        <div style="font-weight:700; font-size:1.05rem;">Oszczędność na paliwie (EV)</div>
+        <div style="color:#64748b; font-size:.85rem;">Ile zaoszczędziłeś nie tankując benzyny — niezależnie czy ładujesz z paneli czy z sieci.</div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a; border-radius:8px; padding:1rem;">
+      <p style="color:#cbd5e1; font-size:.9rem; margin:0 0 .75rem;">
+        Aplikacja liczy ile kilometrów przejechałeś na energii elektrycznej, a następnie porównuje:
+      </p>
+      <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
+        <div style="background:#7f1d1d; color:#fca5a5; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
+          Koszt tych samych km na benzynie
+        </div>
+        <span style="color:#64748b; font-size:1.2rem;">−</span>
+        <div style="background:#1c3d2f; color:#86efac; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
+          Koszt energii elektrycznej
+        </div>
+        <span style="color:#64748b; font-size:1.2rem;">=</span>
+        <div style="background:#713f12; color:#fde68a; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
+          Twoja oszczędność EV
+        </div>
+      </div>
+    </div>
+
+    <p style="color:#64748b; font-size:.82rem; margin-top:.75rem; margin-bottom:0;">
+      💡 Nie musisz śledzić czy ładujesz z paneli czy z sieci — licznik dwukierunkowy uwzględnia to automatycznie w danych PV.
+    </p>
+  </div>
+
+  <!-- BLOK 3: ROI -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;">
+      <span style="font-size:1.6rem;">📈</span>
+      <div>
+        <div style="font-weight:700; font-size:1.05rem;">Zwrot z inwestycji (ROI)</div>
+        <div style="color:#64748b; font-size:.85rem;">Kiedy narastające oszczędności pokryją całą inwestycję w ekosystem.</div>
+      </div>
+    </div>
+
+    <div style="background:#0f172a; border-radius:8px; padding:1rem; margin-bottom:.75rem;">
+      <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
+        <div style="background:#1e3a5f; color:#93c5fd; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
+          Oszczędność PV (narastająco)
+        </div>
+        <span style="color:#64748b;">+</span>
+        <div style="background:#1c3d2f; color:#86efac; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
+          Oszczędność EV (narastająco)
+        </div>
+        <span style="color:#64748b;">≥</span>
+        <div style="background:#1e293b; color:#f59e0b; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600; border:1px solid #f59e0b;">
+          Łączna inwestycja → ROI ✓
+        </div>
+      </div>
+      <p style="color:#94a3b8; font-size:.85rem; margin:0;">
+        Inwestycja obejmuje <strong>wszystkie etapy</strong>: panele, falownik, magazyn energii, ładowarkę EV — wpisujesz je w sekcji Inwestycje i są sumowane automatycznie.
+      </p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;" class="mobile-stack">
+      <div style="background:#0f172a; border-radius:8px; padding:.85rem; text-align:center;">
+        <div style="color:#64748b; font-size:.75rem; text-transform:uppercase; letter-spacing:.05em;">Prognoza break-even</div>
+        <div style="color:#e2e8f0; font-size:.88rem; margin-top:.35rem;">
+          Na podstawie średniej miesięcznej oszczędności z dotychczasowych danych aplikacja szacuje <strong>ile miesięcy pozostało</strong> do pełnego zwrotu.
+        </div>
+      </div>
+      <div style="background:#0f172a; border-radius:8px; padding:.85rem; text-align:center;">
+        <div style="color:#64748b; font-size:.75rem; text-transform:uppercase; letter-spacing:.05em;">Analiza wrażliwości</div>
+        <div style="color:#e2e8f0; font-size:.88rem; margin-top:.35rem;">
+          Możesz sprawdzić jak zmiana ceny prądu (np. wzrost o 20%) skróciłaby lub wydłużyła czas zwrotu.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOK 4: Dane wejściowe -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div style="font-weight:700; margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem;">
+      <span>🔢</span> Skąd pochodzą dane?
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;" class="mobile-stack">
+      <div style="font-size:.88rem; color:#cbd5e1;">
+        <div style="color:#f59e0b; font-weight:600; margin-bottom:.35rem;">Wpisujesz raz w miesiącu</div>
+        <ul style="margin:0; padding-left:1.25rem; line-height:1.8; color:#94a3b8;">
+          <li>Produkcja paneli (kWh)</li>
+          <li>Energia oddana do sieci (kWh)</li>
+          <li>Energia pobrana z sieci (kWh)</li>
+          <li>Energia naładowana do auta (kWh)</li>
+          <li>Cena prądu z faktury (opcjonalnie)</li>
+        </ul>
+      </div>
+      <div style="font-size:.88rem; color:#cbd5e1;">
+        <div style="color:#22c55e; font-weight:600; margin-bottom:.35rem;">Aplikacja pobiera automatycznie</div>
+        <ul style="margin:0; padding-left:1.25rem; line-height:1.8; color:#94a3b8;">
+          <li>Aktualne ceny RCE (net-billing)</li>
+          <li>Dane z Home Assistant (opcjonalnie)</li>
+          <li>Historię cen paliwa</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
