@@ -1134,7 +1134,7 @@ async def save_ev_settings(
     finally:
         await db.close()
     rp = request.scope.get("root_path", "")
-    return RedirectResponse(f"{rp}/ev", status_code=303)
+    return RedirectResponse(f"{rp}/import?saved=1", status_code=303)
 
 
 @app.post("/ev/pojazdy/nowy")

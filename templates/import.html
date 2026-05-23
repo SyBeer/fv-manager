@@ -42,6 +42,12 @@
     </form>
   </div>
 
+  {% if request.query_params.get('saved') %}
+  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#86efac;">
+    <i class="ph-bold ph-check-circle"></i> Ustawienia zapisano.
+  </div>
+  {% endif %}
+
   <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem; color:#94a3b8;"><i class="ph-bold ph-upload-simple"></i> Import danych</h2>
 
   {% if error %}
