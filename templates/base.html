@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
     sidebar.classList.toggle('collapsed');
     const collapsed = sidebar.classList.contains('collapsed');
     if (isMobile()) {
-      overlay.classList.toggle('visible', collapsed);
+      overlay.classList.toggle('visible', !collapsed);
     } else {
       localStorage.setItem('sidebar-collapsed', collapsed);
     }
