@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.4.1] — 2026-05-23
+
+### Naprawiono
+- Inline edit EV: pola kWh / km / stan licznika wyrównane siatką grid (4 kolumny, etykieta 200px stała)
+
 ## [2.4.0] — 2026-05-23
 
 ### Dodano
