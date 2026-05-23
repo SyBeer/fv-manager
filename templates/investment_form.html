@@ -15,7 +15,7 @@
 
   <div class="card">
     <form method="post" action="{{ rp }}/inwestycje/{{ inv.id }}/edytuj" style="display:flex; flex-direction:column; gap:1rem;">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+      <div class="grid-2">
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Data</label>
           <input type="text" name="date" id="date-edit" value="{{ inv.date }}" required autocomplete="off">
@@ -29,7 +29,7 @@
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Opis</label>
         <input type="text" name="description" value="{{ inv.description }}" required>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+      <div class="grid-2">
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Moc [kWp] (opcjonalnie)</label>
           <input type="number" name="power_kwp" step="0.01" value="{{ inv.power_kwp or '' }}">

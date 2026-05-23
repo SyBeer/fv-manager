@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Odczyty — FV Manager{% endblock %}
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:.75rem;">
   <h1 style="font-size:1.5rem; font-weight:700;">Odczyty miesięczne</h1>
   <div style="display:flex; gap:.5rem;">
     <a href="{{ rp }}/odczyty/export.csv" class="btn btn-ghost">⬇️ CSV</a>
@@ -9,7 +9,7 @@
   </div>
 </div>
 
-<div class="card">
+<div class="card"><div class="table-wrap">
   <table>
     <thead>
       <tr>
@@ -55,5 +55,5 @@
     {% endfor %}
     </tbody>
   </table>
-</div>
+</div></div>
 {% endblock %}
