@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.5] — 2026-05-23
+
+### Zmieniono
+- Dodano GUI konfiguracji addona: pole `default_price_kwh` (float, opcjonalne, domyślnie 0.75)
+- Usunięto z run.sh odczyt `ha_token` i `ha_entity` — tokeny HA przechowywane w bazie przez UI apki
+- `homeassistant_api: true` dostarcza token Supervisora automatycznie
+
 ## [2.0.4] — 2026-05-23
 
 ### Naprawiono

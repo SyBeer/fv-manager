@@ -1,8 +1,8 @@
 #!/usr/bin/with-contenv bashio
 
-export DEFAULT_PRICE_KWH=$(bashio::config 'default_price_kwh')
-export HA_TOKEN=$(bashio::config 'ha_token')
-export HA_ENTITY=$(bashio::config 'ha_entity')
+if bashio::config.exists 'default_price_kwh'; then
+  export DEFAULT_PRICE_KWH=$(bashio::config 'default_price_kwh')
+fi
 export DATA_PATH="/data"
 export INGRESS_PATH=$(bashio::addon.ingress_entry)
 
