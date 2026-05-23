@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.12.1] — 2026-05-23
+
+### Dodano
+- Backup/restore danych jako JSON na stronie Import (port z v2.0)
+- `GET /backup/full` — pełny backup 6 tabel (odczyty, inwestycje, pojazdy, ceny paliw, ev_monthly, ev_settings) jako plik JSON do pobrania
+- `POST /restore` — przywracanie danych z pliku JSON (ev_settings nie są nadpisywane)
+- Sekcje "Backup danych" i "Przywróć z backupu" w UI
+- Link do backupu w sekcji "Niebezpieczna strefa"
+
 ## [1.10.0] — 2026-04-19
 
 ### Dodano
