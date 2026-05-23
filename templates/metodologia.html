@@ -80,7 +80,7 @@
 
     <div style="background:#0f172a; border-radius:8px; padding:1rem;">
       <p style="color:#cbd5e1; font-size:.9rem; margin:0 0 .75rem;">
-        Aplikacja liczy ile kilometrów przejechałeś na energii elektrycznej, a następnie porównuje:
+        Wpisujesz miesięcznie ile kWh naładowałeś i ile km faktycznie przejechałeś (z licznika). Aplikacja porównuje:
       </p>
       <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
         <div style="background:#7f1d1d; color:#fca5a5; border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
@@ -97,8 +97,11 @@
       </div>
     </div>
 
-    <p style="color:#64748b; font-size:.82rem; margin-top:.75rem; margin-bottom:0;">
+    <p style="color:#64748b; font-size:.82rem; margin-top:.75rem; margin-bottom:.4rem;">
       💡 Nie musisz śledzić czy ładujesz z paneli czy z sieci — licznik dwukierunkowy uwzględnia to automatycznie w danych PV.
+    </p>
+    <p style="color:#64748b; font-size:.82rem; margin:0;">
+      📍 Jeśli nie wpiszesz km, aplikacja wyliczy je ze wzoru (kWh ÷ efektywność) i oznaczy jako <em>(est.)</em> — wynik jest wtedy przybliżony, bo nie uwzględnia przesunięcia czasowego między ładowaniem a jazdą.
     </p>
   </div>
 
@@ -159,7 +162,7 @@
           <li>Produkcja paneli (kWh)</li>
           <li>Energia oddana do sieci (kWh)</li>
           <li>Energia pobrana z sieci (kWh)</li>
-          <li>Energia naładowana do auta (kWh)</li>
+          <li>Energia naładowana do auta (kWh) i przejechane km</li>
           <li>Cena prądu z faktury (opcjonalnie)</li>
         </ul>
       </div>

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1] — 2026-05-23
+
+### Zmieniono
+- Strona Metodologii: opis EV zaktualizowany — wpisujesz km z licznika zamiast "aplikacja liczy"
+- Strona Metodologii: lista danych wejściowych zawiera "km" obok kWh
+- Strona Metodologii: dodana nota o znaczeniu oznaczenia `(est.)` gdy km nie wpisane
+
 ## [2.2.0] — 2026-05-23
 
 ### Dodano
