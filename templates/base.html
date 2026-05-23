@@ -83,9 +83,12 @@
 <div style="display:flex; min-height:100vh;">
   <!-- Sidebar -->
   <nav id="sidebar">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; padding-left:.25rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.25rem; padding-left:.25rem;">
       <div id="sidebar-title" style="font-size:1.1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</div>
-      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Zwiń menu">◀</button>
+      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Zwiń menu">☰</button>
+    </div>
+    <div id="sidebar-version" style="font-size:.7rem; color:#475569; padding:0 .25rem .75rem; margin-bottom:.5rem; border-bottom:1px solid #334155;">
+      v2.0.0
     </div>
 
     <a href="{{ rp }}/" class="nav-link {% if request.url.path == '/' %}active{% endif %}">
@@ -116,13 +119,6 @@
       <span class="nav-icon">📥</span><span class="nav-text">Import</span>
     </a>
 
-    <!-- Spacer -->
-    <div style="flex:1;"></div>
-
-    <!-- Version -->
-    <div id="sidebar-version" style="font-size:.7rem; color:#475569; padding:.5rem .25rem; border-top:1px solid #334155; margin-top:.5rem;">
-      v2.0.0
-    </div>
   </nav>
 
   <!-- Content -->
@@ -160,7 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
   const saved = localStorage.getItem('sidebar-collapsed');
   if (saved === 'true' && !isMobile()) {
     sidebar.classList.add('collapsed');
-    toggle.textContent = '▶';
   }
 
   window.toggleSidebar = function() {
@@ -169,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isMobile()) {
       overlay.classList.toggle('visible', collapsed);
     } else {
-      toggle.textContent = collapsed ? '▶' : '◀';
       localStorage.setItem('sidebar-collapsed', collapsed);
     }
   };
