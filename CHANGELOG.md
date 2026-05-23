@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.1.0] — 2026-05-23
+
+### Dodano
+- Nowy moduł `services/ha_stats.py` z funkcjami `get_monthly_energy` i `get_current_month_energy`
+- Pobieranie delty miesięcznej energii z **długoterminowych statystyk HA** (`POST /api/services/recorder/get_statistics?return_response`) — fix: restart kontenera nie resetuje już wartości miesięcznych
+- Strefa czasowa HA pobierana z `/api/config` (klucz `time_zone`) — granice miesięcy liczone w czasie lokalnym HA (`Europe/Warsaw`), nie UTC
+- Automatyczna konwersja Wh → kWh na podstawie `unit_of_measurement` z atrybutów sensora
+- Cache zamkniętych miesięcy do `DATA_PATH/stats_cache.json` (persystentny po restarcie), cache bieżącego miesiąca w pamięci z TTL 5 min
+- `ha_token` i `ha_url` jako opcjonalne pola schematu add-onu — dla trybu standalone bez Supervisora
+- 14 testów jednostkowych pokrywających: normalny miesiąc, miesiąc bieżący, brak danych, sensor Wh, sensor kWh, restart kontenera, persistent cache, TTL cache, błąd API, brak konfiguracji, tryb standalone, oba formaty odpowiedzi, wiele bucketów
+
+### Zmieniono
+- `_ha_conn()` zwraca teraz pełny URL API (`http://supervisor/core/api` — base URL już zawiera `/api`)
+- Endpointy `/api/ha-solar-fetch`, `/api/ha-grid-fetch`, `/api/ha-test` używają `ha_stats.get_monthly_energy` zamiast `_ha_fetch_energy`
+- Brak danych zwraca `None` zamiast błędu tekstowego — UI może rozróżnić "zero" od "brak odczytu"
+
+### Usunięto
+- `_ha_fetch_energy()` — zastąpiona przez `ha_stats.get_monthly_energy`
+- `_ha_history_delta()` — History API jako fallback zastąpiony przez Statistics API
+
 ## [2.0.6] — 2026-05-23
 
 ### Naprawiono
