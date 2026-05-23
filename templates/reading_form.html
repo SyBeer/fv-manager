@@ -18,7 +18,7 @@
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Rok</label>
           <select name="year" id="sel-year" required onchange="updatePeriod()">
-            {% set cur_year = reading.year if reading else 2026 %}
+            {% set cur_year = reading.year if reading else next_year %}
             {% for y in range(2020, 2031) %}
             <option value="{{ y }}" {% if y == cur_year %}selected{% endif %}>{{ y }}</option>
             {% endfor %}
@@ -27,7 +27,7 @@
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Miesiąc</label>
           <select name="month" id="sel-month" required onchange="updatePeriod()">
-            {% set cur_month = reading.month if reading else 1 %}
+            {% set cur_month = reading.month if reading else next_month %}
             {% set months = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'] %}
             {% for i in range(1, 13) %}
             <option value="{{ i }}" {% if i == cur_month %}selected{% endif %}>{{ '%02d' % i }} — {{ months[i-1] }}</option>
@@ -35,34 +35,52 @@
           </select>
         </div>
       </div>
-      <input type="hidden" name="period" id="period-hidden" value="{{ reading.period if reading else '2026.01' }}">
+      <input type="hidden" name="period" id="period-hidden" value="{{ reading.period if reading else (next_year|string + '.' + '%02d'|format(next_month)) }}">
       <input type="hidden" name="days" id="days-hidden" value="{{ reading.days if reading else '' }}">
 
       <div style="border-top:1px solid #334155; padding-top:1rem;">
-        <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Energia [kWh]</div>
+        <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Energia <span style="text-transform:none;">[kWh]</span></div>
         <div class="grid-3">
           <div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
-              <label style="font-size:.85rem; color:#fbbf24;"><i class="ph-bold ph-sun"></i> Produkcja</label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchSolar()"><i class="ph-bold ph-house"></i> HA</button>
+            <label style="display:block; margin-bottom:.3rem; font-size:.85rem; color:#fbbf24;"><i class="ph-bold ph-sun"></i> Produkcja</label>
+            {% if settings.ha_solar_entity %}
+            <div style="margin-bottom:.4rem; display:flex; align-items:center; gap:.5rem;">
+              <button type="button" class="btn btn-ghost" style="font-size:.75rem; padding:.2rem .6rem;" onclick="fetchSolar()"><i class="ph-bold ph-house"></i> Pobierz z HA</button>
               <span id="solar-status" style="font-size:.72rem; color:#64748b;"></span>
             </div>
+            {% else %}
+            <div style="margin-bottom:.4rem; font-size:.75rem; color:#475569;">
+              <i class="ph-bold ph-warning"></i> Skonfiguruj encję produkcji PV w <a href="{{ rp }}/import" style="color:#f59e0b;">Ustawieniach</a>.
+            </div>
+            {% endif %}
             <input type="number" name="production_kwh" id="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
           </div>
           <div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
-              <label style="font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('returned','sent_to_grid_kwh','grid-returned-status')"><i class="ph-bold ph-house"></i> HA</button>
+            <label style="display:block; margin-bottom:.3rem; font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569; font-size:.78rem;">(2.8.0)</span></label>
+            {% if settings.ha_grid_returned_entity %}
+            <div style="margin-bottom:.4rem; display:flex; align-items:center; gap:.5rem;">
+              <button type="button" class="btn btn-ghost" style="font-size:.75rem; padding:.2rem .6rem;" onclick="fetchGrid('returned','sent_to_grid_kwh','grid-returned-status')"><i class="ph-bold ph-house"></i> Pobierz z HA</button>
               <span id="grid-returned-status" style="font-size:.72rem; color:#64748b;"></span>
             </div>
+            {% else %}
+            <div style="margin-bottom:.4rem; font-size:.75rem; color:#475569;">
+              <i class="ph-bold ph-warning"></i> Skonfiguruj encję oddania (2.8.0) w <a href="{{ rp }}/import" style="color:#f59e0b;">Ustawieniach</a>.
+            </div>
+            {% endif %}
             <input type="number" name="sent_to_grid_kwh" id="sent_to_grid_kwh" step="0.001" value="{{ reading.sent_to_grid_kwh if reading else '' }}" required>
           </div>
           <div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
-              <label style="font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569;">(1.8.0)</span></label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('consumed','taken_from_grid_kwh','grid-consumed-status')"><i class="ph-bold ph-house"></i> HA</button>
+            <label style="display:block; margin-bottom:.3rem; font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569; font-size:.78rem;">(1.8.0)</span></label>
+            {% if settings.ha_grid_consumed_entity %}
+            <div style="margin-bottom:.4rem; display:flex; align-items:center; gap:.5rem;">
+              <button type="button" class="btn btn-ghost" style="font-size:.75rem; padding:.2rem .6rem;" onclick="fetchGrid('consumed','taken_from_grid_kwh','grid-consumed-status')"><i class="ph-bold ph-house"></i> Pobierz z HA</button>
               <span id="grid-consumed-status" style="font-size:.72rem; color:#64748b;"></span>
             </div>
+            {% else %}
+            <div style="margin-bottom:.4rem; font-size:.75rem; color:#475569;">
+              <i class="ph-bold ph-warning"></i> Skonfiguruj encję poboru (1.8.0) w <a href="{{ rp }}/import" style="color:#f59e0b;">Ustawieniach</a>.
+            </div>
+            {% endif %}
             <input type="number" name="taken_from_grid_kwh" id="taken_from_grid_kwh" step="0.001" value="{{ reading.taken_from_grid_kwh if reading else '' }}" required>
           </div>
         </div>

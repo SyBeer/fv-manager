@@ -1,3 +1,4 @@
+import calendar
 import os
 import re
 import secrets as _secrets
@@ -251,8 +252,11 @@ def _ev_enrich(
     default_price = _default_price()
 
     def _fuel_price_for(period: str) -> float | None:
-        year, month = period.split(".")
-        period_end = f"{year}-{month.zfill(2)}-28"
+        year_s, month_s = period.split(".")
+        y, m = int(year_s), int(month_s)
+        # Fix #2: ostatni dzień miesiąca zamiast hardkodowanego 28
+        last_day = calendar.monthrange(y, m)[1]
+        period_end = f"{year_s}-{month_s.zfill(2)}-{last_day}"
         obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
         return obj["price_per_liter"] if obj else None
 
@@ -419,14 +423,33 @@ async def export_readings_csv():
     )
 
 
+async def _next_period(db) -> tuple[int, int]:
+    row = await db.execute_fetchall(
+        "SELECT year, month FROM readings ORDER BY year DESC, month DESC LIMIT 1"
+    )
+    if row:
+        y, m = row[0]["year"], row[0]["month"]
+        return (y, m + 1) if m < 12 else (y + 1, 1)
+    from datetime import date
+    d = date.today()
+    return d.year, d.month
+
+
 @app.get("/odczyty/nowy", response_class=HTMLResponse)
 async def new_reading_form(request: Request):
     db = await get_db()
     try:
         vehicles = await _get_vehicles(db)
+        settings = await _get_ev_settings(db)
+        next_year, next_month = await _next_period(db)
     finally:
         await db.close()
-    return _t(request, "reading_form.html", {"vehicles": vehicles})
+    return _t(request, "reading_form.html", {
+        "vehicles": vehicles,
+        "settings": settings,
+        "next_year": next_year,
+        "next_month": next_month,
+    })
 
 
 @app.post("/odczyty/nowy")
@@ -449,12 +472,16 @@ async def create_reading(request: Request):
         db = await get_db()
         try:
             vehicles = await _get_vehicles(db)
+            settings = await _get_ev_settings(db)
         finally:
             await db.close()
         return _t(request, "reading_form.html", {
             "error": error,
             "form_data": dict(form),
             "vehicles": vehicles,
+            "settings": settings,
+            "next_year": year,
+            "next_month": month,
         })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
@@ -490,13 +517,14 @@ async def edit_reading_form(request: Request, reading_id: int):
         cur = await db.execute("SELECT * FROM readings WHERE id=?", (reading_id,))
         row = await cur.fetchone()
         vehicles = await _get_vehicles(db)
+        settings = await _get_ev_settings(db)
         ev_cur = await db.execute("SELECT * FROM ev_monthly WHERE period=(SELECT period FROM readings WHERE id=?)", (reading_id,))
         ev_rows = {r["vehicle_id"]: r["kwh"] for r in [dict(r) for r in await ev_cur.fetchall()]}
     finally:
         await db.close()
     if not row:
         return HTMLResponse("Nie znaleziono.", status_code=404)
-    return _t(request, "reading_form.html", {"reading": dict(row), "vehicles": vehicles, "ev_rows": ev_rows})
+    return _t(request, "reading_form.html", {"reading": dict(row), "vehicles": vehicles, "ev_rows": ev_rows, "settings": settings})
 
 
 @app.post("/odczyty/{reading_id}/edytuj")
@@ -521,6 +549,7 @@ async def update_reading(request: Request, reading_id: int):
             cur = await db.execute("SELECT * FROM readings WHERE id=?", (reading_id,))
             reading = await cur.fetchone()
             vehicles = await _get_vehicles(db)
+            settings = await _get_ev_settings(db)
         finally:
             await db.close()
         return _t(request, "reading_form.html", {
@@ -528,6 +557,7 @@ async def update_reading(request: Request, reading_id: int):
             "reading": dict(reading) if reading else None,
             "form_data": dict(form),
             "vehicles": vehicles,
+            "settings": settings,
         })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
@@ -1041,6 +1071,7 @@ async def ev_page(request: Request):
             period_liters += s["liters_saved"]
             vehicle_rows.append({
                 "name": v["name"] if v else "—",
+                "vehicle_id": e["vehicle_id"],
                 "kwh": e["kwh"],
                 **s,
             })
@@ -1059,10 +1090,17 @@ async def ev_page(request: Request):
         total_km += period_km
         total_liters_saved += period_liters
 
+    # ev_raw: period → {vehicle_id → kwh} — for pre-filling edit forms
+    ev_raw: dict[str, dict[int, float]] = {}
+    for e in ev_monthly_all:
+        if e["vehicle_id"] is not None:
+            ev_raw.setdefault(e["period"], {})[e["vehicle_id"]] = e["kwh"]
+
     return _t(request, "ev.html", {
         "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
         "vehicles": vehicles,
         "monthly_ev": list(reversed(monthly_ev)),
+        "ev_raw": ev_raw,
         "total_ev_savings": round(total_ev_savings, 2),
         "total_km": round(total_km, 1),
         "total_liters_saved": round(total_liters_saved, 2),
@@ -1154,6 +1192,32 @@ async def update_vehicle(
     finally:
         await db.close()
     rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
+
+
+@app.post("/ev/monthly/{period}/edytuj")
+async def edit_ev_monthly(request: Request, period: str):
+    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh."""
+    form = await request.form()
+    rp = request.scope.get("root_path", "")
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM ev_monthly WHERE period=?", (period,))
+        for key, val in form.items():
+            if key.startswith("v_") and str(val).strip():
+                try:
+                    vid = int(key[2:])
+                    kwh = float(str(val).replace(",", "."))
+                    if kwh > 0:
+                        await db.execute(
+                            "INSERT INTO ev_monthly (period, vehicle_id, kwh) VALUES (?,?,?)",
+                            (period, vid, kwh),
+                        )
+                except (ValueError, TypeError):
+                    pass
+        await db.commit()
+    finally:
+        await db.close()
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
 

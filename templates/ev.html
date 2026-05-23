@@ -40,6 +40,7 @@
         <th>Koszt prądu</th>
         <th>Oszczędność netto</th>
         <th>Litrów zaoszczędzono</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -58,6 +59,47 @@
       <td style="color:#94a3b8;">{{ r.electricity_cost|fmtn(2) }} zł</td>
       <td style="color:#22c55e; font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
       <td style="color:#fbbf24;">{{ r.liters_saved|fmtn(1) }} L</td>
+      <td style="white-space:nowrap;">
+        <button onclick="toggleEvEdit('ev-edit-{{ r.period|replace('.','_') }}')"
+                class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;">
+          <i class="ph-bold ph-pencil-simple"></i>
+        </button>
+      </td>
+    </tr>
+    <!-- Inline edit row for {{ r.period }} -->
+    <tr id="ev-edit-{{ r.period|replace('.','_') }}" style="display:none;">
+      <td colspan="8" style="padding:.75rem; background:#0f172a;">
+        <form method="post" action="{{ rp }}/ev/monthly/{{ r.period }}/edytuj"
+              style="display:flex; flex-direction:column; gap:.6rem;">
+          <div style="font-size:.8rem; color:#94a3b8; margin-bottom:.25rem;">
+            <i class="ph-bold ph-pencil-simple"></i> Edycja kWh EV — <strong>{{ r.period }}</strong>
+          </div>
+          {% if vehicles %}
+            {% for v in vehicles %}
+            <div style="display:flex; align-items:center; gap:.75rem;">
+              <label style="font-size:.82rem; color:#94a3b8; min-width:130px; flex-shrink:0;">
+                <i class="ph-bold ph-car"></i> {{ v.name }}
+              </label>
+              <input type="number" name="v_{{ v.id }}" step="0.1" min="0" placeholder="0.0"
+                     value="{{ ev_raw.get(r.period, {}).get(v.id, '') }}"
+                     style="max-width:120px;">
+              <span style="font-size:.8rem; color:#475569;">kWh</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p style="color:#64748b; font-size:.85rem;">Brak zdefiniowanych pojazdów.</p>
+          {% endif %}
+          <div style="display:flex; gap:.5rem; margin-top:.25rem;">
+            <button type="submit" class="btn btn-primary" style="font-size:.8rem; padding:.35rem .9rem;">
+              <i class="ph-bold ph-floppy-disk"></i> Zapisz
+            </button>
+            <button type="button" onclick="toggleEvEdit('ev-edit-{{ r.period|replace('.','_') }}')"
+                    class="btn btn-ghost" style="font-size:.8rem; padding:.35rem .9rem;">
+              Anuluj
+            </button>
+          </div>
+        </form>
+      </td>
     </tr>
     {% endfor %}
     </tbody>
@@ -202,4 +244,10 @@
 
 </div>
 
+<script>
+function toggleEvEdit(id) {
+  const row = document.getElementById(id);
+  if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+</script>
 {% endblock %}

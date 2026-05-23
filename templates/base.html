@@ -52,6 +52,7 @@
   .nav-icon { flex-shrink: 0; }
 
   /* Mobile: sidebar overlay */
+  #mobile-toggle { display: none; }
   @media (max-width: 640px) {
     #sidebar { position: fixed; top: 0; left: 0; height: 100vh; z-index: 50; transform: translateX(0); transition: transform .2s; }
     #sidebar.collapsed { transform: translateX(-100%); width: 220px; padding: 1.5rem 1rem; }
@@ -61,10 +62,6 @@
     #sidebar.collapsed #sidebar-version { display: block; }
     #mobile-toggle { display: flex; }
     #main-content { padding: 1rem; }
-  }
-  #mobile-toggle { display: none; }
-  @media (min-width: 641px) {
-    #mobile-toggle { display: none; }
   }
   #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; }
   #sidebar-overlay.visible { display: block; }
