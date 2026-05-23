@@ -85,10 +85,16 @@
                      value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('kwh', '') if ev_raw.get(r.period, {}).get(v.id) else '' }}"
                      style="max-width:110px;">
               <span style="font-size:.8rem; color:#475569;">kWh</span>
-              <input type="number" name="km_v_{{ v.id }}" step="1" min="0" placeholder="km"
+              <span style="font-size:.75rem; color:#334155; padding:0 .15rem;">|</span>
+              <input type="number" name="km_v_{{ v.id }}" step="1" min="0" placeholder="km/mc"
                      value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('km', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('km') is not none else '' }}"
-                     style="max-width:90px;">
+                     style="max-width:80px;">
               <span style="font-size:.8rem; color:#475569;">km</span>
+              <span style="font-size:.75rem; color:#64748b; flex-shrink:0;">lub</span>
+              <input type="number" name="odometer_v_{{ v.id }}" step="1" min="0" placeholder="stan licznika"
+                     value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('odometer_km', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('odometer_km') is not none else '' }}"
+                     style="max-width:110px;">
+              <span style="font-size:.8rem; color:#475569;">km (licznik)</span>
             </div>
             {% endif %}
             {% endfor %}

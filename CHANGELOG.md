@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.4.0] — 2026-05-23
+
+### Dodano
+- Pole "Stan licznika [km]" w formularzu odczytu i inline edit EV — wpisujesz odczyt z licznika auta
+- Kolumna `odometer_km` w tabeli `ev_monthly` (nullable, backward compat)
+- Helper `_inject_odometer_km()` — oblicza miesięczne km z delty licznika w runtime (nie zapisuje do DB)
+
+### Zmieniono
+- Formularz odczytu per pojazd: trzy pola obok siebie — `kWh | km/mc lub stan licznika km (licznik)`
+- Inline edit EV na stronie /ev: analogicznie dwa pola km — ręczne lub stan licznika
+- Priorytet km: ręczne km > delta z licznika > obliczone z kWh (est.)
+- Jeśli wpisano stan licznika (bez ręcznych km) — delta obliczana na bieżąco przy wyświetlaniu, **nie zapisywana** do pola `km` (poprawność przy ładowaniu publicznym)
+
 ## [2.3.0] — 2026-05-23
 
 ### Dodano

@@ -247,6 +247,33 @@ async def _get_ev_monthly_all(db: aiosqlite.Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def _inject_odometer_km(ev_monthly: list[dict]) -> list[dict]:
+    """For records without manual km but with odometer_km, inject computed km from delta.
+
+    The computed value is runtime-only — never written back to the database.
+    Priority: manual km > odometer delta > None (estimated from kWh).
+    """
+    from collections import defaultdict
+    by_vehicle: dict[int, list[dict]] = defaultdict(list)
+    for e in ev_monthly:
+        by_vehicle[e["vehicle_id"]].append(e)
+    for entries in by_vehicle.values():
+        entries.sort(key=lambda x: x["period"])
+
+    result = []
+    for e in ev_monthly:
+        e = dict(e)
+        if e.get("km") is None and e.get("odometer_km") is not None:
+            entries = by_vehicle[e["vehicle_id"]]
+            idx = next((i for i, x in enumerate(entries) if x["period"] == e["period"]), None)
+            if idx is not None and idx > 0:
+                prev_odometer = entries[idx - 1].get("odometer_km")
+                if prev_odometer is not None:
+                    e["km"] = max(0.0, e["odometer_km"] - prev_odometer)
+        result.append(e)
+    return result
+
+
 def _ev_enrich(
     readings: list[dict],
     ev_settings: dict,
@@ -358,6 +385,7 @@ async def dashboard(request: Request):
     finally:
         await db.close()
 
+    ev_monthly = _inject_odometer_km(ev_monthly)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total_investment = sum(i["cost_pln"] for i in investments)
     default_price = _default_price()
@@ -501,6 +529,7 @@ async def create_reading(request: Request):
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
     km_entries = {int(k[8:]): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
+    odometer_entries = {int(k[13:]): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
@@ -516,9 +545,10 @@ async def create_reading(request: Request):
         )
         for vid, kwh in ev_entries:
             km = km_entries.get(vid)
+            odometer = odometer_entries.get(vid)
             await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km) VALUES (?,?,?,?)",
-                (period, vid, kwh, km),
+                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?)",
+                (period, vid, kwh, km, odometer),
             )
         await db.commit()
     finally:
@@ -536,7 +566,7 @@ async def edit_reading_form(request: Request, reading_id: int):
         vehicles = await _get_vehicles(db)
         settings = await _get_ev_settings(db)
         ev_cur = await db.execute("SELECT * FROM ev_monthly WHERE period=(SELECT period FROM readings WHERE id=?)", (reading_id,))
-        ev_rows = {r["vehicle_id"]: {"kwh": r["kwh"], "km": r["km"]} for r in [dict(r) for r in await ev_cur.fetchall()]}
+        ev_rows = {r["vehicle_id"]: {"kwh": r["kwh"], "km": r["km"], "odometer_km": r["odometer_km"]} for r in [dict(r) for r in await ev_cur.fetchall()]}
     finally:
         await db.close()
     if not row:
@@ -585,6 +615,7 @@ async def update_reading(request: Request, reading_id: int):
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
     km_entries = {int(k[8:]): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
+    odometer_entries = {int(k[13:]): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
@@ -604,9 +635,10 @@ async def update_reading(request: Request, reading_id: int):
             await db.execute("DELETE FROM ev_monthly WHERE period=?", (orig["period"],))
         for vid, kwh in ev_entries:
             km = km_entries.get(vid)
+            odometer = odometer_entries.get(vid)
             await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km) VALUES (?,?,?,?)",
-                (period, vid, kwh, km),
+                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?)",
+                (period, vid, kwh, km, odometer),
             )
         await db.commit()
     finally:
@@ -641,6 +673,7 @@ async def investments_list(request: Request):
         ev_monthly = await _get_ev_monthly_all(db)
     finally:
         await db.close()
+    ev_monthly = _inject_odometer_km(ev_monthly)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
@@ -734,6 +767,7 @@ async def roi_page(request: Request):
     finally:
         await db.close()
 
+    ev_monthly = _inject_odometer_km(ev_monthly)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     default_price = _default_price()
@@ -1052,6 +1086,7 @@ async def ev_page(request: Request):
     finally:
         await db.close()
 
+    ev_monthly_all = _inject_odometer_km(ev_monthly_all)
     vmap = {v["id"]: v for v in vehicles}
     by_period: dict[str, list[dict]] = {}
     for e in ev_monthly_all:
@@ -1119,11 +1154,15 @@ async def ev_page(request: Request):
         total_km += period_km
         total_liters_saved += period_liters
 
-    # ev_raw: period → {vehicle_id → {kwh, km}} — for pre-filling edit forms
+    # ev_raw: period → {vehicle_id → {kwh, km, odometer_km}} — for pre-filling edit forms
     ev_raw: dict[str, dict[int, dict]] = {}
     for e in ev_monthly_all:
         if e["vehicle_id"] is not None:
-            ev_raw.setdefault(e["period"], {})[e["vehicle_id"]] = {"kwh": e["kwh"], "km": e.get("km")}
+            ev_raw.setdefault(e["period"], {})[e["vehicle_id"]] = {
+                "kwh": e["kwh"],
+                "km": e.get("km"),
+                "odometer_km": e.get("odometer_km"),
+            }
 
     return _t(request, "ev.html", {
         "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
@@ -1234,7 +1273,7 @@ async def update_vehicle(
 
 @app.post("/ev/monthly/{period}/edytuj")
 async def edit_ev_monthly(request: Request, period: str):
-    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh, km_v_{vehicle_id}=km."""
+    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh, km_v_{vehicle_id}=km, odometer_v_{vehicle_id}=odometer_km."""
     form = await request.form()
     rp = request.scope.get("root_path", "")
     db = await get_db()
@@ -1248,9 +1287,11 @@ async def edit_ev_monthly(request: Request, period: str):
                     if kwh > 0:
                         km_raw = form.get(f"km_v_{vid}")
                         km = float(str(km_raw).replace(",", ".")) if km_raw and str(km_raw).strip() else None
+                        odometer_raw = form.get(f"odometer_v_{vid}")
+                        odometer = float(str(odometer_raw).replace(",", ".")) if odometer_raw and str(odometer_raw).strip() else None
                         await db.execute(
-                            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km) VALUES (?,?,?,?)",
-                            (period, vid, kwh, km),
+                            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?)",
+                            (period, vid, kwh, km, odometer),
                         )
                 except (ValueError, TypeError):
                     pass
@@ -1555,6 +1596,7 @@ async def roi_preview(data: dict):
     finally:
         await db.close()
 
+    ev_monthly = _inject_odometer_km(ev_monthly)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     roi_before = calc_roi(readings, total) if readings and total > 0 else {}

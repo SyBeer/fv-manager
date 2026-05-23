@@ -94,15 +94,21 @@
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
               <label style="font-size:.85rem; color:#93c5fd;"><i class="ph-bold ph-car"></i> {{ v.name }}</label>
             </div>
-            <div style="display:flex; gap:.5rem; align-items:center;">
+            <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
               <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
                 value="{{ ev_rows[v.id]['kwh'] if ev_rows is defined and v.id in ev_rows else '' }}"
-                placeholder="np. 80.0" style="flex:1;">
+                placeholder="np. 80.0" style="flex:1; min-width:80px;">
               <span style="font-size:.8rem; color:#475569; flex-shrink:0;">kWh</span>
+              <span style="font-size:.75rem; color:#334155; flex-shrink:0; padding:0 .25rem;">|</span>
               <input type="number" name="ev_km_v_{{ v.id }}" id="ev_km_v_{{ v.id }}" step="1" min="0"
                 value="{{ ev_rows[v.id]['km'] if ev_rows is defined and v.id in ev_rows and ev_rows[v.id]['km'] is not none else '' }}"
-                placeholder="km" style="flex:1;">
+                placeholder="km/mc" style="flex:1; min-width:70px;">
               <span style="font-size:.8rem; color:#475569; flex-shrink:0;">km</span>
+              <span style="font-size:.75rem; color:#334155; flex-shrink:0; padding:0 .25rem;">lub</span>
+              <input type="number" name="ev_odometer_v_{{ v.id }}" id="ev_odometer_v_{{ v.id }}" step="1" min="0"
+                value="{{ ev_rows[v.id]['odometer_km'] if ev_rows is defined and v.id in ev_rows and ev_rows[v.id].get('odometer_km') is not none else '' }}"
+                placeholder="stan licznika" style="flex:1.5; min-width:100px;">
+              <span style="font-size:.8rem; color:#475569; flex-shrink:0;">km (licznik)</span>
             </div>
           </div>
           {% endfor %}

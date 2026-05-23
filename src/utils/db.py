@@ -146,6 +146,12 @@ async def init_db() -> None:
         except Exception:
             pass
 
+        try:
+            await db.execute("ALTER TABLE ev_monthly ADD COLUMN odometer_km REAL")
+            await db.commit()
+        except Exception:
+            pass
+
         for col, definition in [
             ("ha_solar_entity", "TEXT"),
             ("ha_grid_consumed_entity", "TEXT"),
