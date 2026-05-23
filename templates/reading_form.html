@@ -8,7 +8,7 @@
   <form id="edit-form" method="post" action="{% if reading %}{{ rp }}/odczyty/{{ reading.id }}/edytuj{% else %}{{ rp }}/odczyty/nowy{% endif %}">
     <div class="card" style="display:flex; flex-direction:column; gap:1rem;">
 
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+      <div class="grid-2">
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Rok</label>
           <select name="year" id="sel-year" required onchange="updatePeriod()">
@@ -34,9 +34,9 @@
 
       <div style="border-top:1px solid #334155; padding-top:1rem;">
         <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Energia [kWh]</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+        <div class="grid-3">
           <div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
               <label style="font-size:.85rem; color:#fbbf24;">☀️ Produkcja</label>
               <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchSolar()">🏠 HA</button>
               <span id="solar-status" style="font-size:.72rem; color:#64748b;"></span>
@@ -44,7 +44,7 @@
             <input type="number" name="production_kwh" id="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
           </div>
           <div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
               <label style="font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
               <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('returned','sent_to_grid_kwh','grid-returned-status')">🏠 HA</button>
               <span id="grid-returned-status" style="font-size:.72rem; color:#64748b;"></span>
@@ -52,7 +52,7 @@
             <input type="number" name="sent_to_grid_kwh" id="sent_to_grid_kwh" step="0.001" value="{{ reading.sent_to_grid_kwh if reading else '' }}" required>
           </div>
           <div>
-            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
               <label style="font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569;">(1.8.0)</span></label>
               <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('consumed','taken_from_grid_kwh','grid-consumed-status')">🏠 HA</button>
               <span id="grid-consumed-status" style="font-size:.72rem; color:#64748b;"></span>
@@ -92,7 +92,7 @@
 
       <div style="border-top:1px solid #334155; padding-top:1rem;">
         <div style="font-size:.8rem; color:#64748b; margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Faktura (opcjonalnie)</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+        <div class="grid-3">
           <div>
             <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Cena kWh [zł]</label>
             <input type="number" name="price_per_kwh" step="0.0001" value="{{ reading.price_per_kwh if reading else '' }}">
