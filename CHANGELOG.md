@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.3.0] — 2026-05-23
+
+### Dodano
+- Pole `przebieg_km` (przebieg licznika) w tabeli `vehicles` — opcjonalne, do wglądu
+- Formularz dodawania i edycji pojazdu: nowe pole "Przebieg km"
+- Tabela pojazdów: nowa kolumna "Przebieg" (wyświetla km lub "—")
+- Kolumny `date_from` i `date_to` (YYYY.MM) w tabeli `vehicles` — zakres posiadania pojazdu
+- Formularz dodawania i edycji pojazdu: pola "Od" / "Do" z walidacją formatu
+- Tabela pojazdów: kolumny "Od" / "Do" w widoku listy
+- Helper `_vehicles_for_period()` — filtruje pojazdy po zakresie dat
+
+### Zmieniono
+- Formularz nowego odczytu: pokazuje tylko pojazdy aktywne w danym miesiącu (`date_from`/`date_to`)
+- Formularz edycji odczytu: analogiczne filtrowanie
+- Strona EV — inline edit miesięczny: pola pojazdu widoczne tylko gdy pojazd był aktywny w danym okresie
+- Migracje DB: `ALTER TABLE vehicles ADD COLUMN date_from TEXT|date_to TEXT|przebieg_km REAL`
+
 ## [2.2.1] — 2026-05-23
 
 ### Zmieniono

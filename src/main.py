@@ -228,6 +228,19 @@ async def _get_vehicles(db: aiosqlite.Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+def _vehicles_for_period(vehicles: list[dict], period: str) -> list[dict]:
+    result = []
+    for v in vehicles:
+        df = v.get("date_from")
+        dt = v.get("date_to")
+        if df and period < df:
+            continue
+        if dt and period > dt:
+            continue
+        result.append(v)
+    return result
+
+
 async def _get_ev_monthly_all(db: aiosqlite.Connection) -> list[dict]:
     cur = await db.execute("SELECT * FROM ev_monthly ORDER BY period, vehicle_id")
     rows = await cur.fetchall()
@@ -445,8 +458,9 @@ async def new_reading_form(request: Request):
         next_year, next_month = await _next_period(db)
     finally:
         await db.close()
+    next_period = f"{next_year}.{str(next_month).zfill(2)}"
     return _t(request, "reading_form.html", {
-        "vehicles": vehicles,
+        "vehicles": _vehicles_for_period(vehicles, next_period),
         "settings": settings,
         "next_year": next_year,
         "next_month": next_month,
@@ -479,7 +493,7 @@ async def create_reading(request: Request):
         return _t(request, "reading_form.html", {
             "error": error,
             "form_data": dict(form),
-            "vehicles": vehicles,
+            "vehicles": _vehicles_for_period(vehicles, period),
             "settings": settings,
             "next_year": year,
             "next_month": month,
@@ -527,7 +541,13 @@ async def edit_reading_form(request: Request, reading_id: int):
         await db.close()
     if not row:
         return HTMLResponse("Nie znaleziono.", status_code=404)
-    return _t(request, "reading_form.html", {"reading": dict(row), "vehicles": vehicles, "ev_rows": ev_rows, "settings": settings})
+    reading_dict = dict(row)
+    return _t(request, "reading_form.html", {
+        "reading": reading_dict,
+        "vehicles": _vehicles_for_period(vehicles, reading_dict["period"]),
+        "ev_rows": ev_rows,
+        "settings": settings,
+    })
 
 
 @app.post("/odczyty/{reading_id}/edytuj")
@@ -559,7 +579,7 @@ async def update_reading(request: Request, reading_id: int):
             "error": error,
             "reading": dict(reading) if reading else None,
             "form_data": dict(form),
-            "vehicles": vehicles,
+            "vehicles": _vehicles_for_period(vehicles, period),
             "settings": settings,
         })
 
@@ -1082,6 +1102,7 @@ async def ev_page(request: Request):
                 **s,
             })
 
+        active_vids = [v["id"] for v in _vehicles_for_period(vehicles, r["period"])]
         monthly_ev.append({
             "period": r["period"],
             "ev_kwh": period_total_kwh,
@@ -1092,6 +1113,7 @@ async def ev_page(request: Request):
             "fuel_cost_equivalent": round(sum(x["fuel_cost_equivalent"] for x in vehicle_rows), 2),
             "electricity_cost": round(sum(x["electricity_cost"] for x in vehicle_rows), 2),
             "vehicles": vehicle_rows,
+            "active_vehicle_ids": active_vids,
         })
         total_ev_savings += period_savings
         total_km += period_km
@@ -1152,12 +1174,16 @@ async def create_vehicle(
     fuel_consumption_l_per_100km: float = Form(...),
     fuel_type: str = Form("PB95"),
     notes: str = Form(None),
+    date_from: str = Form(None),
+    date_to: str = Form(None),
+    przebieg_km: float = Form(None),
 ):
     db = await get_db()
     try:
         await db.execute(
-            "INSERT INTO vehicles (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes) VALUES (?,?,?,?,?)",
-            (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes or None),
+            "INSERT INTO vehicles (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes, date_from, date_to, przebieg_km) VALUES (?,?,?,?,?,?,?,?)",
+            (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
+             notes or None, date_from.strip() or None if date_from else None, date_to.strip() or None if date_to else None, przebieg_km),
         )
         await db.commit()
     finally:
@@ -1188,12 +1214,16 @@ async def update_vehicle(
     fuel_consumption_l_per_100km: float = Form(...),
     fuel_type: str = Form("PB95"),
     notes: str = Form(None),
+    date_from: str = Form(None),
+    date_to: str = Form(None),
+    przebieg_km: float = Form(None),
 ):
     db = await get_db()
     try:
         await db.execute(
-            "UPDATE vehicles SET name=?, efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?, fuel_type=?, notes=? WHERE id=?",
-            (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes or None, vid),
+            "UPDATE vehicles SET name=?, efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?, fuel_type=?, notes=?, date_from=?, date_to=?, przebieg_km=? WHERE id=?",
+            (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
+             notes or None, date_from.strip() or None if date_from else None, date_to.strip() or None if date_to else None, przebieg_km, vid),
         )
         await db.commit()
     finally:

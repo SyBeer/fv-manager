@@ -76,6 +76,7 @@
           </div>
           {% if vehicles %}
             {% for v in vehicles %}
+            {% if v.id in r.active_vehicle_ids %}
             <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
               <label style="font-size:.82rem; color:#94a3b8; min-width:130px; flex-shrink:0;">
                 <i class="ph-bold ph-car"></i> {{ v.name }}
@@ -89,6 +90,7 @@
                      style="max-width:90px;">
               <span style="font-size:.8rem; color:#475569;">km</span>
             </div>
+            {% endif %}
             {% endfor %}
           {% else %}
             <p style="color:#64748b; font-size:.85rem;">Brak zdefiniowanych pojazdów.</p>
@@ -124,7 +126,7 @@
     {% if vehicles %}
     <div class="table-wrap">
     <table style="margin-bottom:1rem;">
-      <thead><tr><th>Nazwa</th><th>kWh/100km</th><th>L/100km</th><th>Paliwo</th><th></th></tr></thead>
+      <thead><tr><th>Nazwa</th><th>kWh/100km</th><th>L/100km</th><th>Paliwo</th><th>Od</th><th>Do</th><th>Przebieg</th><th></th></tr></thead>
       <tbody>
       {% for v in vehicles %}
       <tr>
@@ -132,6 +134,9 @@
         <td style="color:#93c5fd;">{{ v.efficiency_kwh_per_100km }}</td>
         <td style="color:#fbbf24;">{{ v.fuel_consumption_l_per_100km }}</td>
         <td><span class="badge-blue">{{ v.fuel_type }}</span></td>
+        <td style="color:#94a3b8; font-size:.85rem;">{{ v.date_from or '—' }}</td>
+        <td style="color:#94a3b8; font-size:.85rem;">{{ v.date_to or '—' }}</td>
+        <td style="color:#94a3b8; font-size:.85rem;">{% if v.przebieg_km %}{{ "{:,.0f}".format(v.przebieg_km).replace(",", " ") }} km{% else %}—{% endif %}</td>
         <td style="white-space:nowrap;">
           <details style="display:inline;">
             <summary class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem; display:inline-block; cursor:pointer; list-style:none;"><i class="ph-bold ph-pencil-simple"></i></summary>
@@ -148,6 +153,11 @@
                 <option value="ON" {% if v.fuel_type == 'ON' %}selected{% endif %}>ON (diesel)</option>
               </select>
               <input type="text" name="notes" value="{{ v.notes or '' }}" placeholder="Notatki" style="font-size:.85rem;">
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:.5rem;">
+                <input type="text" name="date_from" value="{{ v.date_from or '' }}" placeholder="Od RRRR.MM" pattern="\d{4}\.(0[1-9]|1[0-2])" style="font-size:.85rem;">
+                <input type="text" name="date_to"   value="{{ v.date_to or '' }}"   placeholder="Do RRRR.MM"  pattern="\d{4}\.(0[1-9]|1[0-2])" style="font-size:.85rem;">
+              </div>
+              <input type="number" name="przebieg_km" value="{{ v.przebieg_km or '' }}" step="1" placeholder="Przebieg km (opcjonalnie)" style="font-size:.85rem;">
               <button type="submit" class="btn btn-primary" style="font-size:.8rem; align-self:flex-start;"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
             </form>
           </details>
@@ -187,6 +197,20 @@
           <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Notatki</label>
           <input type="text" name="notes" placeholder="np. BMW i3">
         </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Od (RRRR.MM)</label>
+          <input type="text" name="date_from" placeholder="np. 2023.01" pattern="\d{4}\.(0[1-9]|1[0-2])">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Do (RRRR.MM)</label>
+          <input type="text" name="date_to" placeholder="np. 2025.12 lub puste" pattern="\d{4}\.(0[1-9]|1[0-2])">
+        </div>
+      </div>
+      <div>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Przebieg km (opcjonalnie)</label>
+        <input type="number" name="przebieg_km" step="1" placeholder="np. 45000">
       </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">+ Dodaj</button>
     </form>

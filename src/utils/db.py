@@ -85,7 +85,10 @@ async def init_db() -> None:
                 efficiency_kwh_per_100km REAL NOT NULL DEFAULT 16.0,
                 fuel_consumption_l_per_100km REAL NOT NULL DEFAULT 10.0,
                 fuel_type TEXT NOT NULL DEFAULT 'PB95',
-                notes TEXT
+                notes TEXT,
+                date_from TEXT,
+                date_to TEXT,
+                przebieg_km REAL
             );
 
             CREATE TABLE IF NOT EXISTS ev_monthly (
@@ -126,6 +129,19 @@ async def init_db() -> None:
 
         try:
             await db.execute("ALTER TABLE ev_monthly ADD COLUMN km REAL")
+            await db.commit()
+        except Exception:
+            pass
+
+        for col in ["date_from", "date_to"]:
+            try:
+                await db.execute(f"ALTER TABLE vehicles ADD COLUMN {col} TEXT")
+                await db.commit()
+            except Exception:
+                pass
+
+        try:
+            await db.execute("ALTER TABLE vehicles ADD COLUMN przebieg_km REAL")
             await db.commit()
         except Exception:
             pass
