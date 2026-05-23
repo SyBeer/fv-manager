@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.2.0] — 2026-05-23
+
+### Dodano
+- Pole `km` (faktyczne kilometry) w tabeli `ev_monthly` — obok `kwh` można teraz wpisywać rzeczywiste km z licznika
+- Formularz odczytu (`/odczyty/nowy` i edycja): dwa pola na pojazd — `kWh` i `km` obok siebie
+- Strona EV: inline edit miesięcznych wpisów obsługuje oba pola (`kWh` + `km`)
+- Oznaczenie `(est.)` przy km obliczonych ze wzoru (gdy brak ręcznego wpisu)
+- Migracja DB: `ALTER TABLE ev_monthly ADD COLUMN km REAL` (backward compatible, nullable)
+
+### Zmieniono
+- `calc_ev_savings()` przyjmuje opcjonalny `km_driven` — gdy podane, używa faktycznych km zamiast obliczonych z efektywności
+- Oszczędność EV liczona z faktycznych km jeśli dostępne: `koszt_paliwa(faktyczne_km) - koszt_pradu(faktyczne_kwh)`
+- `ev_raw` w endpoincie GET `/ev` zmienione na `{period: {vid: {kwh, km}}}` (było `{vid: kwh}`)
+
 ## [2.1.1] — 2026-05-23
 
 ### Naprawiono

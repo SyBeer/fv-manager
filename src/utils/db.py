@@ -93,6 +93,7 @@ async def init_db() -> None:
                 period TEXT NOT NULL,
                 vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
                 kwh REAL NOT NULL,
+                km REAL,
                 UNIQUE(period, vehicle_id)
             );
 
@@ -122,6 +123,12 @@ async def init_db() -> None:
                 await db.commit()
             except Exception:
                 pass
+
+        try:
+            await db.execute("ALTER TABLE ev_monthly ADD COLUMN km REAL")
+            await db.commit()
+        except Exception:
+            pass
 
         for col, definition in [
             ("ha_solar_entity", "TEXT"),

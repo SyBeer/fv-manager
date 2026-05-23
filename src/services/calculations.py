@@ -278,6 +278,7 @@ def calc_ev_savings(
     efficiency_kwh_per_100km: float,
     fuel_consumption_l_per_100km: float,
     fuel_price_per_liter: float,
+    km_driven: float | None = None,
 ) -> dict:
     """EV savings vs equivalent gasoline car.
 
@@ -285,8 +286,10 @@ def calc_ev_savings(
 
     ev_kwh to całkowita energia naładowana do pojazdu — bez rozróżniania
     źródła (PV / sieć), bo dwukierunkowy licznik już abstrahuje przepływy.
+    km_driven: faktyczne km z licznika; jeśli None — obliczane z kwh i efficiency.
     """
-    km_driven = (ev_kwh / efficiency_kwh_per_100km) * 100
+    if km_driven is None:
+        km_driven = (ev_kwh / efficiency_kwh_per_100km) * 100
     fuel_cost = km_driven / 100 * fuel_consumption_l_per_100km * fuel_price_per_liter
     electricity_cost = ev_kwh * price_per_kwh
     net_savings = fuel_cost - electricity_cost

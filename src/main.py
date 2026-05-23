@@ -281,7 +281,8 @@ def _ev_enrich(
                 calc_ev_savings(e["kwh"], price_kwh,
                                 vmap[e["vehicle_id"]]["efficiency_kwh_per_100km"],
                                 vmap[e["vehicle_id"]]["fuel_consumption_l_per_100km"],
-                                fuel_price)["ev_net_savings"]
+                                fuel_price,
+                                km_driven=e.get("km"))["ev_net_savings"]
                 for e in entries if e["vehicle_id"] in vmap
             )
             result.append({**r, "ev_savings_pln": savings})
@@ -485,6 +486,7 @@ async def create_reading(request: Request):
         })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
+    km_entries = {int(k[8:]): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
@@ -499,9 +501,10 @@ async def create_reading(request: Request):
              taken_from_grid_kwh, ev_kwh_total, price_per_kwh, invoice_number, invoice_gross, notes),
         )
         for vid, kwh in ev_entries:
+            km = km_entries.get(vid)
             await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh) VALUES (?,?,?)",
-                (period, vid, kwh),
+                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km) VALUES (?,?,?,?)",
+                (period, vid, kwh, km),
             )
         await db.commit()
     finally:
@@ -519,7 +522,7 @@ async def edit_reading_form(request: Request, reading_id: int):
         vehicles = await _get_vehicles(db)
         settings = await _get_ev_settings(db)
         ev_cur = await db.execute("SELECT * FROM ev_monthly WHERE period=(SELECT period FROM readings WHERE id=?)", (reading_id,))
-        ev_rows = {r["vehicle_id"]: r["kwh"] for r in [dict(r) for r in await ev_cur.fetchall()]}
+        ev_rows = {r["vehicle_id"]: {"kwh": r["kwh"], "km": r["km"]} for r in [dict(r) for r in await ev_cur.fetchall()]}
     finally:
         await db.close()
     if not row:
@@ -561,6 +564,7 @@ async def update_reading(request: Request, reading_id: int):
         })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
+    km_entries = {int(k[8:]): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
@@ -579,9 +583,10 @@ async def update_reading(request: Request, reading_id: int):
         if orig:
             await db.execute("DELETE FROM ev_monthly WHERE period=?", (orig["period"],))
         for vid, kwh in ev_entries:
+            km = km_entries.get(vid)
             await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh) VALUES (?,?,?)",
-                (period, vid, kwh),
+                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km) VALUES (?,?,?,?)",
+                (period, vid, kwh, km),
             )
         await db.commit()
     finally:
@@ -1064,7 +1069,7 @@ async def ev_page(request: Request):
             v = vmap.get(e["vehicle_id"]) if e["vehicle_id"] else None
             eff = v["efficiency_kwh_per_100km"] if v else settings.get("efficiency_kwh_per_100km", 16)
             fuel_cons = v["fuel_consumption_l_per_100km"] if v else settings.get("fuel_consumption_l_per_100km", 10)
-            s = calc_ev_savings(e["kwh"], price_kwh, eff, fuel_cons, fuel_price)
+            s = calc_ev_savings(e["kwh"], price_kwh, eff, fuel_cons, fuel_price, km_driven=e.get("km"))
             period_total_kwh += e["kwh"]
             period_savings += s["ev_net_savings"]
             period_km += s["km_driven"]
@@ -1073,6 +1078,7 @@ async def ev_page(request: Request):
                 "name": v["name"] if v else "—",
                 "vehicle_id": e["vehicle_id"],
                 "kwh": e["kwh"],
+                "km_actual": e.get("km") is not None,
                 **s,
             })
 
@@ -1081,6 +1087,7 @@ async def ev_page(request: Request):
             "ev_kwh": period_total_kwh,
             "ev_net_savings": round(period_savings, 2),
             "km_driven": round(period_km, 1),
+            "km_actual": any(x.get("km_actual") for x in vehicle_rows),
             "liters_saved": round(period_liters, 2),
             "fuel_cost_equivalent": round(sum(x["fuel_cost_equivalent"] for x in vehicle_rows), 2),
             "electricity_cost": round(sum(x["electricity_cost"] for x in vehicle_rows), 2),
@@ -1090,11 +1097,11 @@ async def ev_page(request: Request):
         total_km += period_km
         total_liters_saved += period_liters
 
-    # ev_raw: period → {vehicle_id → kwh} — for pre-filling edit forms
-    ev_raw: dict[str, dict[int, float]] = {}
+    # ev_raw: period → {vehicle_id → {kwh, km}} — for pre-filling edit forms
+    ev_raw: dict[str, dict[int, dict]] = {}
     for e in ev_monthly_all:
         if e["vehicle_id"] is not None:
-            ev_raw.setdefault(e["period"], {})[e["vehicle_id"]] = e["kwh"]
+            ev_raw.setdefault(e["period"], {})[e["vehicle_id"]] = {"kwh": e["kwh"], "km": e.get("km")}
 
     return _t(request, "ev.html", {
         "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
@@ -1197,7 +1204,7 @@ async def update_vehicle(
 
 @app.post("/ev/monthly/{period}/edytuj")
 async def edit_ev_monthly(request: Request, period: str):
-    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh."""
+    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh, km_v_{vehicle_id}=km."""
     form = await request.form()
     rp = request.scope.get("root_path", "")
     db = await get_db()
@@ -1209,9 +1216,11 @@ async def edit_ev_monthly(request: Request, period: str):
                     vid = int(key[2:])
                     kwh = float(str(val).replace(",", "."))
                     if kwh > 0:
+                        km_raw = form.get(f"km_v_{vid}")
+                        km = float(str(km_raw).replace(",", ".")) if km_raw and str(km_raw).strip() else None
                         await db.execute(
-                            "INSERT INTO ev_monthly (period, vehicle_id, kwh) VALUES (?,?,?)",
-                            (period, vid, kwh),
+                            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km) VALUES (?,?,?,?)",
+                            (period, vid, kwh, km),
                         )
                 except (ValueError, TypeError):
                     pass

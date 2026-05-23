@@ -92,11 +92,18 @@
           {% for v in vehicles %}
           <div style="margin-bottom:.75rem;">
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
-              <label style="font-size:.85rem; color:#93c5fd;"><i class="ph-bold ph-car"></i> {{ v.name }} [kWh]</label>
+              <label style="font-size:.85rem; color:#93c5fd;"><i class="ph-bold ph-car"></i> {{ v.name }}</label>
             </div>
-            <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
-              value="{{ ev_rows[v.id] if ev_rows is defined and v.id in ev_rows else '' }}"
-              placeholder="np. 80.0">
+            <div style="display:flex; gap:.5rem; align-items:center;">
+              <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
+                value="{{ ev_rows[v.id]['kwh'] if ev_rows is defined and v.id in ev_rows else '' }}"
+                placeholder="np. 80.0" style="flex:1;">
+              <span style="font-size:.8rem; color:#475569; flex-shrink:0;">kWh</span>
+              <input type="number" name="ev_km_v_{{ v.id }}" id="ev_km_v_{{ v.id }}" step="1" min="0"
+                value="{{ ev_rows[v.id]['km'] if ev_rows is defined and v.id in ev_rows and ev_rows[v.id]['km'] is not none else '' }}"
+                placeholder="km" style="flex:1;">
+              <span style="font-size:.8rem; color:#475569; flex-shrink:0;">km</span>
+            </div>
           </div>
           {% endfor %}
         {% else %}

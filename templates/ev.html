@@ -35,7 +35,7 @@
       <tr>
         <th>Okres</th>
         <th>kWh EV</th>
-        <th>km (est.)</th>
+        <th>km</th>
         <th>Koszt paliwa (gdyby)</th>
         <th>Koszt prądu</th>
         <th>Oszczędność netto</th>
@@ -54,7 +54,7 @@
         </div>
         {% endif %}
       </td>
-      <td>{{ r.km_driven|fmtn }} km</td>
+      <td>{{ r.km_driven|fmtn }} km{% if not r.km_actual %} <span style="font-size:.75rem; color:#475569;">(est.)</span>{% endif %}</td>
       <td style="color:#f87171;">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
       <td style="color:#94a3b8;">{{ r.electricity_cost|fmtn(2) }} zł</td>
       <td style="color:#22c55e; font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
@@ -72,18 +72,22 @@
         <form method="post" action="{{ rp }}/ev/monthly/{{ r.period }}/edytuj"
               style="display:flex; flex-direction:column; gap:.6rem;">
           <div style="font-size:.8rem; color:#94a3b8; margin-bottom:.25rem;">
-            <i class="ph-bold ph-pencil-simple"></i> Edycja kWh EV — <strong>{{ r.period }}</strong>
+            <i class="ph-bold ph-pencil-simple"></i> Edycja EV — <strong>{{ r.period }}</strong>
           </div>
           {% if vehicles %}
             {% for v in vehicles %}
-            <div style="display:flex; align-items:center; gap:.75rem;">
+            <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
               <label style="font-size:.82rem; color:#94a3b8; min-width:130px; flex-shrink:0;">
                 <i class="ph-bold ph-car"></i> {{ v.name }}
               </label>
               <input type="number" name="v_{{ v.id }}" step="0.1" min="0" placeholder="0.0"
-                     value="{{ ev_raw.get(r.period, {}).get(v.id, '') }}"
-                     style="max-width:120px;">
+                     value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('kwh', '') if ev_raw.get(r.period, {}).get(v.id) else '' }}"
+                     style="max-width:110px;">
               <span style="font-size:.8rem; color:#475569;">kWh</span>
+              <input type="number" name="km_v_{{ v.id }}" step="1" min="0" placeholder="km"
+                     value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('km', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('km') is not none else '' }}"
+                     style="max-width:90px;">
+              <span style="font-size:.8rem; color:#475569;">km</span>
             </div>
             {% endfor %}
           {% else %}
