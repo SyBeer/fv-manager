@@ -43,6 +43,9 @@ BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
 STATIC_DIR = BASE_DIR.parent / "static"
 
+_ver_match = __import__("re").search(r'version:\s*"([^"]+)"', (BASE_DIR.parent / "config.yaml").read_text())
+APP_VERSION = _ver_match.group(1) if _ver_match else "dev"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -155,6 +158,7 @@ def _fmt(value, decimals: int = 0) -> str:
 
 
 templates.env.filters["fmtn"] = _fmt
+templates.env.globals["app_version"] = APP_VERSION
 
 
 def _t(request: Request, name: str, context: dict | None = None):

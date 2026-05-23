@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.3] — 2026-05-23
+
+### Naprawiono
+- Hamburger menu na mobile — sidebar startuje zwinięty, hamburger widoczny od razu
+- Wersja w sidebarze dynamicznie czytana z config.yaml (nie hardcoded)
+
 ## [2.0.2] — 2026-05-23
 
 ### Naprawiono
