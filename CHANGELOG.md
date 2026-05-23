@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.6] — 2026-05-23
+
+### Naprawiono
+- Hamburger menu niewidoczny na mobile — inline `style="display:none"` nadpisywał
+  regułę CSS z media query; przeniesiono kontrolę wyświetlania wyłącznie do CSS
+
 ## [2.0.5] — 2026-05-23
 
 ### Zmieniono
