@@ -4,7 +4,7 @@
 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:.75rem;">
   <h1 style="font-size:1.5rem; font-weight:700;">Odczyty miesięczne</h1>
   <div style="display:flex; gap:.5rem;">
-    <a href="{{ rp }}/odczyty/export.csv" class="btn btn-ghost">⬇️ CSV</a>
+    <a href="{{ rp }}/odczyty/export.csv" class="btn btn-ghost"><i class="ph-bold ph-download-simple"></i> CSV</a>
     <a href="{{ rp }}/odczyty/nowy" class="btn btn-primary">+ Nowy odczyt</a>
   </div>
 </div>
@@ -41,14 +41,14 @@
           <span style="color:#64748b;">{{ r.price_per_kwh|fmtn(4) }} zł</span>
         {% else %}
           <span style="color:#475569;" title="Cena domyślna z konfiguracji (DEFAULT_PRICE_KWH). Edytuj odczyt i wpisz cenę z faktury, żeby uzyskać dokładne oszczędności.">
-            {{ r.effective_price|fmtn(4) }} zł ⚠️
+            {{ r.effective_price|fmtn(4) }} zł <i class="ph-bold ph-warning" style="color:#fbbf24;"></i>
           </span>
         {% endif %}
       </td>
       <td style="white-space:nowrap;">
-        <a href="{{ rp }}/odczyty/{{ r.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
+        <a href="{{ rp }}/odczyty/{{ r.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;"><i class="ph-bold ph-pencil-simple"></i></a>
         <form method="post" action="{{ rp }}/odczyty/{{ r.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ r.period }}?')">
-          <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;">🗑️</button>
+          <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;"><i class="ph-bold ph-trash"></i></button>
         </form>
       </td>
     </tr>

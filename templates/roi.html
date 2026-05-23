@@ -20,14 +20,14 @@
     <div class="stat-label">Zaoszczędzono łącznie</div>
     {% if has_ev and roi.total_ev_savings_pln %}
     <div style="margin-top:.5rem; font-size:.78rem; color:#64748b; line-height:1.6;">
-      ☀️ FV: {{ roi.total_fv_savings_pln|fmtn }} zł<br>
-      🚗 EV: <span style="color:#60a5fa;">{{ roi.total_ev_savings_pln|fmtn }} zł</span>
+      <i class="ph-bold ph-sun"></i> FV: {{ roi.total_fv_savings_pln|fmtn }} zł<br>
+      <i class="ph-bold ph-car"></i> EV: <span style="color:#60a5fa;">{{ roi.total_ev_savings_pln|fmtn }} zł</span>
     </div>
     {% endif %}
   </div>
   <div class="card">
     <div class="stat-value" style="color:{% if roi.roi_achieved %}#22c55e{% else %}#f87171{% endif %};">
-      {% if roi.roi_achieved %}✅ Osiągnięty{% else %}{{ roi.remaining_to_roi|fmtn }} zł{% endif %}
+      {% if roi.roi_achieved %}<i class="ph-bold ph-check-circle"></i> Osiągnięty{% else %}{{ roi.remaining_to_roi|fmtn }} zł{% endif %}
     </div>
     <div class="stat-label">{% if roi.roi_achieved %}Status ROI{% else %}Pozostało do zwrotu{% endif %}</div>
   </div>
@@ -110,7 +110,7 @@ new Chart(document.getElementById('roiChart'), {
       <td style="color:{% if s.roi_achieved %}#22c55e{% else %}#f87171{% endif %};">
         {% if s.roi_achieved %}—{% else %}{{ s.remaining_to_roi|fmtn }} zł{% endif %}
       </td>
-      <td>{% if s.roi_achieved %}✅{% else %}{{ s.months_to_roi }}{% endif %}</td>
+      <td>{% if s.roi_achieved %}<i class="ph-bold ph-check-circle" style="color:#22c55e;"></i>{% else %}{{ s.months_to_roi }}{% endif %}</td>
       <td>{% if s.roi_achieved %}<span class="badge-green">ROI osiągnięty</span>{% else %}<span class="badge-yellow">W toku</span>{% endif %}</td>
     </tr>
     {% endfor %}
@@ -122,10 +122,10 @@ new Chart(document.getElementById('roiChart'), {
 
 {% if confidence %}
 <div class="card" style="margin-top:1.5rem;">
-  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">🎯 Przedział ufności break-even</h2>
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;"><i class="ph-bold ph-target"></i> Przedział ufności break-even</h2>
   {% if not has_enough_data %}
   <div style="background:#78350f22; border:1px solid #92400e; border-radius:.5rem; padding:.6rem 1rem; margin-bottom:1rem; font-size:.82rem; color:#fbbf24;">
-    ⚠️ Mało danych historycznych ({{ forecast|length > 0 and 'mniej niż 12 miesięcy' or 'brak odczytów' }}).
+    <i class="ph-bold ph-warning"></i> Mało danych historycznych ({{ forecast|length > 0 and 'mniej niż 12 miesięcy' or 'brak odczytów' }}).
     Prognoza jest orientacyjna.
   </div>
   {% endif %}
@@ -154,7 +154,7 @@ new Chart(document.getElementById('roiChart'), {
 
 {% if scenarios %}
 <div class="card" style="margin-top:1.5rem;">
-  <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;">📈 Break-even przy różnym tempie wzrostu cen energii</h2>
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;"><i class="ph-bold ph-trend-up"></i> Break-even przy różnym tempie wzrostu cen energii</h2>
   <p style="color:#94a3b8; font-size:.82rem; margin-bottom:1rem;">
     Prognoza na {{ forecast|length }} miesięcy ({{ forecast[0].period }} – {{ forecast[-1].period }}).
     Oszczędności prognozowane na podstawie historii sezonowej.
@@ -192,7 +192,7 @@ new Chart(document.getElementById('roiChart'), {
 {% if forecast %}
 <div class="card" style="margin-top:1.5rem;">
   <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">
-    ☀️ Prognoza produkcji — kolejne {{ forecast|length }} miesięcy
+    <i class="ph-bold ph-sun"></i> Prognoza produkcji — kolejne {{ forecast|length }} miesięcy
     {% if forecast[0].capacity_phase == 'A' %}
     <span class="badge-yellow" style="margin-left:.5rem; font-size:.75rem;">Faza A — mnożnik rozbudowy</span>
     {% endif %}

@@ -22,7 +22,7 @@
   </div>
   <div class="card">
     <div class="stat-value" style="color:{% if roi.roi_achieved %}#22c55e{% else %}#f87171{% endif %};">
-      {% if roi.roi_achieved %}✅ Zwrot!{% else %}{{ roi.remaining_to_roi|fmtn }} zł{% endif %}
+      {% if roi.roi_achieved %}<i class="ph-bold ph-check-circle"></i> Zwrot!{% else %}{{ roi.remaining_to_roi|fmtn }} zł{% endif %}
     </div>
     <div class="stat-label">Pozostało do ROI</div>
   </div>
@@ -42,9 +42,9 @@
       <td style="color:#94a3b8;">{% if inv.power_kwp %}{{ inv.power_kwp }} kWp{% else %}—{% endif %}</td>
       <td style="color:#fbbf24; font-weight:600;">{{ inv.cost_pln|fmtn }} zł</td>
       <td style="white-space:nowrap;">
-        <a href="{{ rp }}/inwestycje/{{ inv.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;">✏️</a>
+        <a href="{{ rp }}/inwestycje/{{ inv.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;"><i class="ph-bold ph-pencil-simple"></i></a>
         <form method="post" action="{{ rp }}/inwestycje/{{ inv.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć tę inwestycję?')">
-          <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;">🗑️</button>
+          <button type="submit" class="btn btn-red" style="font-size:.75rem; padding:.3rem .6rem;"><i class="ph-bold ph-trash"></i></button>
         </form>
       </td>
     </tr>
@@ -82,7 +82,7 @@
         <input type="text" name="notes">
       </div>
     </div>
-    <button type="submit" class="btn btn-primary" style="align-self:flex-start;">💾 Dodaj</button>
+    <button type="submit" class="btn btn-primary" style="align-self:flex-start;"><i class="ph-bold ph-floppy-disk"></i> Dodaj</button>
   </form>
 </div>
 

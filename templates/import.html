@@ -2,59 +2,59 @@
 {% block title %}Import — FV Manager{% endblock %}
 {% block content %}
 <div style="max-width:700px;">
-  <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">📥 Import danych</h1>
+  <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;"><i class="ph-bold ph-upload-simple"></i> Import danych</h1>
 
   {% if error %}
   <div style="background:#450a0a; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#fca5a5;">
-    ❌ {{ error }}
+    <i class="ph-bold ph-x-circle"></i> {{ error }}
   </div>
   {% endif %}
 
   {% if request.query_params.get('cleared') %}
   <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
-    ✅ Baza danych została wyczyszczona.
+    <i class="ph-bold ph-check-circle"></i> Baza danych została wyczyszczona.
   </div>
   {% endif %}
 
   {% if request.query_params.get('restored') %}
   <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
-    ✅ Przywrócono dane z backupu — <strong>{{ request.query_params.get('restored') }}</strong> rekordów.
+    <i class="ph-bold ph-check-circle"></i> Przywrócono dane z backupu — <strong>{{ request.query_params.get('restored') }}</strong> rekordów.
   </div>
   {% endif %}
 
   {% if request.query_params.get('imported') %}
   <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
-    ✅ Zaimportowano <strong>{{ request.query_params.get('imported') }}</strong> rekordów
+    <i class="ph-bold ph-check-circle"></i> Zaimportowano <strong>{{ request.query_params.get('imported') }}</strong> rekordów
     (pominięto duplikatów: {{ request.query_params.get('skipped', 0) }})
   </div>
   {% endif %}
 
   <!-- CSV Import -->
   <div class="card" style="margin-bottom:1.5rem;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">📄 Import z CSV</h2>
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;"><i class="ph-bold ph-file-text"></i> Import z CSV</h2>
     <p style="color:#94a3b8; margin-bottom:.75rem; font-size:.9rem;">
-      Wgraj plik CSV wyeksportowany z aplikacji (⬇️ CSV w Odczytach) lub przygotowany ręcznie.
+      Wgraj plik CSV wyeksportowany z aplikacji (<i class="ph-bold ph-download-simple"></i> CSV w Odczytach) lub przygotowany ręcznie.
       Istniejące okresy nie zostaną nadpisane.
     </p>
     <div style="background:#0f172a; border-radius:6px; padding:.6rem 1rem; margin-bottom:1.25rem; font-size:.85rem; color:#fbbf24;">
-      ⚠️ Separator kolumn musi być <strong>średnik (<code style="color:#f8fafc;">;</code>)</strong> — nie przecinek.
+      <i class="ph-bold ph-warning"></i> Separator kolumn musi być <strong>średnik (<code style="color:#f8fafc;">;</code>)</strong> — nie przecinek.
       Kodowanie pliku: <strong>UTF-8</strong>.
     </div>
     <div style="display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
-      <a href="{{ rp }}/import/template.csv" class="btn btn-ghost" style="font-size:.85rem;">⬇️ Pobierz szablon CSV</a>
+      <a href="{{ rp }}/import/template.csv" class="btn btn-ghost" style="font-size:.85rem;"><i class="ph-bold ph-download-simple"></i> Pobierz szablon CSV</a>
     </div>
     <form method="post" action="{{ rp }}/import/csv" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
       <div style="flex:1; min-width:200px;">
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik CSV (.csv)</label>
         <input type="file" name="file" accept=".csv" required>
       </div>
-      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();">📥 Importuj</button>
+      <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();"><i class="ph-bold ph-upload-simple"></i> Importuj</button>
     </form>
   </div>
 
   <!-- Struktura pliku CSV -->
   <div class="card" style="margin-bottom:1.5rem;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">📋 Struktura pliku CSV</h2>
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;"><i class="ph-bold ph-clipboard-text"></i> Struktura pliku CSV</h2>
     <p style="color:#94a3b8; font-size:.85rem; margin-bottom:1.25rem;">
       Pierwszy wiersz to nagłówek. Każdy kolejny wiersz to jeden miesiąc.
       Kolumny obliczeniowe (autokonsumpcja, zużycie, oszczędności, wartość produkcji) są ignorowane przy imporcie — aplikacja wylicza je sama.
@@ -133,18 +133,18 @@
 
   <!-- Backup -->
   <div class="card" style="margin-bottom:1.5rem;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">💾 Backup danych</h2>
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;"><i class="ph-bold ph-floppy-disk"></i> Backup danych</h2>
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1rem;">
       Pobierz pełny backup wszystkich danych jako plik JSON.
       Zawiera odczyty, inwestycje, pojazdy, ceny paliw, okresy rozliczeniowe, ceny RCE.
       Ustawienia aplikacji (<code>app_settings</code>) są też uwzględnione.
     </p>
-    <a href="{{ rp }}/backup/full" class="btn btn-green">⬇️ Pobierz backup JSON</a>
+    <a href="{{ rp }}/backup/full" class="btn btn-green"><i class="ph-bold ph-download-simple"></i> Pobierz backup JSON</a>
   </div>
 
   <!-- Restore -->
   <div class="card" style="margin-bottom:1.5rem; border-color:#7c3aed;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#c4b5fd;">♻️ Przywróć z backupu</h2>
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#c4b5fd;"><i class="ph-bold ph-arrows-clockwise"></i> Przywróć z backupu</h2>
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:.75rem;">
       Wgraj plik JSON pobrany przez "Pobierz backup JSON".
       <strong style="color:#f87171;">Istniejące dane zostaną nadpisane.</strong>
@@ -157,19 +157,19 @@
         <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik backup (.json)</label>
         <input type="file" name="file" accept=".json" required>
       </div>
-      <button type="submit" class="btn" style="background:#7c3aed; color:white;">♻️ Przywróć</button>
+      <button type="submit" class="btn" style="background:#7c3aed; color:white;"><i class="ph-bold ph-arrows-clockwise"></i> Przywróć</button>
     </form>
   </div>
 
   <!-- Danger Zone -->
   <div class="card" style="border-color:#ef4444;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#f87171;">⚠️ Niebezpieczna strefa</h2>
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#f87171;"><i class="ph-bold ph-warning"></i> Niebezpieczna strefa</h2>
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1.5rem;">
       Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:#f87171;">nieodwracalna</strong>.
       Przed czyszczeniem warto wyeksportować dane do CSV.
     </p>
     <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Spowoduje to usunięcie WSZYSTKICH danych. Czy na pewno chcesz kontynuować?')">
-      <button type="submit" class="btn btn-red">🗑️ Wyczyść całą bazę danych</button>
+      <button type="submit" class="btn btn-red"><i class="ph-bold ph-trash"></i> Wyczyść całą bazę danych</button>
     </form>
   </div>
 </div>

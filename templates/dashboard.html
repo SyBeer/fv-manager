@@ -5,9 +5,9 @@
 
 {% if not readings %}
 <div class="card" style="text-align:center; padding:3rem;">
-  <div style="font-size:3rem; margin-bottom:1rem;">☀️</div>
-  <div style="font-size:1.1rem; margin-bottom:1.5rem; color:#94a3b8;">Brak danych. Zaimportuj z Excela lub dodaj pierwszy odczyt.</div>
-  <a href="{{ rp }}/import" class="btn btn-primary" style="margin-right:.75rem;">📥 Importuj Excel</a>
+  <div style="font-size:3rem; margin-bottom:1rem;"><i class="ph-bold ph-sun"></i></div>
+  <div style="font-size:1.1rem; margin-bottom:1.5rem; color:#94a3b8;">Brak danych. Zaimportuj z CSV lub dodaj pierwszy odczyt.</div>
+  <a href="{{ rp }}/import" class="btn btn-primary" style="margin-right:.75rem;"><i class="ph-bold ph-upload-simple"></i> Importuj CSV</a>
   <a href="{{ rp }}/odczyty/nowy" class="btn btn-ghost">+ Dodaj odczyt</a>
 </div>
 {% else %}
@@ -18,7 +18,7 @@
   <div style="display:flex; gap:1rem 2rem; flex-wrap:wrap; align-items:center;">
     <div>
       <div class="stat-value" style="color:{% if roi.roi_achieved %}#22c55e{% else %}#f59e0b{% endif %};">
-        {{ "✅ ROI osiągnięty!" if roi.roi_achieved else "⏳ Do zwrotu: " ~ roi.remaining_to_roi|fmtn ~ " zł" }}
+        {% if roi.roi_achieved %}<i class="ph-bold ph-check-circle"></i> ROI osiągnięty!{% else %}⏳ Do zwrotu: {{ roi.remaining_to_roi|fmtn }} zł{% endif %}
       </div>
       <div class="stat-label">Inwestycja: {{ roi.total_investment_pln|fmtn }} zł</div>
     </div>

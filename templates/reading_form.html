@@ -43,8 +43,8 @@
         <div class="grid-3">
           <div>
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
-              <label style="font-size:.85rem; color:#fbbf24;">☀️ Produkcja</label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchSolar()">🏠 HA</button>
+              <label style="font-size:.85rem; color:#fbbf24;"><i class="ph-bold ph-sun"></i> Produkcja</label>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchSolar()"><i class="ph-bold ph-house"></i> HA</button>
               <span id="solar-status" style="font-size:.72rem; color:#64748b;"></span>
             </div>
             <input type="number" name="production_kwh" id="production_kwh" step="0.001" value="{{ reading.production_kwh if reading else '' }}" required>
@@ -52,7 +52,7 @@
           <div>
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
               <label style="font-size:.85rem; color:#94a3b8;">↑ Oddane <span style="color:#475569;">(2.8.0)</span></label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('returned','sent_to_grid_kwh','grid-returned-status')">🏠 HA</button>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('returned','sent_to_grid_kwh','grid-returned-status')"><i class="ph-bold ph-house"></i> HA</button>
               <span id="grid-returned-status" style="font-size:.72rem; color:#64748b;"></span>
             </div>
             <input type="number" name="sent_to_grid_kwh" id="sent_to_grid_kwh" step="0.001" value="{{ reading.sent_to_grid_kwh if reading else '' }}" required>
@@ -60,7 +60,7 @@
           <div>
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem; flex-wrap:wrap;">
               <label style="font-size:.85rem; color:#f87171;">↓ Pobrane <span style="color:#475569;">(1.8.0)</span></label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('consumed','taken_from_grid_kwh','grid-consumed-status')">🏠 HA</button>
+              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchGrid('consumed','taken_from_grid_kwh','grid-consumed-status')"><i class="ph-bold ph-house"></i> HA</button>
               <span id="grid-consumed-status" style="font-size:.72rem; color:#64748b;"></span>
             </div>
             <input type="number" name="taken_from_grid_kwh" id="taken_from_grid_kwh" step="0.001" value="{{ reading.taken_from_grid_kwh if reading else '' }}" required>
@@ -74,7 +74,7 @@
           {% for v in vehicles %}
           <div style="margin-bottom:.75rem;">
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
-              <label style="font-size:.85rem; color:#93c5fd;">🚗 {{ v.name }} [kWh]</label>
+              <label style="font-size:.85rem; color:#93c5fd;"><i class="ph-bold ph-car"></i> {{ v.name }} [kWh]</label>
             </div>
             <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
               value="{{ ev_rows[v.id] if ev_rows is defined and v.id in ev_rows else '' }}"
@@ -84,7 +84,7 @@
         {% else %}
         <div>
           <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
-            <label style="font-size:.85rem; color:#93c5fd;">🚗 kWh zużyte przez auta</label>
+            <label style="font-size:.85rem; color:#93c5fd;"><i class="ph-bold ph-car"></i> kWh zużyte przez auta</label>
           </div>
           <input type="number" name="ev_kwh" id="ev_kwh" step="0.01" value="{{ reading.ev_kwh if reading else '' }}" placeholder="np. 120.5">
           <div style="font-size:.75rem; color:#475569; margin-top:.3rem;">Dodaj pojazdy w module EV aby śledzić każde auto osobno.</div>
@@ -117,15 +117,15 @@
 
       {% if reading %}
       <div style="background:#713f12; border:1px solid #f59e0b; border-radius:8px; padding:.75rem; font-size:.85rem; color:#fde68a;">
-        ⚠️ Edytujesz historyczny odczyt. Zmiana danych energetycznych wpłynie na obliczenia ROI dla wszystkich miesięcy.
+        <i class="ph-bold ph-warning"></i> Edytujesz historyczny odczyt. Zmiana danych energetycznych wpłynie na obliczenia ROI dla wszystkich miesięcy.
       </div>
       {% endif %}
 
       <div style="display:flex; gap:.75rem;">
         {% if reading %}
-        <button type="button" class="btn btn-primary" onclick="showRoiPreview()">💾 Zapisz</button>
+        <button type="button" class="btn btn-primary" onclick="showRoiPreview()"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
         {% else %}
-        <button type="submit" class="btn btn-primary">💾 Zapisz</button>
+        <button type="submit" class="btn btn-primary"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
         {% endif %}
         <a href="{{ rp }}/odczyty" class="btn btn-ghost">Anuluj</a>
       </div>
@@ -137,7 +137,7 @@
 {% if reading %}
 <div id="roi-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:100; align-items:center; justify-content:center;">
   <div class="card" style="max-width:480px; width:90%; padding:2rem;">
-    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; color:#f59e0b;">⚠️ Wpływ zmiany na ROI</h2>
+    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; color:#f59e0b;"><i class="ph-bold ph-warning"></i> Wpływ zmiany na ROI</h2>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
       <div style="background:#0f172a; border-radius:8px; padding:1rem;">
         <div style="font-size:.75rem; color:#64748b; margin-bottom:.5rem;">PRZED ZMIANĄ</div>
@@ -155,7 +155,7 @@
     <div id="roi-diff" style="text-align:center; font-size:.9rem; margin-bottom:1.5rem; color:#94a3b8;"></div>
     <div style="display:flex; gap:.75rem; justify-content:flex-end;">
       <button class="btn btn-ghost" onclick="document.getElementById('roi-modal').style.display='none'">Anuluj</button>
-      <button class="btn btn-primary" onclick="document.getElementById('edit-form').submit()">✅ Potwierdź i zapisz</button>
+      <button class="btn btn-primary" onclick="document.getElementById('edit-form').submit()"><i class="ph-bold ph-check"></i> Potwierdź i zapisz</button>
     </div>
   </div>
 </div>
