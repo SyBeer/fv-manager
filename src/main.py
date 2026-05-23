@@ -609,6 +609,120 @@ async def clear_db(request: Request):
     return RedirectResponse(f"{rp}/import?cleared=1", status_code=303)
 
 
+# ── Backup / Restore ────────────────────────────────────────────────────────
+
+@app.get("/backup/full")
+async def backup_full():
+    import json
+    from datetime import datetime
+
+    db = await get_db()
+    try:
+        async def fetch(query: str) -> list[dict]:
+            cur = await db.execute(query)
+            rows = await cur.fetchall()
+            return [dict(r) for r in rows]
+
+        data = {
+            "version": 1,
+            "exported_at": datetime.utcnow().isoformat(),
+            "readings":    await fetch("SELECT * FROM readings ORDER BY year, month"),
+            "investments": await fetch("SELECT * FROM investments ORDER BY date"),
+            "ev_settings": await fetch("SELECT * FROM ev_settings"),
+            "fuel_prices": await fetch("SELECT * FROM fuel_prices ORDER BY date"),
+            "vehicles":    await fetch("SELECT * FROM vehicles ORDER BY id"),
+            "ev_monthly":  await fetch("SELECT * FROM ev_monthly ORDER BY period"),
+        }
+    finally:
+        await db.close()
+
+    filename = f"fv-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M')}.json"
+    return StreamingResponse(
+        iter([json.dumps(data, ensure_ascii=False, indent=2)]),
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/restore")
+async def restore_backup(request: Request, file: UploadFile = File(...)):
+    import json
+
+    rp = request.scope.get("root_path", "")
+
+    try:
+        content = await file.read()
+        data = json.loads(content.decode("utf-8"))
+    except Exception as e:
+        return _t(request, "import.html", {"error": f"Nie można odczytać pliku backup: {e}"})
+
+    if data.get("version") not in (1, 2):
+        return _t(request, "import.html", {"error": "Nieznany format backup (oczekiwano version 1 lub 2)"})
+
+    db = await get_db()
+    try:
+        for table in ["ev_monthly", "readings", "investments", "fuel_prices", "vehicles"]:
+            await db.execute(f"DELETE FROM {table}")
+
+        restored = 0
+
+        for inv in data.get("investments", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO investments (id, date, description, cost_pln, power_kwp, notes) VALUES (?,?,?,?,?,?)",
+                (inv.get("id"), inv["date"], inv["description"], inv["cost_pln"],
+                 inv.get("power_kwp"), inv.get("notes")),
+            )
+            restored += 1
+
+        for r in data.get("readings", []):
+            await db.execute(
+                """INSERT OR REPLACE INTO readings
+                   (id, period, year, month, days, production_kwh, sent_to_grid_kwh,
+                    taken_from_grid_kwh, ev_kwh, price_per_kwh,
+                    invoice_number, invoice_gross, notes)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (r.get("id"), r["period"], r["year"], r["month"], r.get("days"),
+                 r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
+                 r.get("ev_kwh"), r.get("price_per_kwh"),
+                 r.get("invoice_number"), r.get("invoice_gross"), r.get("notes")),
+            )
+            restored += 1
+
+        for fp in data.get("fuel_prices", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO fuel_prices (id, date, price_per_liter, fuel_type, source) VALUES (?,?,?,?,?)",
+                (fp.get("id"), fp["date"], fp["price_per_liter"],
+                 fp.get("fuel_type", "PB95"), fp.get("source")),
+            )
+            restored += 1
+
+        for v in data.get("vehicles", []):
+            await db.execute(
+                """INSERT OR REPLACE INTO vehicles
+                   (id, name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes)
+                   VALUES (?,?,?,?,?,?)""",
+                (v.get("id"), v["name"], v["efficiency_kwh_per_100km"],
+                 v["fuel_consumption_l_per_100km"], v.get("fuel_type", "PB95"), v.get("notes")),
+            )
+            restored += 1
+
+        for em in data.get("ev_monthly", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO ev_monthly (id, period, vehicle_id, kwh) VALUES (?,?,?,?)",
+                (em.get("id"), em["period"], em["vehicle_id"], em["kwh"]),
+            )
+            restored += 1
+
+        await db.commit()
+    except Exception as e:
+        await db.close()
+        return _t(request, "import.html", {"error": f"Błąd podczas przywracania: {e}"})
+    finally:
+        await db.close()
+
+    return RedirectResponse(f"{rp}/import?restored={restored}", status_code=303)
+
+
 # ── EV ───────────────────────────────────────────────────────────────────────
 
 async def _get_ev_settings(db: aiosqlite.Connection) -> dict:
