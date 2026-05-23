@@ -6,6 +6,8 @@ export HA_ENTITY=$(bashio::config 'ha_entity')
 export DATA_PATH="/data"
 export INGRESS_PATH=$(bashio::addon.ingress_entry)
 
+export APP_VERSION=$(bashio::addon.version)
+
 bashio::log.info "Starting FV Manager on port 8010"
 bashio::log.info "Ingress path: ${INGRESS_PATH}"
 bashio::log.info "Data dir: ${DATA_PATH}"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.4] — 2026-05-23
+
+### Naprawiono
+- Crash startu w kontenerze HA — config.yaml nie jest kopiowany do obrazu
+- Wersja czytana z env APP_VERSION (ustawiane przez bashio::addon.version w run.sh)
+- Fallback: lokalnie (standalone) czyta config.yaml jeśli env nie ustawiony
+
 ## [2.0.3] — 2026-05-23
 
 ### Naprawiono

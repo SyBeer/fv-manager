@@ -43,8 +43,18 @@ BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
 STATIC_DIR = BASE_DIR.parent / "static"
 
-_ver_match = __import__("re").search(r'version:\s*"([^"]+)"', (BASE_DIR.parent / "config.yaml").read_text())
-APP_VERSION = _ver_match.group(1) if _ver_match else "dev"
+def _read_version() -> str:
+    if v := os.getenv("APP_VERSION"):
+        return v
+    cfg = BASE_DIR.parent / "config.yaml"
+    if cfg.exists():
+        import re
+        m = re.search(r'version:\s*"([^"]+)"', cfg.read_text())
+        if m:
+            return m.group(1)
+    return "dev"
+
+APP_VERSION = _read_version()
 
 
 @asynccontextmanager
