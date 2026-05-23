@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1] — 2026-05-23
+
+### Naprawiono
+- Overlay na mobile pozostawał widoczny po zwinięciu sidebara (odwrócona logika)
+- Ikony Phosphor Icons w całym projekcie (zastąpienie emoji)
+
 ## [2.0.0] — 2026-05-23
 
 ### Dodano
