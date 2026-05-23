@@ -9,10 +9,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def _ha_conn() -> tuple[str, str]:
-    """Return (ha_url, ha_token) using Supervisor internals — no config needed."""
-    url = "http://supervisor/core"
-    token = os.getenv("SUPERVISOR_TOKEN", "")
-    return url, token
+    """Return (base_api_url, token). Base URL includes /api suffix.
+
+    HA add-on: uses SUPERVISOR_TOKEN (auto-injected via homeassistant_api: true).
+    Standalone: uses HA_URL + HA_TOKEN env vars.
+    """
+    sup = os.getenv("SUPERVISOR_TOKEN", "")
+    if sup:
+        return "http://supervisor/core/api", sup
+    url = os.getenv("HA_URL", "").rstrip("/")
+    token = os.getenv("HA_TOKEN", "")
+    return (f"{url}/api" if url else ""), token
 
 
 def _default_price() -> float:
@@ -38,6 +45,7 @@ from services.calculations import (
     _get_billing_model, _get_rce_price,
 )
 from services.forecast import forecast_months, breakeven_scenarios, breakeven_confidence_interval
+from services import ha_stats
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -724,7 +732,12 @@ async def roi_page(request: Request):
 
 @app.get("/import", response_class=HTMLResponse)
 async def import_page(request: Request):
-    return _t(request, "import.html")
+    db = await get_db()
+    try:
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+    return _t(request, "import.html", {"settings": settings})
 
 
 
@@ -1320,84 +1333,6 @@ async def heating_page(request: Request):
     })
 
 
-def _ha_history_delta(states: list) -> float | None:
-    """Calculate delta (last - first) for a total_increasing sensor from history states."""
-    valid = []
-    for s in states:
-        try:
-            valid.append(float(s.get("state", "")))
-        except (ValueError, TypeError):
-            pass
-    if len(valid) < 2:
-        return None
-    return valid[-1] - valid[0]
-
-
-async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | None, str]:
-    """Fetch monthly energy delta. Tries Statistics API first (historical), falls back to History API."""
-    import httpx, calendar
-    ha_url, ha_token = _ha_conn()
-    headers = {"Authorization": f"Bearer {ha_token}"}
-    last_day = calendar.monthrange(year, month)[1]
-    # No timezone suffix — HA Statistics API expects local time
-    start = f"{year}-{month:02d}-01T00:00:00"
-    end = f"{year}-{month:02d}-{last_day}T23:59:59"
-    # Wider window for History API fallback
-    hist_start = f"{year}-{month:02d}-01T00:00:00+00:00"
-    hist_end = f"{year}-{month:02d}-{last_day}T23:59:59+00:00"
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            unit = "kWh"
-            state_r = await client.get(f"{ha_url}/api/states/{entity}", headers=headers)
-            if state_r.status_code == 200:
-                try:
-                    unit = state_r.json().get("attributes", {}).get("unit_of_measurement", "kWh") or "kWh"
-                except Exception:
-                    pass
-
-            # 1. Statistics API — long-term storage, works for historical months
-            stats_r = await client.post(
-                f"{ha_url}/api/recorder/statistics_during_period",
-                headers={**headers, "Content-Type": "application/json"},
-                json={"start_time": start, "end_time": end,
-                      "statistic_ids": [entity], "period": "month", "types": ["change"]},
-            )
-            if stats_r.status_code == 200:
-                try:
-                    entries = stats_r.json().get(entity, [])
-                    if entries and entries[0].get("change") is not None:
-                        delta = float(entries[0]["change"])
-                        if unit == "Wh":
-                            delta /= 1000.0
-                        return round(delta, 3), ""
-                except Exception:
-                    pass
-
-            # 2. Fallback: History API — only recent ~10 days
-            hist_r = await client.get(
-                f"{ha_url}/api/history/period/{hist_start}",
-                headers=headers,
-                params={"filter_entity_id": entity, "end_time": hist_end,
-                        "minimal_response": "true", "significant_changes_only": "false"},
-            )
-        if hist_r.status_code == 401:
-            return None, "Brak autoryzacji (401) — sprawdź homeassistant_api: true w config.yaml"
-        if hist_r.status_code != 200:
-            return None, f"History API: {hist_r.status_code} — {hist_r.text[:200]}"
-        try:
-            hist_data = hist_r.json()
-        except Exception as je:
-            return None, f"Nieprawidłowy JSON: {je} | {hist_r.text[:200]}"
-        if not hist_data or not hist_data[0]:
-            return None, f"Brak danych dla {entity} w {year}-{month:02d}"
-        delta = _ha_history_delta(hist_data[0])
-        if delta is None:
-            return None, f"Za mało punktów danych dla {entity}"
-        if unit == "Wh":
-            delta /= 1000.0
-        return round(delta, 3), ""
-    except Exception as e:
-        return None, str(e)
 
 
 @app.get("/api/ha-test")
@@ -1415,7 +1350,7 @@ async def ha_test():
     headers = {"Authorization": f"Bearer {ha_token}"}
     try:
         async with httpx.AsyncClient(timeout=8) as client:
-            ping = await client.get(f"{ha_url}/api/", headers=headers)
+            ping = await client.get(f"{ha_url}/", headers=headers)
         if ping.status_code == 401:
             return JSONResponse({"error": "Brak autoryzacji (401) — dodaj homeassistant_api: true do config.yaml"})
         if ping.status_code != 200:
@@ -1428,18 +1363,16 @@ async def ha_test():
         return JSONResponse({"ok": True, "message": "Połączenie OK — brak skonfigurowanej encji solarnej"})
 
     today = date.today()
-    delta, err = await _ha_fetch_energy(ha_solar, today.year, today.month)
-    if err:
-        # try previous month if current has no data yet
+    delta = await ha_stats.get_monthly_energy(ha_solar, today.year, today.month)
+    period_label = f"{today.year}-{today.month:02d}"
+    if delta is None:
         prev_month = today.month - 1 or 12
         prev_year = today.year if today.month > 1 else today.year - 1
-        delta, err = await _ha_fetch_energy(ha_solar, prev_year, prev_month)
+        delta = await ha_stats.get_monthly_energy(ha_solar, prev_year, prev_month)
         period_label = f"{prev_year}-{prev_month:02d}"
-    else:
-        period_label = f"{today.year}-{today.month:02d}"
 
-    if err:
-        return JSONResponse({"error": err})
+    if delta is None:
+        return JSONResponse({"error": f"Brak danych statystycznych dla {ha_solar}"})
 
     return JSONResponse({
         "ok": True,
@@ -1452,7 +1385,7 @@ async def ha_test():
 
 @app.get("/api/ha-grid-fetch")
 async def ha_grid_fetch(period: str, direction: str = "consumed"):
-    """Fetch monthly grid energy from HA history. direction: consumed|returned."""
+    """Fetch monthly grid energy from HA Statistics API. direction: consumed|returned."""
     db = await get_db()
     try:
         settings = await _get_ev_settings(db)
@@ -1468,15 +1401,15 @@ async def ha_grid_fetch(period: str, direction: str = "consumed"):
     except Exception:
         return JSONResponse({"error": "Nieprawidłowy format okresu"}, status_code=400)
 
-    delta, err = await _ha_fetch_energy(entity, year, month)
-    if err:
-        return JSONResponse({"error": err}, status_code=502)
+    delta = await ha_stats.get_monthly_energy(entity, year, month)
+    if delta is None:
+        return JSONResponse({"error": f"Brak danych dla {entity} za {year}-{month:02d}"}, status_code=502)
     return JSONResponse({"kwh": round(delta, 3), "entity": entity})
 
 
 @app.get("/api/ha-solar-fetch")
 async def ha_solar_fetch(period: str):
-    """Fetch monthly solar production from HA history API."""
+    """Fetch monthly solar production from HA Statistics API."""
     db = await get_db()
     try:
         settings = await _get_ev_settings(db)
@@ -1492,9 +1425,9 @@ async def ha_solar_fetch(period: str):
     except Exception:
         return JSONResponse({"error": "Nieprawidłowy format okresu"}, status_code=400)
 
-    delta, err = await _ha_fetch_energy(ha_solar, year, month)
-    if err:
-        return JSONResponse({"error": err}, status_code=502)
+    delta = await ha_stats.get_monthly_energy(ha_solar, year, month)
+    if delta is None:
+        return JSONResponse({"error": f"Brak danych dla {ha_solar} za {year}-{month:02d}"}, status_code=502)
     return JSONResponse({"production_kwh": round(delta, 3), "entity": ha_solar, "period": period})
 
 
