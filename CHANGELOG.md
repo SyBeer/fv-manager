@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1] — 2026-05-23
+
+### Naprawiono
+- Formularz Ustawień po zapisaniu wraca na stronę Ustawień (nie EV) z zielonym komunikatem potwierdzenia
+- Napis "ENERGIA [KWH]" w formularzu odczytu wyświetla się poprawnie jako "ENERGIA [kWh]"
+- Formularz nowego odczytu podpowiada automatycznie następny miesiąc po ostatnim wpisanym odczycie
+
 ## [2.1.0] — 2026-05-23
 
 ### Dodano
