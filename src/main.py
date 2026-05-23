@@ -527,9 +527,9 @@ async def create_reading(request: Request):
             "next_month": month,
         })
 
-    ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
-    km_entries = {int(k[8:]): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
-    odometer_entries = {int(k[13:]): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
+    ev_entries = [(int(k.removeprefix("ev_v_")), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
+    km_entries = {int(k.removeprefix("ev_km_v_")): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
+    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
@@ -613,9 +613,9 @@ async def update_reading(request: Request, reading_id: int):
             "settings": settings,
         })
 
-    ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
-    km_entries = {int(k[8:]): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
-    odometer_entries = {int(k[13:]): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
+    ev_entries = [(int(k.removeprefix("ev_v_")), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
+    km_entries = {int(k.removeprefix("ev_km_v_")): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
+    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 

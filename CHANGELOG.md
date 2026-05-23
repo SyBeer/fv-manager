@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.4.2] — 2026-05-23
+
+### Naprawiono
+- 500 przy zapisie odczytu z polem `ev_odometer_v_<N>` — błędny slice `k[13:]` zamiast `k[14:]` dla prefiksu `"ev_odometer_v_"` (len=14); zamieniono wszystkie parsery kluczy formularza na `k.removeprefix(...)` (create_reading i update_reading)
+
 ## [2.4.1] — 2026-05-23
 
 ### Naprawiono
