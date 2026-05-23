@@ -136,8 +136,8 @@
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;">💾 Backup danych</h2>
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1rem;">
       Pobierz pełny backup wszystkich danych jako plik JSON.
-      Zawiera odczyty, inwestycje, pojazdy, ceny paliw, dane EV miesięczne.
-      Ustawienia EV (<code>ev_settings</code>) są też uwzględnione.
+      Zawiera odczyty, inwestycje, pojazdy, ceny paliw, okresy rozliczeniowe, ceny RCE.
+      Ustawienia aplikacji (<code>app_settings</code>) są też uwzględnione.
     </p>
     <a href="{{ rp }}/backup/full" class="btn btn-green">⬇️ Pobierz backup JSON</a>
   </div>
@@ -148,7 +148,7 @@
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:.75rem;">
       Wgraj plik JSON pobrany przez "Pobierz backup JSON".
       <strong style="color:#f87171;">Istniejące dane zostaną nadpisane.</strong>
-      Ustawienia EV (współczynniki, konfiguracja HA) pozostają bez zmian.
+      Ustawienia aplikacji (współczynniki, konfiguracja HA) pozostają bez zmian.
     </p>
     <form method="post" action="{{ rp }}/restore" enctype="multipart/form-data"
           style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;"
@@ -166,7 +166,7 @@
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#f87171;">⚠️ Niebezpieczna strefa</h2>
     <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1.5rem;">
       Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:#f87171;">nieodwracalna</strong>.
-      Przed czyszczeniem warto <a href="{{ rp }}/backup/full" style="color:#60a5fa;">pobrać backup</a>.
+      Przed czyszczeniem warto wyeksportować dane do CSV.
     </p>
     <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Spowoduje to usunięcie WSZYSTKICH danych. Czy na pewno chcesz kontynuować?')">
       <button type="submit" class="btn btn-red">🗑️ Wyczyść całą bazę danych</button>

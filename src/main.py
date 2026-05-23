@@ -1,4 +1,7 @@
 import os
+import re
+import secrets as _secrets
+import base64
 from contextlib import asynccontextmanager
 from pathlib import Path
 from dotenv import load_dotenv
@@ -22,11 +25,19 @@ def _default_price() -> float:
 import aiosqlite
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+from itsdangerous import URLSafeSerializer, BadSignature
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from utils.db import init_db, get_db, DB_PATH
-from services.calculations import calc_monthly, calc_roi, roi_sensitivity, calc_ev_savings
+from services.calculations import (
+    calc_monthly, calc_monthly_netbilling, calc_roi, roi_sensitivity,
+    calc_ev_savings, enrich_readings_sequence,
+    _get_billing_model, _get_rce_price,
+)
+from services.forecast import forecast_months, breakeven_scenarios, breakeven_confidence_interval
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -40,6 +51,94 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="FV Manager", lifespan=lifespan)
+
+
+# ── Basic Auth middleware ────────────────────────────────────────────────────
+
+class BasicAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        password = os.getenv("FV_AUTH_PASSWORD", "").strip()
+        if not password:
+            return await call_next(request)
+
+        if request.url.path.startswith("/api/summary"):
+            return await call_next(request)
+
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Basic "):
+            try:
+                decoded = base64.b64decode(auth[6:]).decode("utf-8")
+                _, pwd = decoded.split(":", 1)
+                if _secrets.compare_digest(pwd, password):
+                    return await call_next(request)
+            except Exception:
+                pass
+
+        return Response(
+            content="Wymagane uwierzytelnienie",
+            status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="FV Manager"'},
+        )
+
+
+# ── CSRF middleware ──────────────────────────────────────────────────────────
+
+_CSRF_SECRET = os.getenv("SECRET_KEY", _secrets.token_hex(32))
+_csrf_signer = URLSafeSerializer(_CSRF_SECRET, salt="csrf")
+
+
+def _csrf_generate() -> str:
+    return _secrets.token_hex(32)
+
+
+def _csrf_sign(token: str) -> str:
+    return _csrf_signer.dumps(token)
+
+
+def _csrf_verify(signed: str, token: str) -> bool:
+    try:
+        return _csrf_signer.loads(signed) == token
+    except BadSignature:
+        return False
+
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    EXEMPT_PATHS = {"/api/summary", "/api/ha-fetch", "/api/ha-test",
+                    "/api/roi-preview", "/api/ha-solar-fetch", "/api/ha-grid-fetch",
+                    "/backup/full"}
+
+    async def dispatch(self, request, call_next):
+        if request.method == "POST":
+            path = request.url.path
+            if not any(path.startswith(p) for p in self.EXEMPT_PATHS):
+                cookie_signed = request.cookies.get("csrf_token", "")
+                if not cookie_signed:
+                    return Response("Nieprawidłowy token CSRF", status_code=403)
+                # Read raw body to extract csrf_token without consuming the stream
+                body = await request.body()
+                form_token = ""
+                for part in body.decode("utf-8", errors="replace").split("&"):
+                    if part.startswith("csrf_token="):
+                        from urllib.parse import unquote_plus
+                        form_token = unquote_plus(part.split("=", 1)[1])
+                        break
+                if not _csrf_verify(cookie_signed, form_token):
+                    return Response("Nieprawidłowy token CSRF", status_code=403)
+
+        response = await call_next(request)
+
+        if request.method == "GET" and response.status_code == 200:
+            token = _csrf_generate()
+            signed = _csrf_sign(token)
+            response.set_cookie("csrf_token", signed, httponly=True, samesite="strict")
+            response.set_cookie("csrf_token_plain", token, httponly=False, samesite="strict")
+
+        return response
+
+
+app.add_middleware(CSRFMiddleware)
+app.add_middleware(BasicAuthMiddleware)
+
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.filters["urldecode"] = lambda s: __import__("urllib.parse", fromlist=["unquote_plus"]).unquote_plus(s)
 
@@ -84,6 +183,18 @@ async def _get_investments(db: aiosqlite.Connection) -> list[dict]:
 
 async def _get_fuel_prices(db: aiosqlite.Connection) -> list[dict]:
     cur = await db.execute("SELECT * FROM fuel_prices ORDER BY date")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+async def _get_billing_periods(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM billing_periods ORDER BY start_date")
+    rows = await cur.fetchall()
+    return [dict(r) for r in rows]
+
+
+async def _get_rce_prices(db: aiosqlite.Connection) -> list[dict]:
+    cur = await db.execute("SELECT * FROM rce_prices ORDER BY date")
     rows = await cur.fetchall()
     return [dict(r) for r in rows]
 
@@ -171,6 +282,25 @@ def _ev_enrich(
     return result
 
 
+def _validate_reading(
+    period: str,
+    production_kwh: float,
+    sent_to_grid_kwh: float,
+    taken_from_grid_kwh: float,
+) -> str | None:
+    if not re.match(r'^\d{4}\.(0[1-9]|1[0-2])$', period):
+        return "Nieprawidłowy format okresu — wymagany: RRRR.MM (np. 2024.07)"
+    if production_kwh < 0:
+        return "Produkcja nie może być ujemna"
+    if sent_to_grid_kwh < 0:
+        return "Oddana energia nie może być ujemna"
+    if taken_from_grid_kwh < 0:
+        return "Pobrana energia nie może być ujemna"
+    if sent_to_grid_kwh > production_kwh:
+        return f"Oddana energia ({sent_to_grid_kwh} kWh) nie może przekroczyć produkcji ({production_kwh} kWh)"
+    return None
+
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
@@ -183,19 +313,17 @@ async def dashboard(request: Request):
         fuel_prices = await _get_fuel_prices(db)
         vehicles = await _get_vehicles(db)
         ev_monthly = await _get_ev_monthly_all(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total_investment = sum(i["cost_pln"] for i in investments)
-    roi = calc_roi(readings, total_investment) if readings and total_investment > 0 else None
-
     default_price = _default_price()
-    enriched = []
-    for r in readings:
-        price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
-        enriched.append({**r, **c})
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    roi = calc_roi(readings, total_investment, default_price, nm_ratio, billing_periods, rce_prices) if readings and total_investment > 0 else None
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
 
     return _t(request, "dashboard.html", {
         "readings": enriched[-12:],
@@ -210,15 +338,17 @@ async def readings_list(request: Request):
     db = await get_db()
     try:
         readings = await _get_readings(db)
+        ev_settings = await _get_ev_settings(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
     default_price = _default_price()
-    enriched = []
-    for r in readings:
-        price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
-        enriched.append({**r, **c, "effective_price": price})
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
+    for r in enriched:
+        r["effective_price"] = r.get("price_per_kwh") or default_price
 
     return _t(request, "readings.html", {"readings": list(reversed(enriched))})
 
@@ -229,10 +359,15 @@ async def export_readings_csv():
     db = await get_db()
     try:
         readings = await _get_readings(db)
+        ev_settings = await _get_ev_settings(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
     default_price = _default_price()
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    enriched_map = {r["period"]: r for r in enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)}
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
@@ -243,8 +378,8 @@ async def export_readings_csv():
         "EV [kWh]", "Nr faktury", "Faktura brutto [zł]", "Notatki",
     ])
     for r in readings:
+        c = enriched_map[r["period"]]
         price = r.get("price_per_kwh") or default_price
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], price)
         writer.writerow([
             r["period"], r["year"], r["month"], r.get("days", ""),
             r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
@@ -286,6 +421,19 @@ async def create_reading(request: Request):
     invoice_number = form.get("invoice_number") or None
     invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
     notes = form.get("notes") or None
+
+    error = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+    if error:
+        db = await get_db()
+        try:
+            vehicles = await _get_vehicles(db)
+        finally:
+            await db.close()
+        return _t(request, "reading_form.html", {
+            "error": error,
+            "form_data": dict(form),
+            "vehicles": vehicles,
+        })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
@@ -343,6 +491,22 @@ async def update_reading(request: Request, reading_id: int):
     invoice_number = form.get("invoice_number") or None
     invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
     notes = form.get("notes") or None
+
+    error = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+    if error:
+        db = await get_db()
+        try:
+            cur = await db.execute("SELECT * FROM readings WHERE id=?", (reading_id,))
+            reading = await cur.fetchone()
+            vehicles = await _get_vehicles(db)
+        finally:
+            await db.close()
+        return _t(request, "reading_form.html", {
+            "error": error,
+            "reading": dict(reading) if reading else None,
+            "form_data": dict(form),
+            "vehicles": vehicles,
+        })
 
     ev_entries = [(int(k[5:]), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
     legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
@@ -488,22 +652,26 @@ async def roi_page(request: Request):
         fuel_prices = await _get_fuel_prices(db)
         vehicles = await _get_vehicles(db)
         ev_monthly = await _get_ev_monthly_all(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
     finally:
         await db.close()
 
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
-    roi = calc_roi(readings, total) if readings and total > 0 else None
-    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20]) if readings and total > 0 else []
+    default_price = _default_price()
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+
+    roi = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
+    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio, billing_periods, rce_prices) if readings and total > 0 else []
 
     # Monthly savings for chart — FV + EV stacked
     monthly_savings = []
     cumulative_fv = 0.0
     cumulative_ev = 0.0
-    default_price = _default_price()
-    for r in readings:
-        c = calc_monthly(r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"], r.get("price_per_kwh") or default_price)
-        cumulative_fv += c["savings_pln"] or 0
+    enriched_seq = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
+    for r in enriched_seq:
+        cumulative_fv += r.get("savings_pln") or 0
         cumulative_ev += r.get("ev_savings_pln") or 0
         monthly_savings.append({
             "period": r["period"],
@@ -512,10 +680,29 @@ async def roi_page(request: Request):
             "cumulative_ev": round(cumulative_ev, 2),
         })
 
+    # Forecast i break-even
+    degradation_rate = ev_settings.get("panel_degradation_rate") or 0.006
+    FORECAST_HORIZON = 36
+
+    has_enough_data = len(readings) >= 12
+    forecast = forecast_months(
+        readings, investments, FORECAST_HORIZON, degradation_rate,
+        default_price, billing_periods, rce_prices, nm_ratio,
+    ) if readings else []
+
+    remaining_pln = roi["remaining_to_roi"] if roi and not roi["roi_achieved"] else 0.0
+    growth_rates = [0.0, 0.03, 0.07, 0.12]
+    scenarios = breakeven_scenarios(remaining_pln, forecast, growth_rates, default_price) if forecast and remaining_pln > 0 else []
+    confidence = breakeven_confidence_interval(scenarios) if scenarios else None
+
     return _t(request, "roi.html", {
         "roi": roi, "sensitivity": sensitivity,
         "monthly_savings": monthly_savings, "total_investment": total, "investments": investments,
         "has_ev": any(r.get("ev_savings_pln") for r in readings),
+        "forecast": forecast,
+        "scenarios": scenarios,
+        "confidence": confidence,
+        "has_enough_data": has_enough_data,
     })
 
 
@@ -564,6 +751,13 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
                 continue
             try:
                 year, month = int(period.split(".")[0]), int(period.split(".")[1])
+                production_kwh = float(row["Produkcja [kWh]"])
+                sent_to_grid_kwh = float(row["Oddane [kWh]"])
+                taken_from_grid_kwh = float(row["Pobrane [kWh]"])
+                err = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+                if err:
+                    skipped += 1
+                    continue
                 await db.execute(
                     """INSERT OR IGNORE INTO readings
                        (period, year, month, days, production_kwh, sent_to_grid_kwh,
@@ -572,9 +766,9 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
                     (
                         period, year, month,
                         row.get("Dni") or None,
-                        float(row["Produkcja [kWh]"]),
-                        float(row["Oddane [kWh]"]),
-                        float(row["Pobrane [kWh]"]),
+                        production_kwh,
+                        sent_to_grid_kwh,
+                        taken_from_grid_kwh,
                         row.get("EV [kWh]") or None,
                         row.get("Cena kWh [zł]") or None,
                         row.get("Nr faktury") or None,
@@ -601,7 +795,9 @@ async def do_import_csv(request: Request, file: UploadFile = File(...)):
 async def clear_db(request: Request):
     db = await get_db()
     try:
-        await db.execute("DELETE FROM readings")
+        for table in ["ev_monthly", "readings", "investments", "fuel_prices",
+                      "vehicles", "billing_periods", "rce_prices"]:
+            await db.execute(f"DELETE FROM {table}")
         await db.commit()
     finally:
         await db.close()
@@ -609,10 +805,9 @@ async def clear_db(request: Request):
     return RedirectResponse(f"{rp}/import?cleared=1", status_code=303)
 
 
-# ── Backup / Restore ────────────────────────────────────────────────────────
-
 @app.get("/backup/full")
 async def backup_full():
+    """Pełny backup wszystkich danych jako JSON — do pobrania."""
     import json
     from datetime import datetime
 
@@ -624,14 +819,16 @@ async def backup_full():
             return [dict(r) for r in rows]
 
         data = {
-            "version": 1,
+            "version": 2,
             "exported_at": datetime.utcnow().isoformat(),
-            "readings":    await fetch("SELECT * FROM readings ORDER BY year, month"),
-            "investments": await fetch("SELECT * FROM investments ORDER BY date"),
-            "ev_settings": await fetch("SELECT * FROM ev_settings"),
-            "fuel_prices": await fetch("SELECT * FROM fuel_prices ORDER BY date"),
-            "vehicles":    await fetch("SELECT * FROM vehicles ORDER BY id"),
-            "ev_monthly":  await fetch("SELECT * FROM ev_monthly ORDER BY period"),
+            "readings":        await fetch("SELECT * FROM readings ORDER BY year, month"),
+            "investments":     await fetch("SELECT * FROM investments ORDER BY date"),
+            "app_settings":    await fetch("SELECT * FROM app_settings"),
+            "fuel_prices":     await fetch("SELECT * FROM fuel_prices ORDER BY date"),
+            "vehicles":        await fetch("SELECT * FROM vehicles ORDER BY id"),
+            "ev_monthly":      await fetch("SELECT * FROM ev_monthly ORDER BY period"),
+            "billing_periods": await fetch("SELECT * FROM billing_periods ORDER BY start_date"),
+            "rce_prices":      await fetch("SELECT * FROM rce_prices ORDER BY date"),
         }
     finally:
         await db.close()
@@ -646,6 +843,11 @@ async def backup_full():
 
 @app.post("/restore")
 async def restore_backup(request: Request, file: UploadFile = File(...)):
+    """Przywróć dane z pliku JSON wygenerowanego przez /backup/full.
+
+    UWAGA: nadpisuje istniejące dane (INSERT OR REPLACE).
+    app_settings NIE są nadpisywane — zostają bieżące ustawienia.
+    """
     import json
 
     rp = request.scope.get("root_path", "")
@@ -657,11 +859,12 @@ async def restore_backup(request: Request, file: UploadFile = File(...)):
         return _t(request, "import.html", {"error": f"Nie można odczytać pliku backup: {e}"})
 
     if data.get("version") not in (1, 2):
-        return _t(request, "import.html", {"error": "Nieznany format backup (oczekiwano version 1 lub 2)"})
+        return _t(request, "import.html", {"error": "Nieznany format backup (oczekiwano version=2)"})
 
     db = await get_db()
     try:
-        for table in ["ev_monthly", "readings", "investments", "fuel_prices", "vehicles"]:
+        for table in ["ev_monthly", "readings", "investments", "fuel_prices",
+                      "vehicles", "billing_periods", "rce_prices"]:
             await db.execute(f"DELETE FROM {table}")
 
         restored = 0
@@ -678,12 +881,12 @@ async def restore_backup(request: Request, file: UploadFile = File(...)):
             await db.execute(
                 """INSERT OR REPLACE INTO readings
                    (id, period, year, month, days, production_kwh, sent_to_grid_kwh,
-                    taken_from_grid_kwh, ev_kwh, price_per_kwh,
+                    taken_from_grid_kwh, ev_kwh, price_per_kwh, sale_price_kwh,
                     invoice_number, invoice_gross, notes)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (r.get("id"), r["period"], r["year"], r["month"], r.get("days"),
                  r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
-                 r.get("ev_kwh"), r.get("price_per_kwh"),
+                 r.get("ev_kwh"), r.get("price_per_kwh"), r.get("sale_price_kwh"),
                  r.get("invoice_number"), r.get("invoice_gross"), r.get("notes")),
             )
             restored += 1
@@ -713,6 +916,21 @@ async def restore_backup(request: Request, file: UploadFile = File(...)):
             )
             restored += 1
 
+        for bp in data.get("billing_periods", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO billing_periods (id, start_date, end_date, model, description) VALUES (?,?,?,?,?)",
+                (bp.get("id"), bp["start_date"], bp.get("end_date"),
+                 bp["model"], bp.get("description")),
+            )
+            restored += 1
+
+        for rce in data.get("rce_prices", []):
+            await db.execute(
+                "INSERT OR REPLACE INTO rce_prices (id, date, price_per_kwh, source) VALUES (?,?,?,?)",
+                (rce.get("id"), rce["date"], rce["price_per_kwh"], rce.get("source")),
+            )
+            restored += 1
+
         await db.commit()
     except Exception as e:
         await db.close()
@@ -726,7 +944,7 @@ async def restore_backup(request: Request, file: UploadFile = File(...)):
 # ── EV ───────────────────────────────────────────────────────────────────────
 
 async def _get_ev_settings(db: aiosqlite.Connection) -> dict:
-    cur = await db.execute("SELECT * FROM ev_settings WHERE id=1")
+    cur = await db.execute("SELECT * FROM app_settings WHERE id=1")
     row = await cur.fetchone()
     return dict(row) if row else {}
 
@@ -834,21 +1052,18 @@ async def save_ev_settings(
     ha_solar_entity: str = Form(None),
     ha_grid_consumed_entity: str = Form(None),
     ha_grid_returned_entity: str = Form(None),
-    tesla_access_token: str = Form(None),
-    tesla_site_id: str = Form(None),
-    tesla_api_base: str = Form("https://fleet-api.prd.eu.vn.cloud.tesla.com"),
+    net_metering_ratio: float = Form(0.80),
 ):
     db = await get_db()
     try:
         await db.execute(
-            """UPDATE ev_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
+            """UPDATE app_settings SET efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?,
                annual_km=?, fuel_type=?, ha_solar_entity=?,
                ha_grid_consumed_entity=?, ha_grid_returned_entity=?,
-               tesla_access_token=?, tesla_site_id=?, tesla_api_base=? WHERE id=1""",
+               net_metering_ratio=? WHERE id=1""",
             (efficiency_kwh_per_100km, fuel_consumption_l_per_100km, annual_km,
              fuel_type, ha_solar_entity, ha_grid_consumed_entity, ha_grid_returned_entity,
-             tesla_access_token or None, tesla_site_id or None,
-             tesla_api_base or "https://fleet-api.prd.eu.vn.cloud.tesla.com"),
+             net_metering_ratio),
         )
         await db.commit()
     finally:
@@ -949,6 +1164,148 @@ async def delete_fuel_price(request: Request, price_id: int):
 
 
 
+# ── PV Settings ──────────────────────────────────────────────────────────────
+
+@app.get("/pv", response_class=HTMLResponse)
+async def pv_page(request: Request):
+    db = await get_db()
+    try:
+        billing_periods = await _get_billing_periods(db)
+        rce_prices_all = await db.execute("SELECT * FROM rce_prices ORDER BY date DESC LIMIT 24")
+        rce_prices = [dict(r) for r in await rce_prices_all.fetchall()]
+        settings = await _get_ev_settings(db)
+    finally:
+        await db.close()
+    return _t(request, "pv.html", {
+        "billing_periods": billing_periods,
+        "rce_prices": rce_prices,
+        "settings": settings,
+    })
+
+
+@app.post("/pv/billing-period")
+async def add_billing_period(
+    request: Request,
+    start_date: str = Form(...),
+    end_date: str = Form(None),
+    model: str = Form(...),
+    description: str = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO billing_periods (start_date, end_date, model, description) VALUES (?,?,?,?)",
+            (start_date, end_date or None, model, description or None),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/billing-period/{bp_id}/usun")
+async def delete_billing_period(request: Request, bp_id: int):
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM billing_periods WHERE id=?", (bp_id,))
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/rce-price")
+async def add_rce_price(
+    request: Request,
+    date: str = Form(...),
+    price_per_kwh: float = Form(...),
+    source: str = Form(None),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO rce_prices (date, price_per_kwh, source) VALUES (?,?,?)",
+            (date, price_per_kwh, source or None),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/rce-price/{price_id}/usun")
+async def delete_rce_price(request: Request, price_id: int):
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM rce_prices WHERE id=?", (price_id,))
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+@app.post("/pv/settings")
+async def save_pv_settings(
+    request: Request,
+    panel_degradation_rate_pct: float = Form(0.6),
+):
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE app_settings SET panel_degradation_rate=? WHERE id=1",
+            (panel_degradation_rate_pct / 100,),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/pv", status_code=303)
+
+
+# ── Coming Soon ───────────────────────────────────────────────────────────────
+
+@app.get("/bateria", response_class=HTMLResponse)
+async def battery_page(request: Request):
+    return _t(request, "coming_soon.html", {
+        "icon": "🔋",
+        "title": "Magazyn energii",
+        "description": (
+            "Śledzenie efektywności baterii domowej, analiza cykli ładowania/rozładowania "
+            "i optymalizacja autokonsumpcji. Ta funkcja jest w planach dla przyszłej wersji."
+        ),
+        "planned": [
+            "Śledzenie stanu naładowania baterii (SOC) przez dzień",
+            "Analiza ile % autokonsumpcji pochodzi z baterii vs PV vs sieci",
+            "Optymalizacja: kiedy ładować baterię (taryfa nocna vs dzienna)",
+            "ROI dla baterii oddzielnie od ROI instalacji PV",
+        ],
+        "external_url": None,
+    })
+
+
+@app.get("/ogrzewanie", response_class=HTMLResponse)
+async def heating_page(request: Request):
+    return _t(request, "coming_soon.html", {
+        "icon": "🔥",
+        "title": "Ogrzewanie elektryczne",
+        "description": (
+            "Monitorowanie kosztów ogrzewania pompą ciepła lub innym urządzeniem elektrycznym "
+            "i obliczanie oszczędności vs ogrzewanie gazem. Ta funkcja jest w planach."
+        ),
+        "planned": [
+            "Wpis miesięcznego zużycia energii na ogrzewanie [kWh]",
+            "Porównanie kosztu: prąd (z kWh ogrzewania) vs gaz (cena za m³ × zużycie)",
+            "Udział energii PV w pokryciu kosztów ogrzewania",
+            "Breakeven dla pompy ciepła vs kotła gazowego",
+        ],
+        "external_url": None,
+    })
+
+
 def _ha_history_delta(states: list) -> float | None:
     """Calculate delta (last - first) for a total_increasing sensor from history states."""
     valid = []
@@ -1025,37 +1382,6 @@ async def _ha_fetch_energy(entity: str, year: int, month: int) -> tuple[float | 
         if unit == "Wh":
             delta /= 1000.0
         return round(delta, 3), ""
-    except Exception as e:
-        return None, str(e)
-
-
-async def _tesla_fetch_charging(token: str, site_id: str, api_base: str, year: int, month: int) -> tuple[float | None, str]:
-    import httpx, calendar
-    last_day = calendar.monthrange(year, month)[1]
-    start = f"{year}-{month:02d}-01"
-    end = f"{year}-{month:02d}-{last_day}"
-    url = f"{api_base}/api/1/energy_sites/{site_id}/telemetry_history"
-    params = {"kind": "charge", "start_date": start, "end_date": end, "time_zone": "Europe/Warsaw"}
-    headers = {"Authorization": f"Bearer {token}"}
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            r = await client.get(url, headers=headers, params=params)
-        if r.status_code == 401:
-            return None, "Brak autoryzacji (401) — sprawdź token Tesla"
-        if r.status_code != 200:
-            return None, f"Tesla API: {r.status_code} — {r.text[:300]}"
-        try:
-            data = r.json()
-        except Exception as e:
-            return None, f"Nieprawidłowy JSON: {e} | {r.text[:200]}"
-        response = data.get("response", {})
-        time_series = response.get("time_series", [])
-        total_kwh = 0.0
-        for entry in time_series:
-            total_kwh += float(entry.get("charge_energy_added", 0) or 0)
-        if not time_series:
-            return None, f"Brak danych Tesla za {year}-{month:02d}. Surowa odpowiedź: {str(data)[:300]}"
-        return round(total_kwh, 3), ""
     except Exception as e:
         return None, str(e)
 
@@ -1219,61 +1545,3 @@ async def api_summary():
     return JSONResponse({**roi, "last_period": last.get("period"), "last_production_kwh": last.get("production_kwh")})
 
 
-@app.get("/api/tesla-sites")
-async def tesla_sites():
-    """Discover Tesla energy sites for the configured access token."""
-    import httpx
-    db = await get_db()
-    try:
-        settings = await _get_ev_settings(db)
-    finally:
-        await db.close()
-
-    token = (settings.get("tesla_access_token") or "").strip()
-    api_base = (settings.get("tesla_api_base") or "https://fleet-api.prd.eu.vn.cloud.tesla.com").strip()
-    if not token:
-        return JSONResponse({"error": "Brak tokenu Tesla — zapisz go najpierw w ustawieniach."})
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            r = await client.get(f"{api_base}/api/1/products", headers={"Authorization": f"Bearer {token}"})
-        if r.status_code == 401:
-            return JSONResponse({"error": "Brak autoryzacji (401) — sprawdź token Tesla"})
-        if r.status_code != 200:
-            return JSONResponse({"error": f"Tesla API: {r.status_code} — {r.text[:200]}"})
-        products = r.json().get("response", [])
-        sites = [
-            {"id": str(p.get("energy_site_id") or p.get("id")), "name": p.get("site_name") or p.get("display_name") or "—"}
-            for p in products
-            if p.get("energy_site_id") or p.get("resource_type") == "battery"
-        ]
-        return JSONResponse({"sites": sites})
-    except Exception as e:
-        return JSONResponse({"error": str(e)})
-
-
-@app.get("/api/tesla-charging-fetch")
-async def tesla_charging_fetch(period: str):
-    """Fetch monthly EV charging kWh from Tesla Fleet API."""
-    db = await get_db()
-    try:
-        settings = await _get_ev_settings(db)
-    finally:
-        await db.close()
-
-    token = (settings.get("tesla_access_token") or "").strip()
-    site_id = (settings.get("tesla_site_id") or "").strip()
-    api_base = (settings.get("tesla_api_base") or "https://fleet-api.prd.eu.vn.cloud.tesla.com").strip()
-
-    if not token:
-        return JSONResponse({"error": "Brak tokenu Tesla — skonfiguruj w Ustawieniach EV."})
-    if not site_id:
-        return JSONResponse({"error": "Brak site_id Tesla — użyj przycisku 'Wykryj' w Ustawieniach EV."})
-    try:
-        year, month = int(period[:4]), int(period[5:])
-    except (ValueError, IndexError):
-        return JSONResponse({"error": f"Nieprawidłowy format okresu: {period}"})
-
-    kwh, err = await _tesla_fetch_charging(token, site_id, api_base, year, month)
-    if err:
-        return JSONResponse({"error": err})
-    return JSONResponse({"kwh": kwh})

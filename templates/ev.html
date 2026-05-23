@@ -202,7 +202,7 @@
 
 </div>
 
-<!-- Ustawienia HA i Tesla -->
+<!-- Ustawienia HA -->
 <div class="grid-2" style="margin-bottom:1.5rem;">
 
 <div class="card">
@@ -212,9 +212,6 @@
     <input type="hidden" name="efficiency_kwh_per_100km" value="{{ settings.efficiency_kwh_per_100km or 16 }}">
     <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
     <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
-    <input type="hidden" name="tesla_access_token" value="{{ settings.tesla_access_token or '' }}">
-    <input type="hidden" name="tesla_site_id" value="{{ settings.tesla_site_id or '' }}">
-    <input type="hidden" name="tesla_api_base" value="{{ settings.tesla_api_base or 'https://fleet-api.prd.eu.vn.cloud.tesla.com' }}">
     <div>
       <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">☀️ Produkcja solarna</label>
       <input type="text" name="ha_solar_entity" placeholder="sensor.solaredge_energy_today" value="{{ settings.ha_solar_entity or '' }}">
@@ -230,48 +227,18 @@
       <input type="text" name="ha_grid_returned_entity" placeholder="sensor.zamel_mew01_total_reverse_active_energy" value="{{ settings.ha_grid_returned_entity or '' }}">
       <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Electricity grid → druga encja (licznik 2.8.0).</div>
     </div>
+    <div>
+      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">⚡ Współczynnik net-meteringu</label>
+      <input type="number" id="net_metering_ratio" name="net_metering_ratio"
+             step="0.01" min="0.5" max="1.0"
+             value="{{ settings.net_metering_ratio or 0.8 }}">
+      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Ułamek oddanej energii wracający do puli rozliczeniowej (domyślnie 0.80 = 80%)</div>
+    </div>
     <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
       <button type="submit" class="btn btn-primary" style="font-size:.85rem;">💾 Zapisz</button>
       <button type="button" class="btn btn-ghost" style="font-size:.85rem;" onclick="testHA()">🔌 Test połączenia</button>
     </div>
     <div id="ha-test-result" style="display:none; margin-top:.75rem; padding:.6rem .9rem; border-radius:6px; font-size:.85rem;"></div>
-  </form>
-</div>
-
-<!-- Tesla API -->
-<div class="card">
-  <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;">⚡ Tesla API (ładowanie EV)</h2>
-  <p style="font-size:.82rem; color:#64748b; margin-bottom:1rem;">Automatyczne pobieranie kWh ładowania z Tesla Fleet API. Wymaga access tokenu z konta Tesla.</p>
-  <form method="post" action="{{ rp }}/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
-    <input type="hidden" name="efficiency_kwh_per_100km" value="{{ settings.efficiency_kwh_per_100km or 16 }}">
-    <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
-    <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
-    <input type="hidden" name="ha_solar_entity" value="{{ settings.ha_solar_entity or '' }}">
-    <input type="hidden" name="ha_grid_consumed_entity" value="{{ settings.ha_grid_consumed_entity or '' }}">
-    <input type="hidden" name="ha_grid_returned_entity" value="{{ settings.ha_grid_returned_entity or '' }}">
-    <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Access Token</label>
-      <input type="password" name="tesla_access_token" placeholder="ey..." value="{{ settings.tesla_access_token or '' }}" autocomplete="off">
-      <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Bearer token z Tesla Developer / aplikacji Tesla.</div>
-    </div>
-    <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Region API</label>
-      <select name="tesla_api_base">
-        <option value="https://fleet-api.prd.eu.vn.cloud.tesla.com" {% if not settings.tesla_api_base or 'eu' in (settings.tesla_api_base or '') %}selected{% endif %}>Europa (EU)</option>
-        <option value="https://fleet-api.prd.na.vn.cloud.tesla.com" {% if 'na' in (settings.tesla_api_base or '') %}selected{% endif %}>Ameryka Płn. (NA)</option>
-      </select>
-    </div>
-    <div>
-      <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Energy Site ID</label>
-      <div style="display:flex; gap:.5rem;">
-        <input type="text" name="tesla_site_id" id="tesla-site-id" placeholder="np. 1234567890" value="{{ settings.tesla_site_id or '' }}" style="flex:1;">
-        <button type="button" class="btn btn-ghost" style="font-size:.8rem; white-space:nowrap;" onclick="discoverTeslaSites()">🔍 Wykryj</button>
-      </div>
-      <div id="tesla-sites-result" style="font-size:.78rem; color:#94a3b8; margin-top:.4rem;"></div>
-    </div>
-    <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
-      <button type="submit" class="btn btn-primary" style="font-size:.85rem;">💾 Zapisz Tesla</button>
-    </div>
   </form>
 </div>
 
@@ -303,21 +270,5 @@ async function testHA() {
   }
 }
 
-async function discoverTeslaSites() {
-  const el = document.getElementById('tesla-sites-result');
-  el.textContent = '⏳ Pobieranie listy...';
-  try {
-    const r = await fetch('{{ rp }}/api/tesla-sites');
-    const d = await r.json();
-    if (d.error) { el.textContent = '❌ ' + d.error; return; }
-    const sites = d.sites || [];
-    if (!sites.length) { el.textContent = '⚠️ Brak energy sites w tym koncie.'; return; }
-    el.innerHTML = sites.map(s =>
-      `<span style="cursor:pointer; color:#93c5fd; text-decoration:underline;" onclick="document.getElementById('tesla-site-id').value='${s.id}'">${s.id} — ${s.name}</span>`
-    ).join('<br>');
-  } catch(e) {
-    el.textContent = '❌ Błąd: ' + e.message;
-  }
-}
 </script>
 {% endblock %}

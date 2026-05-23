@@ -1,13 +1,23 @@
 # Changelog
 
+## [2.0.0] — 2026-05-23
+
+### Dodano
+- Phase 0: dependency hygiene, usunięcie Tesla, schema_version
+- Phase 1: basic auth, CSRF protection, walidacja odczytów
+- Phase 2: kumulatywny net-metering, konfigurowalny współczynnik
+- Phase 3: silnik net-billingu, okresy rozliczeniowe, ceny RCE
+- Phase 4: prognoza sezonowa, degradacja, eskalacja cen, zakres break-even
+- Phase 5: wskaźnik domyślnej ceny, backup/restore, strony coming soon
+- Responsywność mobilna (scrollowalne tabele, stacking na małych ekranach)
+- Dokumentacja architektoniczna (BUSINESS.md, review-2026-05-12.md)
+
 ## [1.12.1] — 2026-05-23
 
 ### Dodano
 - Backup/restore danych jako JSON na stronie Import (port z v2.0)
-- `GET /backup/full` — pełny backup 6 tabel (odczyty, inwestycje, pojazdy, ceny paliw, ev_monthly, ev_settings) jako plik JSON do pobrania
-- `POST /restore` — przywracanie danych z pliku JSON (ev_settings nie są nadpisywane)
-- Sekcje "Backup danych" i "Przywróć z backupu" w UI
-- Link do backupu w sekcji "Niebezpieczna strefa"
+- `GET /backup/full` — pełny backup 6 tabel jako plik JSON do pobrania
+- `POST /restore` — przywracanie danych z pliku JSON
 
 ## [1.10.0] — 2026-04-19
 

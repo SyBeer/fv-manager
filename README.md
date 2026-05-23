@@ -1,4 +1,4 @@
-# FV Manager v1.12.1
+# FV Manager v2.0.0
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant i Tesla Fleet API.
@@ -231,7 +231,7 @@ Dwie ścieżki (kolejność priorytetu):
 | `/ev/pojazdy/{id}/usun` | POST | Usuń pojazd + jego ev_monthly |
 | `/ev/fuel-price` | POST | Dodaj cenę paliwa |
 | `/ev/fuel-price/{id}/usun` | POST | Usuń cenę paliwa |
-| `/import` | GET | Strona importu CSV, backup/restore |
+| `/import` | GET | Strona importu CSV |
 
 ### API JSON
 
@@ -246,8 +246,6 @@ Dwie ścieżki (kolejność priorytetu):
 | `/api/tesla-charging-fetch?period=YYYY-MM` | GET | Pobierz kWh ładowania z Tesla za miesiąc |
 | `/import/template.csv` | GET | Pobierz szablon CSV do importu |
 | `/import/csv` | POST | Import z pliku CSV (INSERT OR IGNORE) |
-| `/backup/full` | GET | Pełny backup 6 tabel jako JSON do pobrania |
-| `/restore` | POST | Przywróć dane z pliku backup (nadpisuje, ev_settings bez zmian) |
 | `/admin/clear-db` | POST | Usuń wszystkie odczyty (danger zone) |
 
 ---

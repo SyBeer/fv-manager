@@ -5,6 +5,12 @@
   <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">
     {% if reading %}Edytuj odczyt {{ reading.period }}{% else %}Nowy odczyt{% endif %}
   </h1>
+  {% if error %}
+  <div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:.5rem; padding:.75rem 1rem; margin-bottom:1rem; color:#991b1b; font-size:.9rem;">
+    {{ error }}
+  </div>
+  {% endif %}
+
   <form id="edit-form" method="post" action="{% if reading %}{{ rp }}/odczyty/{{ reading.id }}/edytuj{% else %}{{ rp }}/odczyty/nowy{% endif %}">
     <div class="card" style="display:flex; flex-direction:column; gap:1rem;">
 
@@ -69,8 +75,6 @@
           <div style="margin-bottom:.75rem;">
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
               <label style="font-size:.85rem; color:#93c5fd;">🚗 {{ v.name }} [kWh]</label>
-              <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchTesla('ev_v_{{ v.id }}', 'tesla-ev-status-{{ v.id }}')">⚡ Tesla</button>
-              <span id="tesla-ev-status-{{ v.id }}" style="font-size:.72rem; color:#64748b;"></span>
             </div>
             <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
               value="{{ ev_rows[v.id] if ev_rows is defined and v.id in ev_rows else '' }}"
@@ -81,8 +85,6 @@
         <div>
           <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
             <label style="font-size:.85rem; color:#93c5fd;">🚗 kWh zużyte przez auta</label>
-            <button type="button" class="btn btn-ghost" style="font-size:.7rem; padding:.15rem .5rem;" onclick="fetchTesla('ev_kwh', 'tesla-ev-status-legacy')">⚡ Tesla</button>
-            <span id="tesla-ev-status-legacy" style="font-size:.72rem; color:#64748b;"></span>
           </div>
           <input type="number" name="ev_kwh" id="ev_kwh" step="0.01" value="{{ reading.ev_kwh if reading else '' }}" placeholder="np. 120.5">
           <div style="font-size:.75rem; color:#475569; margin-top:.3rem;">Dodaj pojazdy w module EV aby śledzić każde auto osobno.</div>
@@ -214,20 +216,6 @@ function fetchSolar() {
       document.getElementById('solar-status').textContent = '✅ ' + d.production_kwh + ' kWh';
     })
     .catch(() => document.getElementById('solar-status').textContent = '❌ Błąd połączenia');
-}
-
-function fetchTesla(fieldId, statusId) {
-  const period = document.getElementById('period-hidden').value;
-  if (!period) { alert('Najpierw wybierz rok i miesiąc.'); return; }
-  document.getElementById(statusId).textContent = '⏳';
-  fetch('{{ rp }}/api/tesla-charging-fetch?period=' + period)
-    .then(r => r.json())
-    .then(d => {
-      if (d.error) { document.getElementById(statusId).textContent = '❌ ' + d.error; return; }
-      document.getElementById(fieldId).value = d.kwh;
-      document.getElementById(statusId).textContent = '✅ ' + d.kwh + ' kWh';
-    })
-    .catch(() => document.getElementById(statusId).textContent = '❌ Błąd połączenia');
 }
 
 function fetchGrid(direction, fieldId, statusId) {
