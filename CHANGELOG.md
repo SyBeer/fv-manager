@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0] — 2026-05-23
+
+### Dodano
+- Phase 0: dependency hygiene, usunięcie Tesla, schema_version
+- Phase 1: basic auth, CSRF protection, walidacja odczytów
+- Phase 2: kumulatywny net-metering, konfigurowalny współczynnik
+- Phase 3: silnik net-billingu, okresy rozliczeniowe, ceny RCE
+- Phase 4: prognoza sezonowa, degradacja, eskalacja cen, zakres break-even
+- Phase 5: wskaźnik domyślnej ceny, backup/restore, strony coming soon
+- Responsywność mobilna (scrollowalne tabele, stacking na małych ekranach)
+- Dokumentacja architektoniczna (BUSINESS.md, review-2026-05-12.md)
+
 ## [1.10.0] — 2026-04-19
 
 ### Dodano
