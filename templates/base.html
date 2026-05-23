@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}FV Manager{% endblock %}</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; }
@@ -75,8 +75,8 @@
 
 <!-- Mobile top bar -->
 <div id="mobile-toggle" style="display:none; align-items:center; gap:.75rem; background:#1e293b; border-bottom:1px solid #334155; padding:.75rem 1rem; position:sticky; top:0; z-index:30;">
-  <button onclick="toggleSidebar()" style="background:none; border:none; color:#f59e0b; font-size:1.4rem; cursor:pointer; line-height:1;"><i class="ph-bold ph-list"></i></button>
-  <span style="font-size:1rem; font-weight:700; color:#f59e0b;"><i class="ph-bold ph-sun"></i> FV Manager</span>
+  <button onclick="toggleSidebar()" style="background:none; border:none; color:#f59e0b; font-size:1.4rem; cursor:pointer; line-height:1;">☰</button>
+  <span style="font-size:1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</span>
 </div>
 
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -85,8 +85,8 @@
   <!-- Sidebar -->
   <nav id="sidebar">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.25rem; padding-left:.25rem;">
-      <div id="sidebar-title" style="font-size:1.1rem; font-weight:700; color:#f59e0b;"><i class="ph-bold ph-sun"></i> FV Manager</div>
-      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Zwiń menu"><i class="ph-bold ph-list"></i></button>
+      <div id="sidebar-title" style="font-size:1.1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</div>
+      <button id="sidebar-toggle" onclick="toggleSidebar()" title="Zwiń menu">☰</button>
     </div>
     <div id="sidebar-version" style="font-size:.7rem; color:#475569; padding:0 .25rem .75rem; margin-bottom:.5rem; border-bottom:1px solid #334155;">
       v2.0.0

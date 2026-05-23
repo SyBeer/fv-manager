@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.2] — 2026-05-23
+
+### Naprawiono
+- Przycisk hamburger niewidoczny na mobile gdy Phosphor CDN niedostępny w HA — zamieniony na Unicode ☰
+- CDN Phosphor Icons zmieniony z unpkg na jsdelivr (bardziej dostępny w sieci lokalnej HA)
+
 ## [2.0.1] — 2026-05-23
 
 ### Naprawiono
