@@ -31,7 +31,7 @@ def _default_price() -> float:
         return 0.75
 
 import aiosqlite
-from fastapi import FastAPI, Request, Form, UploadFile, File
+from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -1172,6 +1172,101 @@ async def ev_page(request: Request):
         "total_ev_savings": round(total_ev_savings, 2),
         "total_km": round(total_km, 1),
         "total_liters_saved": round(total_liters_saved, 2),
+    })
+
+
+@app.get("/ev/pojazdy/{vehicle_id}", response_class=HTMLResponse)
+async def vehicle_detail(request: Request, vehicle_id: int):
+    db = await get_db()
+    try:
+        cur = await db.execute("SELECT * FROM vehicles WHERE id=?", (vehicle_id,))
+        row = await cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Pojazd nie znaleziony")
+        vehicle = dict(row)
+
+        cur = await db.execute(
+            "SELECT * FROM ev_monthly WHERE vehicle_id=? ORDER BY period ASC", (vehicle_id,)
+        )
+        entries_raw = [dict(r) for r in await cur.fetchall()]
+        original_km = {e["period"]: e.get("km") for e in entries_raw}
+        entries = _inject_odometer_km(entries_raw)
+
+        cur = await db.execute("SELECT period, price_per_kwh FROM readings")
+        price_map = {r["period"]: r["price_per_kwh"] for r in await cur.fetchall()}
+
+        all_fuel_prices = await _get_fuel_prices(db)
+    finally:
+        await db.close()
+
+    prices_desc = sorted(
+        [p for p in all_fuel_prices if p["fuel_type"] == vehicle["fuel_type"]],
+        key=lambda p: p["date"], reverse=True,
+    )
+    default_price = _default_price()
+
+    monthly = []
+    for e in entries:
+        year, month_str = e["period"].split(".")
+        period_end = f"{year}-{month_str.zfill(2)}-28"
+        fuel_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
+        fuel_price = fuel_obj["price_per_liter"] if fuel_obj else None
+        price_kwh = price_map.get(e["period"]) or default_price
+        km = e.get("km")
+        km_actual = km is not None
+        orig = original_km.get(e["period"])
+        if km is None:
+            km_source = "est"
+        elif orig is None and e.get("odometer_km") is not None:
+            km_source = "licznik"
+        else:
+            km_source = "manual"
+
+        if fuel_price and e["kwh"]:
+            calc = calc_ev_savings(
+                ev_kwh=e["kwh"],
+                price_per_kwh=price_kwh,
+                efficiency_kwh_per_100km=vehicle["efficiency_kwh_per_100km"],
+                fuel_consumption_l_per_100km=vehicle["fuel_consumption_l_per_100km"],
+                fuel_price_per_liter=fuel_price,
+                km_driven=km,
+            )
+        else:
+            calc = None
+
+        monthly.append({
+            "period": e["period"],
+            "kwh": e["kwh"],
+            "km": km,
+            "odometer_km": e.get("odometer_km"),
+            "km_actual": km_actual,
+            "km_source": km_source,
+            "price_per_kwh": price_kwh,
+            "fuel_price": fuel_price,
+            **(calc if calc else {
+                "km_driven": None, "fuel_cost_equivalent": None,
+                "electricity_cost": None, "ev_net_savings": None, "liters_saved": None,
+            }),
+        })
+
+    total_kwh = sum(m["kwh"] for m in monthly if m["kwh"])
+    total_km = sum(m["km_driven"] for m in monthly if m["km_driven"])
+    total_savings = sum(m["ev_net_savings"] for m in monthly if m["ev_net_savings"])
+    total_liters = sum(m["liters_saved"] for m in monthly if m["liters_saved"])
+    real_km_entries = [(m["kwh"], m["km"]) for m in monthly if m["km_actual"] and m["kwh"] and m["km"]]
+    avg_efficiency = (
+        sum(kwh for kwh, _ in real_km_entries) / sum(km for _, km in real_km_entries) * 100
+        if real_km_entries else None
+    )
+
+    return _t(request, "vehicle_detail.html", {
+        "vehicle": vehicle,
+        "monthly": list(reversed(monthly)),
+        "total_kwh": round(total_kwh, 1),
+        "total_km": round(total_km, 1),
+        "total_savings": round(total_savings, 2),
+        "total_liters": round(total_liters, 2),
+        "avg_efficiency": round(avg_efficiency, 2) if avg_efficiency else None,
     })
 
 

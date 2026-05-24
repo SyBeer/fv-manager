@@ -142,7 +142,10 @@
       <tbody>
       {% for v in vehicles %}
       <tr>
-        <td><strong>{{ v.name }}</strong>{% if v.notes %}<div style="font-size:.75rem; color:#64748b;">{{ v.notes }}</div>{% endif %}</td>
+        <td>
+          <a href="{{ rp }}/ev/pojazdy/{{ v.id }}" style="color:#e2e8f0; text-decoration:none; font-weight:600; hover:color:#f59e0b;">{{ v.name }}</a>
+          {% if v.notes %}<div style="font-size:.75rem; color:#64748b;">{{ v.notes }}</div>{% endif %}
+        </td>
         <td style="color:#93c5fd;">{{ v.efficiency_kwh_per_100km }}</td>
         <td style="color:#fbbf24;">{{ v.fuel_consumption_l_per_100km }}</td>
         <td><span class="badge-blue">{{ v.fuel_type }}</span></td>

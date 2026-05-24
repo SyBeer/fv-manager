@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.0] — 2026-05-24
+
+### Dodano
+- Podstrona szczegółów pojazdu EV: `GET /ev/pojazdy/{id}` — dane pojazdu, karty summary (km, kWh, oszczędności PLN, litry), wykres miesięczny kWh+oszczędności (Chart.js), tabela historii per miesiąc z badgem źródła km (ręczne / licznik / est.)
+- Nowy szablon `templates/vehicle_detail.html`
+- Rzeczywista średnia efektywność (kWh/100km) obliczana z miesięcy z faktycznymi km (nie estymowanymi)
+- Link do podstrony pojazdu w tabeli pojazdów na stronie EV (klik w nazwę pojazdu)
+
 ## [2.4.2] — 2026-05-23
 
 ### Naprawiono

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}{{ vehicle.name }} — FV Manager{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:1rem;">
+  <a href="{{ rp }}/ev" style="color:#94a3b8; text-decoration:none; font-size:.85rem;">
+    <i class="ph-bold ph-arrow-left"></i> Powrót do EV
+  </a>
+</div>
+
+<!-- Nagłówek pojazdu -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+    <div>
+      <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:.5rem;">
+        <i class="ph-bold ph-car"></i> {{ vehicle.name }}
+      </h1>
+      {% if vehicle.notes %}
+      <div style="color:#64748b; font-size:.85rem; margin-bottom:.5rem;">{{ vehicle.notes }}</div>
+      {% endif %}
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; font-size:.85rem; color:#94a3b8;">
+        <span><i class="ph-bold ph-lightning"></i> {{ vehicle.efficiency_kwh_per_100km }} kWh/100km</span>
+        <span><i class="ph-bold ph-gas-pump"></i> {{ vehicle.fuel_consumption_l_per_100km }} L/100km</span>
+        <span><span class="badge-blue">{{ vehicle.fuel_type }}</span></span>
+        {% if vehicle.przebieg_km %}
+        <span><i class="ph-bold ph-speedometer"></i> {{ "{:,.0f}".format(vehicle.przebieg_km).replace(",", " ") }} km (przebieg)</span>
+        {% endif %}
+        {% if vehicle.date_from or vehicle.date_to %}
+        <span><i class="ph-bold ph-calendar"></i> {{ vehicle.date_from or '—' }} → {{ vehicle.date_to or 'dziś' }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if monthly %}
+
+<!-- Karty podsumowania -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+  <div class="card">
+    <div class="stat-value" style="color:#93c5fd;">{{ total_km|fmtn }} km</div>
+    <div class="stat-label">Łącznie km</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:#60a5fa;">{{ total_kwh|fmtn(1) }} kWh</div>
+    <div class="stat-label">Łącznie energia EV</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:#22c55e;">{{ total_savings|fmtn(2) }} zł</div>
+    <div class="stat-label">Oszczędności vs paliwo</div>
+  </div>
+  <div class="card">
+    <div class="stat-value" style="color:#fbbf24;">{{ total_liters|fmtn }} L</div>
+    <div class="stat-label">Paliwa zaoszczędzono</div>
+  </div>
+  {% if avg_efficiency %}
+  <div class="card">
+    <div class="stat-value" style="color:#a78bfa;">{{ avg_efficiency|fmtn(1) }} kWh/100km</div>
+    <div class="stat-label">Śr. efektywność (rzeczywista)</div>
+    <div style="font-size:.75rem; color:#64748b; margin-top:.25rem;">spec: {{ vehicle.efficiency_kwh_per_100km }} kWh/100km</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Wykres miesięczny -->
+{% set chart_monthly = monthly | reverse | list %}
+{% if chart_monthly | length > 1 %}
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Historia miesięczna</h2>
+  <canvas id="vehicleChart" style="max-height:260px;"></canvas>
+</div>
+<script>
+const vLabels = {{ chart_monthly | map(attribute='period') | list | tojson }};
+const vKwh    = {{ chart_monthly | map(attribute='kwh') | list | tojson }};
+const vKm     = {{ chart_monthly | map(attribute='km_driven') | list | tojson }};
+const vSav    = {{ chart_monthly | map(attribute='ev_net_savings') | list | tojson }};
+new Chart(document.getElementById('vehicleChart'), {
+  type: 'bar',
+  data: {
+    labels: vLabels,
+    datasets: [
+      {
+        type: 'bar',
+        label: 'kWh EV',
+        data: vKwh,
+        backgroundColor: 'rgba(96,165,250,.5)',
+        borderColor: '#60a5fa',
+        borderWidth: 1,
+        yAxisID: 'y',
+      },
+      {
+        type: 'line',
+        label: 'Oszczędność [zł]',
+        data: vSav,
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,.1)',
+        tension: .3,
+        pointRadius: 3,
+        yAxisID: 'y2',
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    scales: {
+      x:  { ticks: { color: '#64748b', maxTicksLimit: 18 }, grid: { color: '#1e293b' } },
+      y:  { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, title: { display: true, text: 'kWh', color: '#64748b' } },
+      y2: { position: 'right', ticks: { color: '#64748b' }, grid: { drawOnChartArea: false }, title: { display: true, text: 'zł', color: '#64748b' } },
+    }
+  }
+});
+</script>
+{% endif %}
+
+<!-- Tabela szczegółowa -->
+<div class="card">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Dane miesięczne</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Okres</th>
+        <th>kWh</th>
+        <th>km</th>
+        <th>Źródło km</th>
+        <th>Koszt prądu</th>
+        <th>Koszt paliwa (gdyby)</th>
+        <th>Oszczędność</th>
+        <th>Litrów</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for m in monthly %}
+    <tr>
+      <td><strong>{{ m.period }}</strong></td>
+      <td style="color:#60a5fa;">{{ m.kwh|fmtn(1) }} kWh</td>
+      <td>
+        {% if m.km_driven is not none %}
+          {{ m.km_driven|fmtn }} km
+        {% else %}—{% endif %}
+      </td>
+      <td>
+        {% if m.km_source == 'manual' %}
+          <span class="badge-green">ręczne</span>
+        {% elif m.km_source == 'licznik' %}
+          <span class="badge-blue">licznik</span>
+        {% else %}
+          <span style="color:#475569; font-size:.8rem;">(est.)</span>
+        {% endif %}
+      </td>
+      <td style="color:#94a3b8;">
+        {% if m.electricity_cost is not none %}{{ m.electricity_cost|fmtn(2) }} zł{% else %}—{% endif %}
+      </td>
+      <td style="color:#f87171;">
+        {% if m.fuel_cost_equivalent is not none %}{{ m.fuel_cost_equivalent|fmtn(2) }} zł{% else %}—{% endif %}
+      </td>
+      <td style="color:#22c55e; font-weight:600;">
+        {% if m.ev_net_savings is not none %}{{ m.ev_net_savings|fmtn(2) }} zł{% else %}—{% endif %}
+      </td>
+      <td style="color:#fbbf24;">
+        {% if m.liters_saved is not none %}{{ m.liters_saved|fmtn(1) }} L{% else %}—{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{% else %}
+<div class="card" style="text-align:center; padding:2rem; color:#94a3b8;">
+  Brak danych EV dla tego pojazdu. Dodaj odczyty na stronie
+  <a href="{{ rp }}/odczyty/nowy" style="color:#f59e0b;">Nowy odczyt</a>.
+</div>
+{% endif %}
+
+{% endblock %}
