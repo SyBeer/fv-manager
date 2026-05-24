@@ -8,27 +8,53 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/bold/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.5rem; }
+  :root {
+    --bg: #0f172a; --bg-card: #1e293b; --bg-input: #0f172a;
+    --border: #334155; --border-input: #475569;
+    --text: #e2e8f0; --text-2: #94a3b8; --text-3: #64748b; --text-4: #475569;
+    --accent: #f59e0b; --accent-dark: #0f172a;
+    --c-green: #22c55e; --c-red: #ef4444; --c-red-light: #f87171;
+    --c-blue: #60a5fa; --c-blue-2: #93c5fd; --c-blue-3: #bfdbfe;
+    --c-yellow: #fbbf24; --c-purple: #a78bfa;
+    --badge-green-bg: #166534; --badge-green-text: #86efac;
+    --badge-yellow-bg: #713f12; --badge-yellow-text: #fde68a;
+    --badge-blue-bg: #1e3a5f; --badge-blue-text: #93c5fd;
+    --badge-red-bg: #450a0a; --badge-red-text: #fca5a5;
+  }
+  [data-theme="light"] {
+    --bg: #f1f5f9; --bg-card: #ffffff; --bg-input: #f8fafc;
+    --border: #e2e8f0; --border-input: #cbd5e1;
+    --text: #0f172a; --text-2: #475569; --text-3: #64748b; --text-4: #94a3b8;
+    --accent: #d97706; --accent-dark: #ffffff;
+    --c-green: #16a34a; --c-red: #dc2626; --c-red-light: #dc2626;
+    --c-blue: #2563eb; --c-blue-2: #3b82f6; --c-blue-3: #1d4ed8;
+    --c-yellow: #d97706; --c-purple: #7c3aed;
+    --badge-green-bg: #dcfce7; --badge-green-text: #166534;
+    --badge-yellow-bg: #fef3c7; --badge-yellow-text: #92400e;
+    --badge-blue-bg: #dbeafe; --badge-blue-text: #1e40af;
+    --badge-red-bg: #fee2e2; --badge-red-text: #991b1b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
   .btn { display: inline-block; padding: .5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
   .btn:hover { opacity: .85; }
-  .btn-primary { background: #f59e0b; color: #0f172a; }
-  .btn-green { background: #22c55e; color: #0f172a; }
-  .btn-red { background: #ef4444; color: white; }
-  .btn-ghost { background: #334155; color: #e2e8f0; }
-  .nav-link { padding: .5rem .75rem; border-radius: 8px; color: #94a3b8; text-decoration: none; font-size: .9rem; display:block; }
-  .nav-link:hover, .nav-link.active { background: #334155; color: #f1f5f9; }
-  input, select, textarea { background: #0f172a; border: 1px solid #475569; border-radius: 8px; padding: .5rem .75rem; color: #e2e8f0; width: 100%; }
-  input:focus, select:focus { outline: none; border-color: #f59e0b; }
-  .badge-green { background: #166534; color: #86efac; padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
-  .badge-yellow { background: #713f12; color: #fde68a; padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
-  .badge-blue { background: #1e3a5f; color: #93c5fd; padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .btn-primary { background: var(--accent); color: var(--accent-dark); }
+  .btn-green { background: var(--c-green); color: var(--accent-dark); }
+  .btn-red { background: var(--c-red); color: white; }
+  .btn-ghost { background: var(--border); color: var(--text); }
+  .nav-link { padding: .5rem .75rem; border-radius: 8px; color: var(--text-2); text-decoration: none; font-size: .9rem; display:block; }
+  .nav-link:hover, .nav-link.active { background: var(--border); color: var(--text); }
+  input, select, textarea { background: var(--bg-input); border: 1px solid var(--border-input); border-radius: 8px; padding: .5rem .75rem; color: var(--text); width: 100%; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .badge-green { background: var(--badge-green-bg); color: var(--badge-green-text); padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .badge-yellow { background: var(--badge-yellow-bg); color: var(--badge-yellow-text); padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
+  .badge-blue { background: var(--badge-blue-bg); color: var(--badge-blue-text); padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
   table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-  th { text-align: left; padding: .6rem .75rem; color: #64748b; font-weight: 500; border-bottom: 1px solid #334155; }
-  td { padding: .55rem .75rem; border-bottom: 1px solid #1e293b; }
-  tr:hover td { background: #1e293b; }
+  th { text-align: left; padding: .6rem .75rem; color: var(--text-3); font-weight: 500; border-bottom: 1px solid var(--border); }
+  td { padding: .55rem .75rem; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: var(--bg-card); }
   .stat-value { font-size: 1.8rem; font-weight: 700; }
-  .stat-label { font-size: .8rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
+  .stat-label { font-size: .8rem; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
@@ -40,14 +66,14 @@
   }
 
   /* Sidebar */
-  #sidebar { width: 220px; background: #1e293b; border-right: 1px solid #334155; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: .25rem; transition: width .2s, padding .2s; overflow: hidden; position: relative; }
+  #sidebar { width: 220px; background: var(--bg-card); border-right: 1px solid var(--border); padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; gap: .25rem; transition: width .2s, padding .2s; overflow: hidden; position: relative; }
   #sidebar.collapsed { width: 56px; padding: 1rem .5rem; }
   #sidebar.collapsed .nav-text { display: none; }
   #sidebar.collapsed .nav-link { justify-content: center; padding: .5rem; font-size: 1.1rem; }
   #sidebar.collapsed #sidebar-title { display: none; }
   #sidebar.collapsed #sidebar-version { display: none; }
-  #sidebar-toggle { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; padding: .25rem .5rem; border-radius: 6px; line-height: 1; }
-  #sidebar-toggle:hover { background: #334155; color: #f1f5f9; }
+  #sidebar-toggle { background: none; border: none; color: var(--text-2); cursor: pointer; font-size: 1.1rem; padding: .25rem .5rem; border-radius: 6px; line-height: 1; }
+  #sidebar-toggle:hover { background: var(--border); color: var(--text); }
   .nav-link { display: flex; align-items: center; gap: .6rem; }
   .nav-icon { flex-shrink: 0; }
 
@@ -66,15 +92,21 @@
   #sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; }
   #sidebar-overlay.visible { display: block; }
 </style>
+<script>
+  (function(){
+    var t = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 {% block head %}{% endblock %}
 </head>
 <body>
 {% set rp = request.scope.get("root_path", "") %}
 
 <!-- Mobile top bar -->
-<div id="mobile-toggle" style="align-items:center; gap:.75rem; background:#1e293b; border-bottom:1px solid #334155; padding:.75rem 1rem; position:sticky; top:0; z-index:30;">
-  <button onclick="toggleSidebar()" style="background:none; border:none; color:#f59e0b; font-size:1.4rem; cursor:pointer; line-height:1;">☰</button>
-  <span style="font-size:1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</span>
+<div id="mobile-toggle" style="align-items:center; gap:.75rem; background:var(--bg-card); border-bottom:1px solid var(--border); padding:.75rem 1rem; position:sticky; top:0; z-index:30;">
+  <button onclick="toggleSidebar()" style="background:none; border:none; color:var(--accent); font-size:1.4rem; cursor:pointer; line-height:1;">☰</button>
+  <span style="font-size:1rem; font-weight:700; color:var(--accent);">☀️ FV Manager</span>
 </div>
 
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -83,10 +115,10 @@
   <!-- Sidebar -->
   <nav id="sidebar">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:.25rem; padding-left:.25rem;">
-      <div id="sidebar-title" style="font-size:1.1rem; font-weight:700; color:#f59e0b;">☀️ FV Manager</div>
+      <div id="sidebar-title" style="font-size:1.1rem; font-weight:700; color:var(--accent);">☀️ FV Manager</div>
       <button id="sidebar-toggle" onclick="toggleSidebar()" title="Zwiń menu">☰</button>
     </div>
-    <div id="sidebar-version" style="font-size:.7rem; color:#475569; padding:0 .25rem .75rem; margin-bottom:.5rem; border-bottom:1px solid #334155;">
+    <div id="sidebar-version" style="font-size:.7rem; color:var(--text-4); padding:0 .25rem .75rem; margin-bottom:.5rem; border-bottom:1px solid var(--border);">
       v{{ app_version }}
     </div>
 

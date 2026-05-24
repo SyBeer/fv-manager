@@ -3,7 +3,7 @@
 {% block content %}
 
 <div style="margin-bottom:1rem;">
-  <a href="{{ rp }}/ev" style="color:#94a3b8; text-decoration:none; font-size:.85rem;">
+  <a href="{{ rp }}/ev" style="color:var(--text-2); text-decoration:none; font-size:.85rem;">
     <i class="ph-bold ph-arrow-left"></i> Powrót do EV
   </a>
 </div>
@@ -16,9 +16,9 @@
         <i class="ph-bold ph-car"></i> {{ vehicle.name }}
       </h1>
       {% if vehicle.notes %}
-      <div style="color:#64748b; font-size:.85rem; margin-bottom:.5rem;">{{ vehicle.notes }}</div>
+      <div style="color:var(--text-3); font-size:.85rem; margin-bottom:.5rem;">{{ vehicle.notes }}</div>
       {% endif %}
-      <div style="display:flex; gap:1rem; flex-wrap:wrap; font-size:.85rem; color:#94a3b8;">
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; font-size:.85rem; color:var(--text-2);">
         <span><i class="ph-bold ph-lightning"></i> {{ vehicle.efficiency_kwh_per_100km }} kWh/100km</span>
         <span><i class="ph-bold ph-gas-pump"></i> {{ vehicle.fuel_consumption_l_per_100km }} L/100km</span>
         <span><span class="badge-blue">{{ vehicle.fuel_type }}</span></span>
@@ -38,26 +38,26 @@
 <!-- Karty podsumowania -->
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
   <div class="card">
-    <div class="stat-value" style="color:#93c5fd;">{{ total_km|fmtn }} km</div>
+    <div class="stat-value" style="color:var(--c-blue-2);">{{ total_km|fmtn }} km</div>
     <div class="stat-label">Łącznie km</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#60a5fa;">{{ total_kwh|fmtn(1) }} kWh</div>
+    <div class="stat-value" style="color:var(--c-blue);">{{ total_kwh|fmtn(1) }} kWh</div>
     <div class="stat-label">Łącznie energia EV</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#22c55e;">{{ total_savings|fmtn(2) }} zł</div>
+    <div class="stat-value" style="color:var(--c-green);">{{ total_savings|fmtn(2) }} zł</div>
     <div class="stat-label">Oszczędności vs paliwo</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#fbbf24;">{{ total_liters|fmtn }} L</div>
+    <div class="stat-value" style="color:var(--c-yellow);">{{ total_liters|fmtn }} L</div>
     <div class="stat-label">Paliwa zaoszczędzono</div>
   </div>
   {% if avg_efficiency %}
   <div class="card">
-    <div class="stat-value" style="color:#a78bfa;">{{ avg_efficiency|fmtn(1) }} kWh/100km</div>
+    <div class="stat-value" style="color:var(--c-purple);">{{ avg_efficiency|fmtn(1) }} kWh/100km</div>
     <div class="stat-label">Śr. efektywność (rzeczywista)</div>
-    <div style="font-size:.75rem; color:#64748b; margin-top:.25rem;">spec: {{ vehicle.efficiency_kwh_per_100km }} kWh/100km</div>
+    <div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">spec: {{ vehicle.efficiency_kwh_per_100km }} kWh/100km</div>
   </div>
   {% endif %}
 </div>
@@ -74,6 +74,9 @@ const vLabels = {{ chart_monthly | map(attribute='period') | list | tojson }};
 const vKwh    = {{ chart_monthly | map(attribute='kwh') | list | tojson }};
 const vKm     = {{ chart_monthly | map(attribute='km_driven') | list | tojson }};
 const vSav    = {{ chart_monthly | map(attribute='ev_net_savings') | list | tojson }};
+const cs = getComputedStyle(document.documentElement);
+const gridColor = cs.getPropertyValue('--border').trim() || '#334155';
+const tickColor = cs.getPropertyValue('--text-3').trim() || '#64748b';
 new Chart(document.getElementById('vehicleChart'), {
   type: 'bar',
   data: {
@@ -103,11 +106,11 @@ new Chart(document.getElementById('vehicleChart'), {
   options: {
     responsive: true,
     interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    plugins: { legend: { labels: { color: tickColor } } },
     scales: {
-      x:  { ticks: { color: '#64748b', maxTicksLimit: 18 }, grid: { color: '#1e293b' } },
-      y:  { ticks: { color: '#64748b' }, grid: { color: '#1e293b' }, title: { display: true, text: 'kWh', color: '#64748b' } },
-      y2: { position: 'right', ticks: { color: '#64748b' }, grid: { drawOnChartArea: false }, title: { display: true, text: 'zł', color: '#64748b' } },
+      x:  { ticks: { color: tickColor, maxTicksLimit: 18 }, grid: { color: gridColor } },
+      y:  { ticks: { color: tickColor }, grid: { color: gridColor }, title: { display: true, text: 'kWh', color: tickColor } },
+      y2: { position: 'right', ticks: { color: tickColor }, grid: { drawOnChartArea: false }, title: { display: true, text: 'zł', color: tickColor } },
     }
   }
 });
@@ -136,25 +139,25 @@ new Chart(document.getElementById('vehicleChart'), {
     {% for m in monthly %}
     <tr>
       <td><strong>{{ m.period }}</strong></td>
-      <td style="color:#60a5fa;">{{ m.kwh|fmtn(1) }} kWh</td>
+      <td style="color:var(--c-blue);">{{ m.kwh|fmtn(1) }} kWh</td>
       <td>
         {% if m.km_driven is not none %}{{ m.km_driven|fmtn }} km{% else %}—{% endif %}
       </td>
       <td>
         {% if m.km_source == 'manual' %}<span class="badge-green">ręczne</span>
         {% elif m.km_source == 'licznik' %}<span class="badge-blue">licznik</span>
-        {% else %}<span style="color:#475569; font-size:.8rem;">(est.)</span>{% endif %}
+        {% else %}<span style="color:var(--text-4); font-size:.8rem;">(est.)</span>{% endif %}
       </td>
-      <td style="color:#94a3b8;">
+      <td style="color:var(--text-2);">
         {% if m.electricity_cost is not none %}{{ m.electricity_cost|fmtn(2) }} zł{% else %}—{% endif %}
       </td>
-      <td style="color:#f87171;">
+      <td style="color:var(--c-red-light);">
         {% if m.fuel_cost_equivalent is not none %}{{ m.fuel_cost_equivalent|fmtn(2) }} zł{% else %}—{% endif %}
       </td>
-      <td style="color:#22c55e; font-weight:600;">
+      <td style="color:var(--c-green); font-weight:600;">
         {% if m.ev_net_savings is not none %}{{ m.ev_net_savings|fmtn(2) }} zł{% else %}—{% endif %}
       </td>
-      <td style="color:#fbbf24;">
+      <td style="color:var(--c-yellow);">
         {% if m.liters_saved is not none %}{{ m.liters_saved|fmtn(1) }} L{% else %}—{% endif %}
       </td>
       <td>
@@ -171,9 +174,9 @@ new Chart(document.getElementById('vehicleChart'), {
 </div>
 
 {% else %}
-<div class="card" style="text-align:center; padding:2rem; color:#94a3b8;">
+<div class="card" style="text-align:center; padding:2rem; color:var(--text-2);">
   Brak danych EV dla tego pojazdu. Dodaj odczyty na stronie
-  <a href="{{ rp }}/odczyty/nowy" style="color:#f59e0b;">Nowy odczyt</a>.
+  <a href="{{ rp }}/odczyty/nowy" style="color:var(--accent);">Nowy odczyt</a>.
 </div>
 {% endif %}
 
@@ -181,23 +184,23 @@ new Chart(document.getElementById('vehicleChart'), {
 <div id="editModalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100;"
      onclick="if(event.target===this) closeEditModal()"></div>
 
-<div id="editModal" style="display:none; position:fixed; z-index:101; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:0; min-width:300px; box-shadow:0 8px 32px rgba(0,0,0,.5);">
+<div id="editModal" style="display:none; position:fixed; z-index:101; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:0; min-width:300px; box-shadow:0 8px 32px rgba(0,0,0,.5);">
   <!-- Pasek drag -->
-  <div id="editModalHeader" style="padding:.75rem 1rem; border-bottom:1px solid #334155; display:flex; align-items:center; justify-content:space-between; cursor:grab; user-select:none; border-radius:12px 12px 0 0; background:#273549;">
+  <div id="editModalHeader" style="padding:.75rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; cursor:grab; user-select:none; border-radius:12px 12px 0 0; background:var(--bg-card);">
     <span style="font-weight:600; font-size:.9rem;"><i class="ph-bold ph-pencil-simple"></i> Edycja — <span id="editModalPeriod"></span></span>
-    <button onclick="closeEditModal()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:1.1rem; padding:0 .25rem;">✕</button>
+    <button onclick="closeEditModal()" style="background:none; border:none; color:var(--text-2); cursor:pointer; font-size:1.1rem; padding:0 .25rem;">✕</button>
   </div>
   <form id="editModalForm" method="post" style="padding:1rem; display:flex; flex-direction:column; gap:.75rem;">
     <div>
-      <label style="display:block; font-size:.75rem; color:#64748b; margin-bottom:.3rem;">Energia [kWh] *</label>
+      <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">Energia [kWh] *</label>
       <input id="editKwh" type="number" name="kwh" step="0.1" min="0" required>
     </div>
     <div>
-      <label style="display:block; font-size:.75rem; color:#64748b; margin-bottom:.3rem;">km/mies. (ręczne)</label>
+      <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">km/mies. (ręczne)</label>
       <input id="editKm" type="number" name="km" step="1" min="0" placeholder="opcjonalne">
     </div>
     <div>
-      <label style="display:block; font-size:.75rem; color:#64748b; margin-bottom:.3rem;">Stan licznika [km]</label>
+      <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">Stan licznika [km]</label>
       <input id="editOdometer" type="number" name="odometer_km" step="1" min="0" placeholder="opcjonalne">
     </div>
     <div style="display:flex; gap:.5rem;">

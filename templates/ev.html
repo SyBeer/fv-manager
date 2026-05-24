@@ -7,15 +7,15 @@
 {% if monthly_ev %}
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
   <div class="card">
-    <div class="stat-value" style="color:#22c55e;">{{ total_ev_savings|fmtn }} zł</div>
+    <div class="stat-value" style="color:var(--c-green);">{{ total_ev_savings|fmtn }} zł</div>
     <div class="stat-label">Oszczędności EV vs paliwo</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#93c5fd;">{{ total_km|fmtn }} km</div>
+    <div class="stat-value" style="color:var(--c-blue-2);">{{ total_km|fmtn }} km</div>
     <div class="stat-label">Łącznie przejechane (z EV kWh)</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#fbbf24;">{{ total_liters_saved|fmtn }} L</div>
+    <div class="stat-value" style="color:var(--c-yellow);">{{ total_liters_saved|fmtn }} L</div>
     <div class="stat-label">Paliwa zaoszczędzono</div>
   </div>
   {% if latest_fuel %}
@@ -32,22 +32,22 @@
   {% for vs in vehicles_summary %}
   <a href="{{ rp }}/ev/pojazdy/{{ vs.id }}" style="text-decoration:none;">
     <div class="card" style="cursor:pointer; transition:border-color .15s;"
-         onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#334155'">
-      <div style="font-weight:600; margin-bottom:.75rem; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+         onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="font-weight:600; margin-bottom:.75rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
         <i class="ph-bold ph-car"></i> {{ vs.name }}
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:.4rem .75rem;">
         <div>
-          <div style="color:#93c5fd; font-size:1.05rem; font-weight:700;">{{ vs.total_km|fmtn }} km</div>
-          <div style="color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">łącznie km</div>
+          <div style="color:var(--c-blue-2); font-size:1.05rem; font-weight:700;">{{ vs.total_km|fmtn }} km</div>
+          <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">łącznie km</div>
         </div>
         <div>
-          <div style="color:#60a5fa; font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn(1) }} kWh</div>
-          <div style="color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">energia EV</div>
+          <div style="color:var(--c-blue); font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn(1) }} kWh</div>
+          <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">energia EV</div>
         </div>
-        <div style="grid-column:1/-1; margin-top:.25rem; padding-top:.5rem; border-top:1px solid #334155;">
-          <div style="color:#22c55e; font-size:1.15rem; font-weight:700;">{{ vs.total_savings|fmtn(2) }} zł</div>
-          <div style="color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">oszczędności vs paliwo</div>
+        <div style="grid-column:1/-1; margin-top:.25rem; padding-top:.5rem; border-top:1px solid var(--border);">
+          <div style="color:var(--c-green); font-size:1.15rem; font-weight:700;">{{ vs.total_savings|fmtn(2) }} zł</div>
+          <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">oszczędności vs paliwo</div>
         </div>
       </div>
     </div>
@@ -77,18 +77,18 @@
     {% for r in monthly_ev %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:#93c5fd;">{{ r.ev_kwh|fmtn(1) }} kWh
+      <td style="color:var(--c-blue-2);">{{ r.ev_kwh|fmtn(1) }} kWh
         {% if r.vehicles|length > 1 %}
-        <div style="font-size:.75rem; color:#475569; margin-top:.2rem;">
+        <div style="font-size:.75rem; color:var(--text-4); margin-top:.2rem;">
           {% for v in r.vehicles %}{{ v.name }}: {{ v.kwh|fmtn(1) }}{% if not loop.last %}, {% endif %}{% endfor %}
         </div>
         {% endif %}
       </td>
-      <td>{{ r.km_driven|fmtn }} km{% if not r.km_actual %} <span style="font-size:.75rem; color:#475569;">(est.)</span>{% endif %}</td>
-      <td style="color:#f87171;">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
-      <td style="color:#94a3b8;">{{ r.electricity_cost|fmtn(2) }} zł</td>
-      <td style="color:#22c55e; font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
-      <td style="color:#fbbf24;">{{ r.liters_saved|fmtn(1) }} L</td>
+      <td>{{ r.km_driven|fmtn }} km{% if not r.km_actual %} <span style="font-size:.75rem; color:var(--text-4);">(est.)</span>{% endif %}</td>
+      <td style="color:var(--c-red-light);">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
+      <td style="color:var(--text-2);">{{ r.electricity_cost|fmtn(2) }} zł</td>
+      <td style="color:var(--c-green); font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
+      <td style="color:var(--c-yellow);">{{ r.liters_saved|fmtn(1) }} L</td>
       <td style="white-space:nowrap;">
         <button onclick="toggleEvEdit('ev-edit-{{ r.period|replace('.','_') }}')"
                 class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;">
@@ -98,44 +98,44 @@
     </tr>
     <!-- Inline edit row for {{ r.period }} -->
     <tr id="ev-edit-{{ r.period|replace('.','_') }}" style="display:none;">
-      <td colspan="8" style="padding:.75rem; background:#0f172a;">
+      <td colspan="8" style="padding:.75rem; background:var(--bg);">
         <form method="post" action="{{ rp }}/ev/monthly/{{ r.period }}/edytuj"
               style="display:flex; flex-direction:column; gap:.6rem;">
-          <div style="font-size:.8rem; color:#94a3b8; margin-bottom:.25rem;">
+          <div style="font-size:.8rem; color:var(--text-2); margin-bottom:.25rem;">
             <i class="ph-bold ph-pencil-simple"></i> Edycja EV — <strong>{{ r.period }}</strong>
           </div>
           {% if vehicles %}
             {% for v in vehicles %}
             {% if v.id in r.active_vehicle_ids %}
             <div style="display:grid; grid-template-columns:200px auto auto auto; align-items:center; gap:.5rem .75rem;">
-              <label style="font-size:.82rem; color:#94a3b8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              <label style="font-size:.82rem; color:var(--text-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                 <i class="ph-bold ph-car"></i> {{ v.name }}
               </label>
               <div style="display:flex; align-items:center; gap:.4rem;">
                 <input type="number" name="v_{{ v.id }}" step="0.1" min="0" placeholder="0.0"
                        value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('kwh', '') if ev_raw.get(r.period, {}).get(v.id) else '' }}"
                        style="width:100px;">
-                <span style="font-size:.8rem; color:#475569; white-space:nowrap;">kWh</span>
+                <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">kWh</span>
               </div>
               <div style="display:flex; align-items:center; gap:.4rem;">
-                <span style="font-size:.75rem; color:#334155;">|</span>
+                <span style="font-size:.75rem; color:var(--border);">|</span>
                 <input type="number" name="km_v_{{ v.id }}" step="1" min="0" placeholder="km/mc"
                        value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('km', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('km') is not none else '' }}"
                        style="width:80px;">
-                <span style="font-size:.8rem; color:#475569; white-space:nowrap;">km</span>
+                <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">km</span>
               </div>
               <div style="display:flex; align-items:center; gap:.4rem;">
-                <span style="font-size:.75rem; color:#64748b;">lub</span>
+                <span style="font-size:.75rem; color:var(--text-3);">lub</span>
                 <input type="number" name="odometer_v_{{ v.id }}" step="1" min="0" placeholder="stan licznika"
                        value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('odometer_km', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('odometer_km') is not none else '' }}"
                        style="width:110px;">
-                <span style="font-size:.8rem; color:#475569; white-space:nowrap;">km (licznik)</span>
+                <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">km (licznik)</span>
               </div>
             </div>
             {% endif %}
             {% endfor %}
           {% else %}
-            <p style="color:#64748b; font-size:.85rem;">Brak zdefiniowanych pojazdów.</p>
+            <p style="color:var(--text-3); font-size:.85rem;">Brak zdefiniowanych pojazdów.</p>
           {% endif %}
           <div style="display:flex; gap:.5rem; margin-top:.25rem;">
             <button type="submit" class="btn btn-primary" style="font-size:.8rem; padding:.35rem .9rem;">
@@ -155,7 +155,7 @@
   </div>
 </div>
 {% else %}
-<div class="card" style="text-align:center; padding:2rem; color:#94a3b8; margin-bottom:1.5rem;">
+<div class="card" style="text-align:center; padding:2rem; color:var(--text-2); margin-bottom:1.5rem;">
   Brak danych EV. Dodaj pojazdy poniżej, a następnie wpisz kWh przy dodawaniu odczytów miesięcznych.
 </div>
 {% endif %}
@@ -173,20 +173,20 @@
       {% for v in vehicles %}
       <tr>
         <td>
-          <a href="{{ rp }}/ev/pojazdy/{{ v.id }}" style="color:#e2e8f0; text-decoration:none; font-weight:600; hover:color:#f59e0b;">{{ v.name }}</a>
-          {% if v.notes %}<div style="font-size:.75rem; color:#64748b;">{{ v.notes }}</div>{% endif %}
+          <a href="{{ rp }}/ev/pojazdy/{{ v.id }}" style="color:var(--text); text-decoration:none; font-weight:600; hover:color:var(--accent);">{{ v.name }}</a>
+          {% if v.notes %}<div style="font-size:.75rem; color:var(--text-3);">{{ v.notes }}</div>{% endif %}
         </td>
-        <td style="color:#93c5fd;">{{ v.efficiency_kwh_per_100km }}</td>
-        <td style="color:#fbbf24;">{{ v.fuel_consumption_l_per_100km }}</td>
+        <td style="color:var(--c-blue-2);">{{ v.efficiency_kwh_per_100km }}</td>
+        <td style="color:var(--c-yellow);">{{ v.fuel_consumption_l_per_100km }}</td>
         <td><span class="badge-blue">{{ v.fuel_type }}</span></td>
-        <td style="color:#94a3b8; font-size:.85rem;">{{ v.date_from or '—' }}</td>
-        <td style="color:#94a3b8; font-size:.85rem;">{{ v.date_to or '—' }}</td>
-        <td style="color:#94a3b8; font-size:.85rem;">{% if v.przebieg_km %}{{ "{:,.0f}".format(v.przebieg_km).replace(",", " ") }} km{% else %}—{% endif %}</td>
+        <td style="color:var(--text-2); font-size:.85rem;">{{ v.date_from or '—' }}</td>
+        <td style="color:var(--text-2); font-size:.85rem;">{{ v.date_to or '—' }}</td>
+        <td style="color:var(--text-2); font-size:.85rem;">{% if v.przebieg_km %}{{ "{:,.0f}".format(v.przebieg_km).replace(",", " ") }} km{% else %}—{% endif %}</td>
         <td style="white-space:nowrap;">
           <details style="display:inline;">
             <summary class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem; display:inline-block; cursor:pointer; list-style:none;"><i class="ph-bold ph-pencil-simple"></i></summary>
             <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/edytuj"
-                  style="position:absolute; background:#1e293b; border:1px solid #334155; border-radius:8px; padding:1rem; z-index:10; min-width:280px; display:flex; flex-direction:column; gap:.5rem; margin-top:.25rem;">
+                  style="position:absolute; background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:1rem; z-index:10; min-width:280px; display:flex; flex-direction:column; gap:.5rem; margin-top:.25rem;">
               <input type="text" name="name" value="{{ v.name }}" placeholder="Nazwa" required style="font-size:.85rem;">
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:.5rem;">
                 <input type="number" name="efficiency_kwh_per_100km" value="{{ v.efficiency_kwh_per_100km }}" step="0.1" placeholder="kWh/100km" required style="font-size:.85rem;">
@@ -216,22 +216,22 @@
     </table>
     </div>
     {% endif %}
-    <h3 style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:#94a3b8;">+ Dodaj pojazd</h3>
+    <h3 style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:var(--text-2);">+ Dodaj pojazd</h3>
     <form method="post" action="{{ rp }}/ev/pojazdy/nowy" style="display:flex; flex-direction:column; gap:.6rem;">
       <input type="text" name="name" placeholder="Nazwa np. Tesla Model Y" required>
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Zużycie EV [kWh/100km]</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Zużycie EV [kWh/100km]</label>
           <input type="number" name="efficiency_kwh_per_100km" step="0.1" value="16" required>
         </div>
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Paliwo gdyby [L/100km]</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Paliwo gdyby [L/100km]</label>
           <input type="number" name="fuel_consumption_l_per_100km" step="0.1" value="8" required>
         </div>
       </div>
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Rodzaj paliwa</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Rodzaj paliwa</label>
           <select name="fuel_type">
             <option value="PB95">PB95</option>
             <option value="PB98">PB98</option>
@@ -239,22 +239,22 @@
           </select>
         </div>
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Notatki</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Notatki</label>
           <input type="text" name="notes" placeholder="np. BMW i3">
         </div>
       </div>
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Od (RRRR.MM)</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Od (RRRR.MM)</label>
           <input type="text" name="date_from" placeholder="np. 2023.01" pattern="\d{4}\.(0[1-9]|1[0-2])">
         </div>
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Do (RRRR.MM)</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Do (RRRR.MM)</label>
           <input type="text" name="date_to" placeholder="np. 2025.12 lub puste" pattern="\d{4}\.(0[1-9]|1[0-2])">
         </div>
       </div>
       <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Przebieg km (opcjonalnie)</label>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Przebieg km (opcjonalnie)</label>
         <input type="number" name="przebieg_km" step="1" placeholder="np. 45000">
       </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">+ Dodaj</button>
@@ -273,8 +273,8 @@
       <tr>
         <td>{{ p.date }}</td>
         <td><span class="badge-blue">{{ p.fuel_type }}</span></td>
-        <td style="color:#fbbf24; font-weight:600;">{{ p.price_per_liter|fmtn(2) }} zł</td>
-        <td style="color:#64748b; font-size:.8rem;">{{ p.source or '—' }}</td>
+        <td style="color:var(--c-yellow); font-weight:600;">{{ p.price_per_liter|fmtn(2) }} zł</td>
+        <td style="color:var(--text-3); font-size:.8rem;">{{ p.source or '—' }}</td>
         <td>
           <form method="post" action="{{ rp }}/ev/fuel-price/{{ p.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć?')">
             <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-trash"></i></button>
@@ -289,17 +289,17 @@
     <form method="post" action="{{ rp }}/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Data</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Data</label>
           <input type="date" name="date" required>
         </div>
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Cena [zł/L]</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Cena [zł/L]</label>
           <input type="number" name="price_per_liter" step="0.01" placeholder="6.50" required>
         </div>
       </div>
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Rodzaj</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Rodzaj</label>
           <select name="fuel_type">
             <option value="PB95">PB95</option>
             <option value="PB98">PB98</option>
@@ -307,7 +307,7 @@
           </select>
         </div>
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;">Źródło</label>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Źródło</label>
           <input type="text" name="source" placeholder="np. Orlen, PKN">
         </div>
       </div>

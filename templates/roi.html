@@ -4,7 +4,7 @@
 <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;">Analiza ROI</h1>
 
 {% if not roi %}
-<div class="card" style="text-align:center; padding:2rem; color:#94a3b8;">
+<div class="card" style="text-align:center; padding:2rem; color:var(--text-2);">
   Brak danych. Dodaj inwestycje i odczyty.
 </div>
 {% else %}
@@ -12,32 +12,32 @@
 <!-- Główne wskaźniki -->
 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
   <div class="card">
-    <div class="stat-value" style="color:#f59e0b;">{{ total_investment|fmtn }} zł</div>
+    <div class="stat-value" style="color:var(--accent);">{{ total_investment|fmtn }} zł</div>
     <div class="stat-label">Łączna inwestycja</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#22c55e;">{{ roi.total_savings_pln|fmtn }} zł</div>
+    <div class="stat-value" style="color:var(--c-green);">{{ roi.total_savings_pln|fmtn }} zł</div>
     <div class="stat-label">Zaoszczędzono łącznie</div>
     {% if has_ev and roi.total_ev_savings_pln %}
-    <div style="margin-top:.5rem; font-size:.78rem; color:#64748b; line-height:1.6;">
+    <div style="margin-top:.5rem; font-size:.78rem; color:var(--text-3); line-height:1.6;">
       <i class="ph-bold ph-sun"></i> FV: {{ roi.total_fv_savings_pln|fmtn }} zł<br>
-      <i class="ph-bold ph-car"></i> EV: <span style="color:#60a5fa;">{{ roi.total_ev_savings_pln|fmtn }} zł</span>
+      <i class="ph-bold ph-car"></i> EV: <span style="color:var(--c-blue);">{{ roi.total_ev_savings_pln|fmtn }} zł</span>
     </div>
     {% endif %}
   </div>
   <div class="card">
-    <div class="stat-value" style="color:{% if roi.roi_achieved %}#22c55e{% else %}#f87171{% endif %};">
+    <div class="stat-value" style="color:{% if roi.roi_achieved %}var(--c-green){% else %}var(--c-red-light){% endif %};">
       {% if roi.roi_achieved %}<i class="ph-bold ph-check-circle"></i> Osiągnięty{% else %}{{ roi.remaining_to_roi|fmtn }} zł{% endif %}
     </div>
     <div class="stat-label">{% if roi.roi_achieved %}Status ROI{% else %}Pozostało do zwrotu{% endif %}</div>
   </div>
   <div class="card">
-    <div class="stat-value" style="color:#93c5fd;">{{ roi.avg_monthly_savings|fmtn }} zł</div>
+    <div class="stat-value" style="color:var(--c-blue-2);">{{ roi.avg_monthly_savings|fmtn }} zł</div>
     <div class="stat-label">Średnie oszczędności/mies.</div>
   </div>
   {% if not roi.roi_achieved %}
   <div class="card">
-    <div class="stat-value" style="color:#fbbf24;">{{ roi.months_to_roi }} mies.</div>
+    <div class="stat-value" style="color:var(--c-yellow);">{{ roi.months_to_roi }} mies.</div>
     <div class="stat-label">Szacowany czas do ROI</div>
   </div>
   {% endif %}
@@ -69,15 +69,18 @@ if (hasEV) {
     { label: 'z czego EV [zł]', data: savingsEV, borderColor: '#60a5fa', borderDash: [3,3], pointRadius: 0, fill: false, tension: .3 }
   );
 }
+const cs = getComputedStyle(document.documentElement);
+const gridColor = cs.getPropertyValue('--border').trim() || '#334155';
+const tickColor = cs.getPropertyValue('--text-3').trim() || '#64748b';
 new Chart(document.getElementById('roiChart'), {
   type: 'line',
   data: { labels, datasets },
   options: {
     responsive: true,
-    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    plugins: { legend: { labels: { color: tickColor } } },
     scales: {
-      x: { ticks: { color: '#64748b', maxTicksLimit: 12 }, grid: { color: '#1e293b' } },
-      y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+      x: { ticks: { color: tickColor, maxTicksLimit: 12 }, grid: { color: gridColor } },
+      y: { ticks: { color: tickColor }, grid: { color: gridColor } }
     }
   }
 });
@@ -88,7 +91,7 @@ new Chart(document.getElementById('roiChart'), {
 {% if sensitivity %}
 <div class="card">
   <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Przy jakiej cenie kWh się opłaca?</h2>
-  <p style="color:#94a3b8; font-size:.85rem; margin-bottom:1rem;">
+  <p style="color:var(--text-2); font-size:.85rem; margin-bottom:1rem;">
     Symulacja ROI przy różnych cenach energii (stałe zużycie jak dotychczas, stary net-metering ×0.8)
   </p>
   <div class="table-wrap">
@@ -106,11 +109,11 @@ new Chart(document.getElementById('roiChart'), {
     {% for s in sensitivity %}
     <tr>
       <td><strong>{{ s.price_per_kwh|fmtn(2) }} zł</strong></td>
-      <td style="color:#22c55e;">{{ s.total_savings_pln|fmtn }} zł</td>
-      <td style="color:{% if s.roi_achieved %}#22c55e{% else %}#f87171{% endif %};">
+      <td style="color:var(--c-green);">{{ s.total_savings_pln|fmtn }} zł</td>
+      <td style="color:{% if s.roi_achieved %}var(--c-green){% else %}var(--c-red-light){% endif %};">
         {% if s.roi_achieved %}—{% else %}{{ s.remaining_to_roi|fmtn }} zł{% endif %}
       </td>
-      <td>{% if s.roi_achieved %}<i class="ph-bold ph-check-circle" style="color:#22c55e;"></i>{% else %}{{ s.months_to_roi }}{% endif %}</td>
+      <td>{% if s.roi_achieved %}<i class="ph-bold ph-check-circle" style="color:var(--c-green);"></i>{% else %}{{ s.months_to_roi }}{% endif %}</td>
       <td>{% if s.roi_achieved %}<span class="badge-green">ROI osiągnięty</span>{% else %}<span class="badge-yellow">W toku</span>{% endif %}</td>
     </tr>
     {% endfor %}
@@ -124,26 +127,26 @@ new Chart(document.getElementById('roiChart'), {
 <div class="card" style="margin-top:1.5rem;">
   <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;"><i class="ph-bold ph-target"></i> Przedział ufności break-even</h2>
   {% if not has_enough_data %}
-  <div style="background:#78350f22; border:1px solid #92400e; border-radius:.5rem; padding:.6rem 1rem; margin-bottom:1rem; font-size:.82rem; color:#fbbf24;">
+  <div style="background:#78350f22; border:1px solid var(--badge-yellow-text); border-radius:.5rem; padding:.6rem 1rem; margin-bottom:1rem; font-size:.82rem; color:var(--c-yellow);">
     <i class="ph-bold ph-warning"></i> Mało danych historycznych ({{ forecast|length > 0 and 'mniej niż 12 miesięcy' or 'brak odczytów' }}).
     Prognoza jest orientacyjna.
   </div>
   {% endif %}
   <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem;">
-    <div class="card" style="background:#1a2535; text-align:center;">
-      <div class="stat-value" style="color:#f87171; font-size:1.3rem;">
+    <div class="card" style="background:var(--bg); text-align:center;">
+      <div class="stat-value" style="color:var(--c-red-light); font-size:1.3rem;">
         {% if confidence.pessimistic %}{{ confidence.pessimistic }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
       </div>
       <div class="stat-label">Pesymistyczny (0%)</div>
     </div>
-    <div class="card" style="background:#1a2535; text-align:center; border-color:#f59e0b;">
-      <div class="stat-value" style="color:#fbbf24; font-size:1.3rem;">
+    <div class="card" style="background:var(--bg); text-align:center; border-color:var(--accent);">
+      <div class="stat-value" style="color:var(--c-yellow); font-size:1.3rem;">
         {% if confidence.base %}{{ confidence.base }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
       </div>
       <div class="stat-label">Bazowy (+7%/rok)</div>
     </div>
-    <div class="card" style="background:#1a2535; text-align:center;">
-      <div class="stat-value" style="color:#22c55e; font-size:1.3rem;">
+    <div class="card" style="background:var(--bg); text-align:center;">
+      <div class="stat-value" style="color:var(--c-green); font-size:1.3rem;">
         {% if confidence.optimistic %}{{ confidence.optimistic }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
       </div>
       <div class="stat-label">Optymistyczny (+12%/rok)</div>
@@ -155,7 +158,7 @@ new Chart(document.getElementById('roiChart'), {
 {% if scenarios %}
 <div class="card" style="margin-top:1.5rem;">
   <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;"><i class="ph-bold ph-trend-up"></i> Break-even przy różnym tempie wzrostu cen energii</h2>
-  <p style="color:#94a3b8; font-size:.82rem; margin-bottom:1rem;">
+  <p style="color:var(--text-2); font-size:.82rem; margin-bottom:1rem;">
     Prognoza na {{ forecast|length }} miesięcy ({{ forecast[0].period }} – {{ forecast[-1].period }}).
     Oszczędności prognozowane na podstawie historii sezonowej.
   </p>
@@ -172,15 +175,15 @@ new Chart(document.getElementById('roiChart'), {
     {% for s in scenarios %}
     <tr {% if s.scenario == 'base' %}style="background:#1e3a1e22;"{% endif %}>
       <td><strong>{{ s.label }}</strong></td>
-      <td style="color:{% if s.months_to_roi %}#22c55e{% else %}#94a3b8{% endif %}; font-weight:600;">
+      <td style="color:{% if s.months_to_roi %}var(--c-green){% else %}var(--text-2){% endif %}; font-weight:600;">
         {% if s.months_to_roi %}{{ s.months_to_roi }}{% else %}&gt; {{ forecast|length }}{% endif %}
       </td>
-      <td style="color:#93c5fd;">{{ s.cumulative_savings|fmtn }} zł</td>
+      <td style="color:var(--c-blue-2);">{{ s.cumulative_savings|fmtn }} zł</td>
       <td>
         {% if s.scenario == 'pessimistic' %}<span class="badge-yellow">Pesymistyczny</span>
         {% elif s.scenario == 'base' %}<span class="badge-green">Bazowy</span>
         {% elif s.scenario == 'optimistic' %}<span class="badge-blue">Optymistyczny</span>
-        {% else %}<span style="color:#94a3b8;">—</span>{% endif %}
+        {% else %}<span style="color:var(--text-2);">—</span>{% endif %}
       </td>
     </tr>
     {% endfor %}
@@ -204,6 +207,9 @@ const fLabels = {{ forecast | map(attribute='period') | list | tojson }};
 const fMean   = {{ forecast | map(attribute='production_mean') | list | tojson }};
 const fFcast  = {{ forecast | map(attribute='production_forecast') | list | tojson }};
 const fStdU   = {{ forecast | map(attribute='std') | list | tojson }};
+const cs2 = getComputedStyle(document.documentElement);
+const gridColor2 = cs2.getPropertyValue('--border').trim() || '#334155';
+const tickColor2 = cs2.getPropertyValue('--text-3').trim() || '#64748b';
 new Chart(document.getElementById('forecastChart'), {
   type: 'bar',
   data: {
@@ -230,10 +236,10 @@ new Chart(document.getElementById('forecastChart'), {
   },
   options: {
     responsive: true,
-    plugins: { legend: { labels: { color: '#94a3b8' } } },
+    plugins: { legend: { labels: { color: tickColor2 } } },
     scales: {
-      x: { ticks: { color: '#64748b', maxTicksLimit: 12 }, grid: { color: '#1e293b' } },
-      y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+      x: { ticks: { color: tickColor2, maxTicksLimit: 12 }, grid: { color: gridColor2 } },
+      y: { ticks: { color: tickColor2 }, grid: { color: gridColor2 } }
     }
   }
 });

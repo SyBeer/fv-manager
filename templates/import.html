@@ -1,38 +1,59 @@
 {% extends "base.html" %}
 {% block title %}Ustawienia — FV Manager{% endblock %}
 {% block content %}
+<div class="card" style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+  <span style="color:var(--text-3); font-size:.85rem;"><i class="ph-bold ph-palette"></i> Motyw interfejsu</span>
+  <button onclick="setTheme('dark')" id="btn-theme-dark" class="btn btn-ghost" style="font-size:.8rem;">
+    <i class="ph-bold ph-moon"></i> Ciemny
+  </button>
+  <button onclick="setTheme('light')" id="btn-theme-light" class="btn btn-ghost" style="font-size:.8rem;">
+    <i class="ph-bold ph-sun"></i> Jasny
+  </button>
+</div>
+<script>
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  document.getElementById('btn-theme-dark').style.opacity = t === 'dark' ? '1' : '.5';
+  document.getElementById('btn-theme-light').style.opacity = t === 'light' ? '1' : '.5';
+}
+(function(){
+  var t = localStorage.getItem('theme') || 'dark';
+  setTheme(t);
+})();
+</script>
 <div style="max-width:700px;">
   <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;"><i class="ph-bold ph-gear"></i> Ustawienia</h1>
 
   <!-- Home Assistant -->
   <div class="card" style="margin-bottom:1.5rem;">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.5rem;"><i class="ph-bold ph-house"></i> Home Assistant</h2>
-    <p style="font-size:.82rem; color:#64748b; margin-bottom:1rem;">Połączenie używa wewnętrznego API Supervisora — nie wymaga tokenu ani adresu URL.</p>
+    <p style="font-size:.82rem; color:var(--text-3); margin-bottom:1rem;">Połączenie używa wewnętrznego API Supervisora — nie wymaga tokenu ani adresu URL.</p>
     <form method="post" action="{{ rp }}/ev/settings" style="display:flex; flex-direction:column; gap:.75rem;">
       <input type="hidden" name="efficiency_kwh_per_100km" value="{{ settings.efficiency_kwh_per_100km or 16 }}">
       <input type="hidden" name="fuel_consumption_l_per_100km" value="{{ settings.fuel_consumption_l_per_100km or 10 }}">
       <input type="hidden" name="annual_km" value="{{ settings.annual_km or 25000 }}">
       <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;"><i class="ph-bold ph-sun"></i> Produkcja solarna</label>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);"><i class="ph-bold ph-sun"></i> Produkcja solarna</label>
         <input type="text" name="ha_solar_entity" placeholder="sensor.solaredge_energy_today" value="{{ settings.ha_solar_entity or '' }}">
-        <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Solar Production (total_increasing).</div>
+        <div style="font-size:.75rem; color:var(--text-4); margin-top:.25rem;">Energy → Solar Production (total_increasing).</div>
       </div>
       <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;"><i class="ph-bold ph-download-simple"></i> Pobrane z sieci (Total forward active energy)</label>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);"><i class="ph-bold ph-download-simple"></i> Pobrane z sieci (Total forward active energy)</label>
         <input type="text" name="ha_grid_consumed_entity" placeholder="sensor.zamel_mew01_total_forward_active_energy" value="{{ settings.ha_grid_consumed_entity or '' }}">
-        <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Electricity grid → pierwsza encja (licznik 1.8.0).</div>
+        <div style="font-size:.75rem; color:var(--text-4); margin-top:.25rem;">Energy → Electricity grid → pierwsza encja (licznik 1.8.0).</div>
       </div>
       <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;"><i class="ph-bold ph-arrow-up"></i> Oddane do sieci (Total reverse active energy)</label>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);"><i class="ph-bold ph-arrow-up"></i> Oddane do sieci (Total reverse active energy)</label>
         <input type="text" name="ha_grid_returned_entity" placeholder="sensor.zamel_mew01_total_reverse_active_energy" value="{{ settings.ha_grid_returned_entity or '' }}">
-        <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Energy → Electricity grid → druga encja (licznik 2.8.0).</div>
+        <div style="font-size:.75rem; color:var(--text-4); margin-top:.25rem;">Energy → Electricity grid → druga encja (licznik 2.8.0).</div>
       </div>
       <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:#94a3b8;"><i class="ph-bold ph-lightning"></i> Współczynnik net-meteringu</label>
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);"><i class="ph-bold ph-lightning"></i> Współczynnik net-meteringu</label>
         <input type="number" id="net_metering_ratio" name="net_metering_ratio"
                step="0.01" min="0.5" max="1.0"
                value="{{ settings.net_metering_ratio or 0.8 }}">
-        <div style="font-size:.75rem; color:#475569; margin-top:.25rem;">Ułamek oddanej energii wracający do puli rozliczeniowej (domyślnie 0.80 = 80%)</div>
+        <div style="font-size:.75rem; color:var(--text-4); margin-top:.25rem;">Ułamek oddanej energii wracający do puli rozliczeniowej (domyślnie 0.80 = 80%)</div>
       </div>
       <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
         <button type="submit" class="btn btn-primary" style="font-size:.85rem;"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
@@ -43,33 +64,33 @@
   </div>
 
   {% if request.query_params.get('saved') %}
-  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#86efac;">
+  <div style="background:var(--badge-green-bg); border:1px solid var(--c-green); border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:var(--badge-green-text);">
     <i class="ph-bold ph-check-circle"></i> Ustawienia zapisano.
   </div>
   {% endif %}
 
-  <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem; color:#94a3b8;"><i class="ph-bold ph-upload-simple"></i> Import danych</h2>
+  <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem; color:var(--text-2);"><i class="ph-bold ph-upload-simple"></i> Import danych</h2>
 
   {% if error %}
-  <div style="background:#450a0a; border:1px solid #ef4444; border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:#fca5a5;">
+  <div style="background:var(--badge-red-bg); border:1px solid var(--c-red); border-radius:8px; padding:1rem; margin-bottom:1.5rem; color:var(--badge-red-text);">
     <i class="ph-bold ph-x-circle"></i> {{ error }}
   </div>
   {% endif %}
 
   {% if request.query_params.get('cleared') %}
-  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
+  <div style="background:var(--badge-green-bg); border:1px solid var(--c-green); border-radius:8px; padding:1rem; margin-bottom:1rem; color:var(--badge-green-text);">
     <i class="ph-bold ph-check-circle"></i> Baza danych została wyczyszczona.
   </div>
   {% endif %}
 
   {% if request.query_params.get('restored') %}
-  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
+  <div style="background:var(--badge-green-bg); border:1px solid var(--c-green); border-radius:8px; padding:1rem; margin-bottom:1rem; color:var(--badge-green-text);">
     <i class="ph-bold ph-check-circle"></i> Przywrócono dane z backupu — <strong>{{ request.query_params.get('restored') }}</strong> rekordów.
   </div>
   {% endif %}
 
   {% if request.query_params.get('imported') %}
-  <div style="background:#166534; border:1px solid #22c55e; border-radius:8px; padding:1rem; margin-bottom:1rem; color:#86efac;">
+  <div style="background:var(--badge-green-bg); border:1px solid var(--c-green); border-radius:8px; padding:1rem; margin-bottom:1rem; color:var(--badge-green-text);">
     <i class="ph-bold ph-check-circle"></i> Zaimportowano <strong>{{ request.query_params.get('imported') }}</strong> rekordów
     (pominięto duplikatów: {{ request.query_params.get('skipped', 0) }})
   </div>
@@ -78,12 +99,12 @@
   <!-- CSV Import -->
   <div class="card" style="margin-bottom:1.5rem;">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;"><i class="ph-bold ph-file-text"></i> Import z CSV</h2>
-    <p style="color:#94a3b8; margin-bottom:.75rem; font-size:.9rem;">
+    <p style="color:var(--text-2); margin-bottom:.75rem; font-size:.9rem;">
       Wgraj plik CSV wyeksportowany z aplikacji (<i class="ph-bold ph-download-simple"></i> CSV w Odczytach) lub przygotowany ręcznie.
       Istniejące okresy nie zostaną nadpisane.
     </p>
-    <div style="background:#0f172a; border-radius:6px; padding:.6rem 1rem; margin-bottom:1.25rem; font-size:.85rem; color:#fbbf24;">
-      <i class="ph-bold ph-warning"></i> Separator kolumn musi być <strong>średnik (<code style="color:#f8fafc;">;</code>)</strong> — nie przecinek.
+    <div style="background:var(--bg); border-radius:6px; padding:.6rem 1rem; margin-bottom:1.25rem; font-size:.85rem; color:var(--c-yellow);">
+      <i class="ph-bold ph-warning"></i> Separator kolumn musi być <strong>średnik (<code style="color:var(--text);">;</code>)</strong> — nie przecinek.
       Kodowanie pliku: <strong>UTF-8</strong>.
     </div>
     <div style="display:flex; gap:.75rem; margin-bottom:1.5rem; flex-wrap:wrap;">
@@ -91,7 +112,7 @@
     </div>
     <form method="post" action="{{ rp }}/import/csv" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
       <div style="flex:1; min-width:200px;">
-        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik CSV (.csv)</label>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Plik CSV (.csv)</label>
         <input type="file" name="file" accept=".csv" required>
       </div>
       <button type="submit" class="btn btn-primary" onclick="this.disabled=true; this.textContent='⏳ Importuję...'; this.form.submit();"><i class="ph-bold ph-upload-simple"></i> Importuj</button>
@@ -101,7 +122,7 @@
   <!-- Struktura pliku CSV -->
   <div class="card" style="margin-bottom:1.5rem;">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;"><i class="ph-bold ph-clipboard-text"></i> Struktura pliku CSV</h2>
-    <p style="color:#94a3b8; font-size:.85rem; margin-bottom:1.25rem;">
+    <p style="color:var(--text-2); font-size:.85rem; margin-bottom:1.25rem;">
       Pierwszy wiersz to nagłówek. Każdy kolejny wiersz to jeden miesiąc.
       Kolumny obliczeniowe (autokonsumpcja, zużycie, oszczędności, wartość produkcji) są ignorowane przy imporcie — aplikacja wylicza je sama.
     </p>
@@ -117,52 +138,52 @@
       </thead>
       <tbody>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Okres</code></td>
-          <td>Format <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">RRRR.MM</code>, np. <code style="background:#0f172a; padding:.1rem .3rem; border-radius:3px;">2024.06</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Okres</code></td>
+          <td>Format <code style="background:var(--bg); padding:.1rem .3rem; border-radius:3px;">RRRR.MM</code>, np. <code style="background:var(--bg); padding:.1rem .3rem; border-radius:3px;">2024.06</code></td>
           <td><span class="badge-green">TAK</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Produkcja [kWh]</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Produkcja [kWh]</code></td>
           <td>Energia wyprodukowana przez panele</td>
           <td><span class="badge-green">TAK</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Oddane [kWh]</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Oddane [kWh]</code></td>
           <td>Energia oddana do sieci w danym miesiącu</td>
           <td><span class="badge-green">TAK</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Pobrane [kWh]</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Pobrane [kWh]</code></td>
           <td>Energia pobrana z sieci w danym miesiącu</td>
           <td><span class="badge-green">TAK</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Dni</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Dni</code></td>
           <td>Liczba dni w okresie rozliczeniowym</td>
           <td><span class="badge-yellow">NIE</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Cena kWh [zł]</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Cena kWh [zł]</code></td>
           <td>Cena energii z faktury — używana do obliczenia oszczędności</td>
           <td><span class="badge-yellow">NIE</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Nr faktury</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Nr faktury</code></td>
           <td>Numer faktury za prąd</td>
           <td><span class="badge-yellow">NIE</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Faktura brutto [zł]</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Faktura brutto [zł]</code></td>
           <td>Kwota faktury brutto</td>
           <td><span class="badge-yellow">NIE</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">EV [kWh]</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">EV [kWh]</code></td>
           <td>Energia zużyta do ładowania auta elektrycznego</td>
           <td><span class="badge-yellow">NIE</span></td>
         </tr>
         <tr>
-          <td><code style="background:#0f172a; padding:.1rem .4rem; border-radius:4px;">Notatki</code></td>
+          <td><code style="background:var(--bg); padding:.1rem .4rem; border-radius:4px;">Notatki</code></td>
           <td>Dowolny komentarz</td>
           <td><span class="badge-yellow">NIE</span></td>
         </tr>
@@ -170,9 +191,9 @@
     </table>
     </div>
 
-    <div style="margin-top:1.25rem; padding:.75rem; background:#0f172a; border-radius:8px; font-size:.82rem; color:#64748b; line-height:1.7;">
-      <strong style="color:#94a3b8;">Przykładowy wiersz:</strong><br>
-      <code style="color:#86efac; white-space:pre-wrap;">Okres;Produkcja [kWh];Oddane [kWh];Pobrane [kWh];Dni;Cena kWh [zł]
+    <div style="margin-top:1.25rem; padding:.75rem; background:var(--bg); border-radius:8px; font-size:.82rem; color:var(--text-3); line-height:1.7;">
+      <strong style="color:var(--text-2);">Przykładowy wiersz:</strong><br>
+      <code style="color:var(--badge-green-text); white-space:pre-wrap;">Okres;Produkcja [kWh];Oddane [kWh];Pobrane [kWh];Dni;Cena kWh [zł]
 2024.06;510.5;320.1;180.3;30;0.75</code>
     </div>
   </div>
@@ -180,7 +201,7 @@
   <!-- Backup -->
   <div class="card" style="margin-bottom:1.5rem;">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem;"><i class="ph-bold ph-floppy-disk"></i> Backup danych</h2>
-    <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1rem;">
+    <p style="color:var(--text-2); font-size:.9rem; margin-bottom:1rem;">
       Pobierz pełny backup wszystkich danych jako plik JSON.
       Zawiera odczyty, inwestycje, pojazdy, ceny paliw, okresy rozliczeniowe, ceny RCE.
       Ustawienia aplikacji (<code>app_settings</code>) są też uwzględnione.
@@ -189,29 +210,29 @@
   </div>
 
   <!-- Restore -->
-  <div class="card" style="margin-bottom:1.5rem; border-color:#7c3aed;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#c4b5fd;"><i class="ph-bold ph-arrows-clockwise"></i> Przywróć z backupu</h2>
-    <p style="color:#94a3b8; font-size:.9rem; margin-bottom:.75rem;">
+  <div class="card" style="margin-bottom:1.5rem; border-color:var(--c-purple);">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:var(--c-purple);"><i class="ph-bold ph-arrows-clockwise"></i> Przywróć z backupu</h2>
+    <p style="color:var(--text-2); font-size:.9rem; margin-bottom:.75rem;">
       Wgraj plik JSON pobrany przez "Pobierz backup JSON".
-      <strong style="color:#f87171;">Istniejące dane zostaną nadpisane.</strong>
+      <strong style="color:var(--c-red-light);">Istniejące dane zostaną nadpisane.</strong>
       Ustawienia aplikacji (współczynniki, konfiguracja HA) pozostają bez zmian.
     </p>
     <form method="post" action="{{ rp }}/restore" enctype="multipart/form-data"
           style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;"
           onsubmit="return confirm('Przywrócenie nadpisze bieżące dane. Kontynuować?')">
       <div style="flex:1; min-width:200px;">
-        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:#94a3b8;">Plik backup (.json)</label>
+        <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Plik backup (.json)</label>
         <input type="file" name="file" accept=".json" required>
       </div>
-      <button type="submit" class="btn" style="background:#7c3aed; color:white;"><i class="ph-bold ph-arrows-clockwise"></i> Przywróć</button>
+      <button type="submit" class="btn" style="background:var(--c-purple); color:white;"><i class="ph-bold ph-arrows-clockwise"></i> Przywróć</button>
     </form>
   </div>
 
   <!-- Danger Zone -->
-  <div class="card" style="border-color:#ef4444;">
-    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:#f87171;"><i class="ph-bold ph-warning"></i> Niebezpieczna strefa</h2>
-    <p style="color:#94a3b8; font-size:.9rem; margin-bottom:1.5rem;">
-      Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:#f87171;">nieodwracalna</strong>.
+  <div class="card" style="border-color:var(--c-red);">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:var(--c-red-light);"><i class="ph-bold ph-warning"></i> Niebezpieczna strefa</h2>
+    <p style="color:var(--text-2); font-size:.9rem; margin-bottom:1.5rem;">
+      Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:var(--c-red-light);">nieodwracalna</strong>.
       Przed czyszczeniem warto wyeksportować dane do CSV.
     </p>
     <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Spowoduje to usunięcie WSZYSTKICH danych. Czy na pewno chcesz kontynuować?')">
@@ -224,24 +245,24 @@
 async function testHA() {
   const el = document.getElementById('ha-test-result');
   el.style.display = 'block';
-  el.style.background = '#0f172a';
-  el.style.color = '#94a3b8';
+  el.style.background = 'var(--bg)';
+  el.style.color = 'var(--text-2)';
   el.textContent = '⏳ Testowanie połączenia...';
   try {
     const r = await fetch('{{ rp }}/api/ha-test');
     const d = await r.json();
     if (d.error) {
-      el.style.background = '#450a0a';
-      el.style.color = '#fca5a5';
+      el.style.background = 'var(--badge-red-bg)';
+      el.style.color = 'var(--badge-red-text)';
       el.textContent = '❌ ' + d.error;
     } else {
-      el.style.background = '#166534';
-      el.style.color = '#86efac';
+      el.style.background = 'var(--badge-green-bg)';
+      el.style.color = 'var(--badge-green-text)';
       el.textContent = '✅ ' + d.message + (d.last_period_start ? ' (okres: ' + d.last_period_start + ')' : '');
     }
   } catch(e) {
-    el.style.background = '#450a0a';
-    el.style.color = '#fca5a5';
+    el.style.background = 'var(--badge-red-bg)';
+    el.style.color = 'var(--badge-red-text)';
     el.textContent = '❌ Błąd połączenia: ' + e.message;
   }
 }
