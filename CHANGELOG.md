@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.1] — 2026-05-24
+
+### Poprawiono
+- `ha_stats.py`: dodano `units: {"energy": "kWh"}` do requestu Statistics API — HA sam konwertuje Wh→kWh, usunięto `_fetch_unit`
+- `ha_stats.py`: poprawka obsługi wielu kubełków miesięcznych — filtrowanie po `start` w strefie lokalnej zamiast sumowania wszystkich (fix timezone UTC vs lokalny)
+- `ha_stats.py`: `types: ["change"]` zamiast `["change", "state"]` — tylko delta, nie stan licznika
+- `investments.html`, `investment_form.html`: pole `power_kwp` przemianowane na "Sumaryczna moc FV" z hintem wyjaśniającym semantykę (łączna moc, nie dokładka)
+
 ## [3.0.0] — 2026-05-24
 
 ### Dodano

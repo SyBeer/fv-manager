@@ -103,21 +103,37 @@ async def _fetch_ha_timezone(
     return "Europe/Warsaw"
 
 
-async def _fetch_unit(
-    client: httpx.AsyncClient, base_url: str, token: str, entity_id: str
-) -> str:
-    """Return unit_of_measurement from entity attributes. Defaults to 'kWh'."""
-    try:
-        r = await client.get(
-            f"{base_url}/states/{entity_id}",
-            headers={"Authorization": f"Bearer {token}"},
-            timeout=10,
-        )
-        if r.status_code == 200:
-            return r.json().get("attributes", {}).get("unit_of_measurement") or "kWh"
-    except Exception:
-        pass
-    return "kWh"
+def _pick_bucket(stats: list, year: int, month: int, tz: ZoneInfo) -> Optional[float]:
+    """Return the 'change' value from the bucket matching year/month in local time.
+
+    HA may return multiple monthly buckets when UTC boundaries don't align with
+    local midnight (e.g. Europe/Warsaw is UTC+1/UTC+2). We match by parsing each
+    bucket's 'start' timestamp in local time and checking year/month.
+
+    Falls back to summing all buckets if none matches (old behaviour, safe default).
+    """
+    for entry in stats:
+        start_raw = entry.get("start") or ""
+        try:
+            start_dt = datetime.fromisoformat(start_raw)
+            start_local = start_dt.astimezone(tz)
+            if start_local.year == year and start_local.month == month:
+                ch = entry.get("change")
+                return float(ch) if ch is not None else None
+        except Exception:
+            # Fallback: string prefix match (no TZ suffix in older HA versions)
+            if start_raw.startswith(f"{year}-{month:02d}"):
+                ch = entry.get("change")
+                return float(ch) if ch is not None else None
+
+    # No matching bucket — sum all (defensive fallback)
+    logger.warning("No bucket matched %d-%02d; summing all %d buckets", year, month, len(stats))
+    total: Optional[float] = None
+    for entry in stats:
+        ch = entry.get("change")
+        if ch is not None:
+            total = (total or 0.0) + float(ch)
+    return total
 
 
 # ── Public API ─────────────────────────────────────────────────────────────────
@@ -127,7 +143,7 @@ async def get_monthly_energy(entity_id: str, year: int, month: int) -> Optional[
 
     Uses POST /api/services/recorder/get_statistics?return_response.
     Time boundaries are computed in HA's local timezone (fetched from /api/config).
-    Sensors reporting in Wh are converted to kWh automatically.
+    Unit conversion (Wh → kWh) handled server-side via units: {energy: kWh}.
 
     Caching:
       - Closed months: persisted to DATA_PATH/stats_cache.json
@@ -161,9 +177,6 @@ async def get_monthly_energy(entity_id: str, year: int, month: int) -> Optional[
                 logger.debug("Cache hit (persistent) %s %d-%02d", entity_id, year, month)
                 return cached
 
-        # ── Unit detection ─────────────────────────────────────────────────────
-        unit = await _fetch_unit(client, base_url, token, entity_id)
-
         # ── Time boundaries in HA-local time (no tz suffix) ───────────────────
         start_local = datetime(year, month, 1, 0, 0, 0, tzinfo=tz)
         if is_current:
@@ -190,7 +203,8 @@ async def get_monthly_energy(entity_id: str, year: int, month: int) -> Optional[
                     "end_time": end_str,
                     "statistic_ids": [entity_id],
                     "period": "month",
-                    "types": ["change", "state"],
+                    "types": ["change"],
+                    "units": {"energy": "kWh"},
                 },
                 timeout=20,
             )
@@ -215,7 +229,6 @@ async def get_monthly_energy(entity_id: str, year: int, month: int) -> Optional[
             return None
 
         # services/…?return_response wraps in {"response": {entity_id: [...]}}
-        # Fall back to top-level dict for older HA or direct endpoint usage
         inner = body.get("response")
         if inner is None:
             inner = body
@@ -225,18 +238,11 @@ async def get_monthly_energy(entity_id: str, year: int, month: int) -> Optional[
             logger.warning("Empty statistics for %s in %d-%02d", entity_id, year, month)
             return None
 
-        total: Optional[float] = None
-        for entry in stats:
-            ch = entry.get("change")
-            if ch is not None:
-                total = (total or 0.0) + float(ch)
+        total = _pick_bucket(stats, year, month, tz)
 
         if total is None:
             logger.warning("No 'change' in statistics for %s %d-%02d", entity_id, year, month)
             return None
-
-        if unit.lower() == "wh":
-            total /= 1000.0
 
         result = round(total, 3)
 
@@ -258,7 +264,6 @@ async def get_current_month_energy(entity_id: str) -> Optional[float]:
     if not base_url or not token:
         return None
 
-    # Populate timezone cache if not yet known (single cheap request)
     if not _tz_cache:
         async with _AsyncClient(timeout=10) as client:
             await _fetch_ha_timezone(client, base_url, token)
