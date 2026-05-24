@@ -31,8 +31,9 @@
       </div>
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Moc [kWp] (opcjonalnie)</label>
-          <input type="number" name="power_kwp" step="0.01" value="{{ inv.power_kwp or '' }}">
+          <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Sumaryczna moc FV [kWp] (opcjonalnie)</label>
+          <input type="number" name="power_kwp" step="0.01" value="{{ inv.power_kwp or '' }}" placeholder="łączna moc po tej inwestycji">
+          <div style="font-size:.75rem; color:var(--text-3); margin-top:.3rem;">Łączna moc instalacji po tej inwestycji — nie tylko dokładka</div>
         </div>
         <div>
           <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Notatki</label>
