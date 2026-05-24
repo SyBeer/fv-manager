@@ -41,6 +41,85 @@
 </div>
 {% endif %}
 
+<!-- Karty PV -->
+{% if pv_stats %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-sun"></i> Produkcja ({{ readings|length }} mies.)
+    </div>
+    <div style="color:#fbbf24; font-size:1.5rem; font-weight:700;">{{ pv_stats.production_12m|fmtn(1) }} kWh</div>
+    {% if pv_stats.avg_monthly_prod %}
+    <div style="color:#64748b; font-size:.8rem; margin-top:.3rem;">śr. {{ pv_stats.avg_monthly_prod|fmtn(1) }} kWh/mies.</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-house-line"></i> Autokonsumpcja
+    </div>
+    <div style="color:#22c55e; font-size:1.5rem; font-weight:700;">{{ pv_stats.auto_12m|fmtn(1) }} kWh</div>
+    {% if pv_stats.auto_pct %}
+    <div style="color:#64748b; font-size:.8rem; margin-top:.3rem;">{{ pv_stats.auto_pct }}% produkcji</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-arrow-up"></i> Oddane do sieci
+    </div>
+    <div style="color:#94a3b8; font-size:1.5rem; font-weight:700;">{{ pv_stats.sent_12m|fmtn(1) }} kWh</div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-arrow-down"></i> Pobrane z sieci
+    </div>
+    <div style="color:#f87171; font-size:1.5rem; font-weight:700;">{{ pv_stats.taken_12m|fmtn(1) }} kWh</div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-piggy-bank"></i> Oszczędności FV
+    </div>
+    <div style="color:#22c55e; font-size:1.5rem; font-weight:700;">{{ pv_stats.savings_12m|fmtn(2) }} zł</div>
+    <div style="color:#64748b; font-size:.8rem; margin-top:.3rem;">ostatnie {{ readings|length }} mies.</div>
+  </div>
+
+</div>
+{% endif %}
+
+<!-- Karty per pojazd EV -->
+{% if vehicles_summary %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+  {% for vs in vehicles_summary %}
+  <a href="{{ rp }}/ev/pojazdy/{{ vs.id }}" style="text-decoration:none;">
+    <div class="card" style="cursor:pointer; transition:border-color .15s;"
+         onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#334155'">
+      <div style="font-weight:600; margin-bottom:.75rem; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        <i class="ph-bold ph-car"></i> {{ vs.name }}
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:.4rem .75rem;">
+        <div>
+          <div style="color:#93c5fd; font-size:1.05rem; font-weight:700;">{{ vs.total_km|fmtn }} km</div>
+          <div style="color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">łącznie km</div>
+        </div>
+        <div>
+          <div style="color:#60a5fa; font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn(1) }} kWh</div>
+          <div style="color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">energia EV</div>
+        </div>
+        <div style="grid-column:1/-1; margin-top:.25rem; padding-top:.5rem; border-top:1px solid #334155;">
+          <div style="color:#22c55e; font-size:1.15rem; font-weight:700;">{{ vs.total_savings|fmtn(2) }} zł</div>
+          <div style="color:#64748b; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">oszczędności vs paliwo</div>
+        </div>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Ostatnie 12 miesięcy -->
 <div class="card">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">

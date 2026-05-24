@@ -274,6 +274,60 @@ def _inject_odometer_km(ev_monthly: list[dict]) -> list[dict]:
     return result
 
 
+def _agg_vehicles_ev(
+    vehicles: list[dict],
+    ev_monthly: list[dict],
+    price_map: dict,
+    all_fuel_prices: list[dict],
+    default_price: float,
+) -> list[dict]:
+    """Aggregate total km, kWh, savings per vehicle from ev_monthly entries."""
+    prices_desc = sorted(all_fuel_prices, key=lambda p: p["date"], reverse=True)
+    vmap = {v["id"]: v for v in vehicles}
+    agg: dict[int, dict] = {}
+
+    for e in ev_monthly:
+        vid = e["vehicle_id"]
+        v = vmap.get(vid)
+        if not v or not e.get("kwh"):
+            continue
+        if vid not in agg:
+            agg[vid] = {"kwh": 0.0, "km": 0.0, "savings": 0.0}
+        agg[vid]["kwh"] += e["kwh"]
+
+        year, month_str = e["period"].split(".")
+        period_end = f"{year}-{month_str.zfill(2)}-28"
+        fuel_obj = next(
+            (p for p in prices_desc if p["fuel_type"] == v["fuel_type"] and p["date"] <= period_end),
+            next((p for p in prices_desc if p["fuel_type"] == v["fuel_type"]), None),
+        )
+        if fuel_obj:
+            calc = calc_ev_savings(
+                ev_kwh=e["kwh"],
+                price_per_kwh=price_map.get(e["period"]) or default_price,
+                efficiency_kwh_per_100km=v["efficiency_kwh_per_100km"],
+                fuel_consumption_l_per_100km=v["fuel_consumption_l_per_100km"],
+                fuel_price_per_liter=fuel_obj["price_per_liter"],
+                km_driven=e.get("km"),
+            )
+            agg[vid]["km"] += calc["km_driven"]
+            agg[vid]["savings"] += calc["ev_net_savings"]
+
+    result = []
+    for v in vehicles:
+        if v["id"] not in agg:
+            continue
+        s = agg[v["id"]]
+        result.append({
+            "id": v["id"],
+            "name": v["name"],
+            "total_kwh": round(s["kwh"], 1),
+            "total_km": round(s["km"], 1),
+            "total_savings": round(s["savings"], 2),
+        })
+    return result
+
+
 def _ev_enrich(
     readings: list[dict],
     ev_settings: dict,
@@ -393,11 +447,33 @@ async def dashboard(request: Request):
     roi = calc_roi(readings, total_investment, default_price, nm_ratio, billing_periods, rce_prices) if readings and total_investment > 0 else None
     enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
 
+    price_map = {r["period"]: r.get("price_per_kwh") for r in readings}
+    vehicles_summary = _agg_vehicles_ev(vehicles, ev_monthly, price_map, fuel_prices, default_price)
+
+    last12 = enriched[-12:]
+    pv_production_12m = sum(r["production_kwh"] for r in last12)
+    pv_auto_12m = sum(r.get("auto_consumption") or 0 for r in last12)
+    pv_sent_12m = sum(r["sent_to_grid_kwh"] for r in last12)
+    pv_taken_12m = sum(r["taken_from_grid_kwh"] for r in last12)
+    pv_savings_12m = sum(r.get("savings_pln") or 0 for r in last12)
+    pv_auto_pct = round(pv_auto_12m / pv_production_12m * 100, 1) if pv_production_12m > 0 else None
+    pv_stats = {
+        "production_12m": round(pv_production_12m, 1),
+        "auto_12m": round(pv_auto_12m, 1),
+        "auto_pct": pv_auto_pct,
+        "sent_12m": round(pv_sent_12m, 1),
+        "taken_12m": round(pv_taken_12m, 1),
+        "savings_12m": round(pv_savings_12m, 2),
+        "avg_monthly_prod": round(pv_production_12m / len(last12), 1) if last12 else None,
+    } if last12 else None
+
     return _t(request, "dashboard.html", {
-        "readings": enriched[-12:],
+        "readings": last12,
         "investments": investments,
         "roi": roi,
         "total_months": len(readings),
+        "vehicles_summary": vehicles_summary,
+        "pv_stats": pv_stats,
     })
 
 
@@ -1164,6 +1240,9 @@ async def ev_page(request: Request):
                 "odometer_km": e.get("odometer_km"),
             }
 
+    price_map_ev = {r["period"]: r.get("price_per_kwh") for r in readings}
+    vehicles_summary = _agg_vehicles_ev(vehicles, ev_monthly_all, price_map_ev, all_fuel_prices, default_price)
+
     return _t(request, "ev.html", {
         "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
         "vehicles": vehicles,
@@ -1172,6 +1251,7 @@ async def ev_page(request: Request):
         "total_ev_savings": round(total_ev_savings, 2),
         "total_km": round(total_km, 1),
         "total_liters_saved": round(total_liters_saved, 2),
+        "vehicles_summary": vehicles_summary,
     })
 
 
