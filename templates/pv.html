@@ -3,6 +3,48 @@
 {% block content %}
 <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;"><i class="ph-bold ph-solar-panel"></i> Ustawienia instalacji PV</h1>
 
+{% if pv_stats %}
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-sun"></i> Produkcja ({{ pv_stats.n_months }} mies.)
+    </div>
+    <div style="color:#fbbf24; font-size:1.5rem; font-weight:700;">{{ pv_stats.production_12m|fmtn(1) }} kWh</div>
+    {% if pv_stats.avg_monthly_prod %}
+    <div style="color:#64748b; font-size:.8rem; margin-top:.3rem;">śr. {{ pv_stats.avg_monthly_prod|fmtn(1) }} kWh/mies.</div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-house-line"></i> Autokonsumpcja
+    </div>
+    <div style="color:#22c55e; font-size:1.5rem; font-weight:700;">{{ pv_stats.auto_12m|fmtn(1) }} kWh</div>
+    {% if pv_stats.auto_pct %}
+    <div style="color:#64748b; font-size:.8rem; margin-top:.3rem;">{{ pv_stats.auto_pct }}% produkcji</div>
+    {% endif %}
+  </div>
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-arrow-up"></i> Oddane do sieci
+    </div>
+    <div style="color:#94a3b8; font-size:1.5rem; font-weight:700;">{{ pv_stats.sent_12m|fmtn(1) }} kWh</div>
+  </div>
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-arrow-down"></i> Pobrane z sieci
+    </div>
+    <div style="color:#f87171; font-size:1.5rem; font-weight:700;">{{ pv_stats.taken_12m|fmtn(1) }} kWh</div>
+  </div>
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:#64748b; margin-bottom:.4rem;">
+      <i class="ph-bold ph-piggy-bank"></i> Oszczędności FV
+    </div>
+    <div style="color:#22c55e; font-size:1.5rem; font-weight:700;">{{ pv_stats.savings_12m|fmtn(2) }} zł</div>
+    <div style="color:#64748b; font-size:.8rem; margin-top:.3rem;">ostatnie {{ pv_stats.n_months }} mies.</div>
+  </div>
+</div>
+{% endif %}
+
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
 
   <!-- Okresy rozliczeniowe -->

@@ -129,6 +129,7 @@ new Chart(document.getElementById('vehicleChart'), {
         <th>Koszt paliwa (gdyby)</th>
         <th>Oszczędność</th>
         <th>Litrów</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -137,18 +138,12 @@ new Chart(document.getElementById('vehicleChart'), {
       <td><strong>{{ m.period }}</strong></td>
       <td style="color:#60a5fa;">{{ m.kwh|fmtn(1) }} kWh</td>
       <td>
-        {% if m.km_driven is not none %}
-          {{ m.km_driven|fmtn }} km
-        {% else %}—{% endif %}
+        {% if m.km_driven is not none %}{{ m.km_driven|fmtn }} km{% else %}—{% endif %}
       </td>
       <td>
-        {% if m.km_source == 'manual' %}
-          <span class="badge-green">ręczne</span>
-        {% elif m.km_source == 'licznik' %}
-          <span class="badge-blue">licznik</span>
-        {% else %}
-          <span style="color:#475569; font-size:.8rem;">(est.)</span>
-        {% endif %}
+        {% if m.km_source == 'manual' %}<span class="badge-green">ręczne</span>
+        {% elif m.km_source == 'licznik' %}<span class="badge-blue">licznik</span>
+        {% else %}<span style="color:#475569; font-size:.8rem;">(est.)</span>{% endif %}
       </td>
       <td style="color:#94a3b8;">
         {% if m.electricity_cost is not none %}{{ m.electricity_cost|fmtn(2) }} zł{% else %}—{% endif %}
@@ -161,6 +156,12 @@ new Chart(document.getElementById('vehicleChart'), {
       </td>
       <td style="color:#fbbf24;">
         {% if m.liters_saved is not none %}{{ m.liters_saved|fmtn(1) }} L{% else %}—{% endif %}
+      </td>
+      <td>
+        <button class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;"
+                onclick="openEditModal('{{ m.period }}','{{ m.kwh }}','{{ m.km if m.km_source == 'manual' else '' }}','{{ m.odometer_km or '' }}')">
+          <i class="ph-bold ph-pencil-simple"></i>
+        </button>
       </td>
     </tr>
     {% endfor %}
@@ -175,5 +176,90 @@ new Chart(document.getElementById('vehicleChart'), {
   <a href="{{ rp }}/odczyty/nowy" style="color:#f59e0b;">Nowy odczyt</a>.
 </div>
 {% endif %}
+
+<!-- Modal edycji miesięcznej -->
+<div id="editModalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100;"
+     onclick="if(event.target===this) closeEditModal()"></div>
+
+<div id="editModal" style="display:none; position:fixed; z-index:101; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:0; min-width:300px; box-shadow:0 8px 32px rgba(0,0,0,.5);">
+  <!-- Pasek drag -->
+  <div id="editModalHeader" style="padding:.75rem 1rem; border-bottom:1px solid #334155; display:flex; align-items:center; justify-content:space-between; cursor:grab; user-select:none; border-radius:12px 12px 0 0; background:#273549;">
+    <span style="font-weight:600; font-size:.9rem;"><i class="ph-bold ph-pencil-simple"></i> Edycja — <span id="editModalPeriod"></span></span>
+    <button onclick="closeEditModal()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:1.1rem; padding:0 .25rem;">✕</button>
+  </div>
+  <form id="editModalForm" method="post" style="padding:1rem; display:flex; flex-direction:column; gap:.75rem;">
+    <div>
+      <label style="display:block; font-size:.75rem; color:#64748b; margin-bottom:.3rem;">Energia [kWh] *</label>
+      <input id="editKwh" type="number" name="kwh" step="0.1" min="0" required>
+    </div>
+    <div>
+      <label style="display:block; font-size:.75rem; color:#64748b; margin-bottom:.3rem;">km/mies. (ręczne)</label>
+      <input id="editKm" type="number" name="km" step="1" min="0" placeholder="opcjonalne">
+    </div>
+    <div>
+      <label style="display:block; font-size:.75rem; color:#64748b; margin-bottom:.3rem;">Stan licznika [km]</label>
+      <input id="editOdometer" type="number" name="odometer_km" step="1" min="0" placeholder="opcjonalne">
+    </div>
+    <div style="display:flex; gap:.5rem;">
+      <button type="submit" class="btn btn-primary" style="font-size:.85rem;"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
+      <button type="button" onclick="closeEditModal()" class="btn btn-ghost" style="font-size:.85rem;">Anuluj</button>
+    </div>
+  </form>
+</div>
+
+<script>
+const _rp = {{ rp | tojson }};
+const _vid = {{ vehicle.id }};
+
+function openEditModal(period, kwh, km, odometer) {
+  document.getElementById('editModalPeriod').textContent = period;
+  document.getElementById('editModalForm').action = _rp + '/ev/pojazdy/' + _vid + '/monthly/' + period + '/edytuj';
+  document.getElementById('editKwh').value = kwh;
+  document.getElementById('editKm').value = km;
+  document.getElementById('editOdometer').value = odometer;
+
+  const modal = document.getElementById('editModal');
+  modal.style.display = 'block';
+  document.getElementById('editModalOverlay').style.display = 'block';
+
+  // Wyśrodkuj przy otwarciu
+  modal.style.left = Math.max(0, (window.innerWidth - modal.offsetWidth) / 2) + 'px';
+  modal.style.top  = Math.max(0, (window.innerHeight - modal.offsetHeight) / 2) + 'px';
+  // Poprawka po wyrenderowaniu (gdy offsetWidth=0 przy pierwszym otwarciu)
+  requestAnimationFrame(() => {
+    modal.style.left = Math.max(0, (window.innerWidth - modal.offsetWidth) / 2) + 'px';
+    modal.style.top  = Math.max(0, (window.innerHeight - modal.offsetHeight) / 2) + 'px';
+  });
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+  document.getElementById('editModalOverlay').style.display = 'none';
+}
+
+// Drag
+(function() {
+  const modal = document.getElementById('editModal');
+  const header = document.getElementById('editModalHeader');
+  let dx = 0, dy = 0, startX = 0, startY = 0, dragging = false;
+
+  header.addEventListener('mousedown', e => {
+    dragging = true;
+    startX = e.clientX - modal.offsetLeft;
+    startY = e.clientY - modal.offsetTop;
+    header.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    modal.style.left = Math.max(0, Math.min(window.innerWidth - modal.offsetWidth, e.clientX - startX)) + 'px';
+    modal.style.top  = Math.max(0, Math.min(window.innerHeight - modal.offsetHeight, e.clientY - startY)) + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    header.style.cursor = 'grab';
+  });
+})();
+</script>
 
 {% endblock %}

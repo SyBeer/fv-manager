@@ -1380,6 +1380,31 @@ async def save_ev_settings(
     return RedirectResponse(f"{rp}/import?saved=1", status_code=303)
 
 
+@app.post("/ev/pojazdy/{vehicle_id}/monthly/{period}/edytuj")
+async def edit_vehicle_monthly(
+    request: Request,
+    vehicle_id: int,
+    period: str,
+    kwh: float = Form(...),
+    km: str = Form(None),
+    odometer_km: str = Form(None),
+):
+    km_val = float(km.replace(",", ".")) if km and km.strip() else None
+    odometer_val = float(odometer_km.replace(",", ".")) if odometer_km and odometer_km.strip() else None
+    db = await get_db()
+    try:
+        await db.execute(
+            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?) "
+            "ON CONFLICT(period, vehicle_id) DO UPDATE SET kwh=excluded.kwh, km=excluded.km, odometer_km=excluded.odometer_km",
+            (period, vehicle_id, kwh, km_val, odometer_val),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev/pojazdy/{vehicle_id}", status_code=303)
+
+
 @app.post("/ev/pojazdy/nowy")
 async def create_vehicle(
     request: Request,
@@ -1520,12 +1545,45 @@ async def pv_page(request: Request):
         rce_prices_all = await db.execute("SELECT * FROM rce_prices ORDER BY date DESC LIMIT 24")
         rce_prices = [dict(r) for r in await rce_prices_all.fetchall()]
         settings = await _get_ev_settings(db)
+        readings = await _get_readings(db)
+        fuel_prices = await _get_fuel_prices(db)
+        vehicles = await _get_vehicles(db)
+        ev_monthly = await _get_ev_monthly_all(db)
+        rce_prices_all2 = await _get_rce_prices(db)
     finally:
         await db.close()
+
+    ev_monthly = _inject_odometer_km(ev_monthly)
+    readings = _ev_enrich(readings, settings, fuel_prices, vehicles, ev_monthly)
+    nm_ratio = settings.get("net_metering_ratio") or 0.80
+    default_price = _default_price()
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices_all2)
+    last12 = enriched[-12:]
+
+    pv_stats = None
+    if last12:
+        pv_production_12m = sum(r["production_kwh"] for r in last12)
+        pv_auto_12m = sum(r.get("auto_consumption") or 0 for r in last12)
+        pv_sent_12m = sum(r["sent_to_grid_kwh"] for r in last12)
+        pv_taken_12m = sum(r["taken_from_grid_kwh"] for r in last12)
+        pv_savings_12m = sum(r.get("savings_pln") or 0 for r in last12)
+        pv_auto_pct = round(pv_auto_12m / pv_production_12m * 100, 1) if pv_production_12m > 0 else None
+        pv_stats = {
+            "production_12m": round(pv_production_12m, 1),
+            "auto_12m": round(pv_auto_12m, 1),
+            "auto_pct": pv_auto_pct,
+            "sent_12m": round(pv_sent_12m, 1),
+            "taken_12m": round(pv_taken_12m, 1),
+            "savings_12m": round(pv_savings_12m, 2),
+            "avg_monthly_prod": round(pv_production_12m / len(last12), 1),
+            "n_months": len(last12),
+        }
+
     return _t(request, "pv.html", {
         "billing_periods": billing_periods,
         "rce_prices": rce_prices,
         "settings": settings,
+        "pv_stats": pv_stats,
     })
 
 
