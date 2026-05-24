@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.0.0] — 2026-05-24
+
+### Dodano
+- Dark/light mode: 27 CSS custom properties (`--bg`, `--bg-card`, `--border`, `--accent`, `--c-green` itd.)
+- Przełącznik motywu Ciemny/Jasny w Ustawieniach (`/import`), persystencja przez `localStorage`
+- Anti-FOUC script w `<head>` — motyw ustawiany przed renderem strony
+- Karty PV na stronie `/pv` (produkcja, autokonsumpcja, oddane/pobrane z sieci, oszczędności)
+- Karty pojazdów EV na stronie `/ev` i głównym dashboardzie (`/`)
+- Karty PV na głównym dashboardzie (`/`)
+- Endpoint edycji danych miesięcznych pojazdu: `POST /ev/pojazdy/{id}/monthly/{period}/edytuj`
+- Modal edycji danych miesięcznych w `vehicle_detail.html` — draggable, wyśrodkowany, pole kWh/km/licznik
+
+### Zmieniono
+- Wszystkie 13 szablonów: hardcoded hex kolory zastąpione przez CSS variables
+- Chart.js (roi.html, vehicle_detail.html): siatka i oś czytają kolory przez `getComputedStyle` — reagują na zmianę motywu
+
 ## [2.5.0] — 2026-05-24
 
 ### Dodano
