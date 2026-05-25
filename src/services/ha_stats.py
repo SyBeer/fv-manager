@@ -228,11 +228,10 @@ async def get_monthly_energy(entity_id: str, year: int, month: int) -> Optional[
             logger.warning("Statistics API JSON parse error %s: %s", entity_id, exc)
             return None
 
-        # services/…?return_response wraps in {"response": {entity_id: [...]}}
-        inner = body.get("response")
-        if inner is None:
-            inner = body
-        stats: list = inner.get(entity_id) or []
+        # services/…?return_response wraps in {"service_response": {"statistics": {entity_id: [...]}}}
+        inner = body.get("service_response") or body.get("response") or body
+        stats_map = inner.get("statistics") if isinstance(inner.get("statistics"), dict) else inner
+        stats: list = (stats_map or {}).get(entity_id) or []
 
         if not stats:
             logger.warning("Empty statistics for %s in %d-%02d", entity_id, year, month)

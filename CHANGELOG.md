@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.2] — 2026-05-24
+
+### Poprawiono
+- `ha_stats.py`: fix parsowania odpowiedzi Statistics API — klucz `service_response.statistics` zamiast `response` (bug powodował "Empty statistics" i brak danych z HA)
+
 ## [3.0.1] — 2026-05-24
 
 ### Poprawiono
