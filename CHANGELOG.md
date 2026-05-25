@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.8] — 2026-05-25
+
+### Poprawiono
+- `main.py`: CSRFMiddleware pomija sprawdzenie tokenów dla żądań `Content-Type: application/json` — JSON POST nie może być wywołany przez cross-site formularz HTML, więc jest bezpieczny bez CSRF; naprawia "The string did not match the expected pattern." w modalu ROI nawet gdy EXEMPT_PATHS nie działa (HA ingress stara wersja)
+- `main.py`: CSRF rejection zwraca `JSONResponse` zamiast plain text — frontend zawsze dostanie poprawny JSON nawet przy błędzie 403
+- `reading_form.html`: `showRoiPreview()` sprawdza `res.ok` przed `res.json()` — nieoczekiwane kody HTTP (403, 500) pokazują czytelny komunikat zamiast WebKit parse error
+
 ## [3.0.7] — 2026-05-25
 
 ### Poprawiono

@@ -221,6 +221,11 @@ async function showRoiPreview() {
   document.getElementById('after-savings').textContent = '⏳';
   try {
     const res = await fetch('{{ rp }}/api/roi-preview', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    if (!res.ok) {
+      document.getElementById('before-savings').textContent = 'Błąd';
+      document.getElementById('after-savings').textContent = 'HTTP ' + res.status;
+      return;
+    }
     const d = await res.json();
     if (d.error) { document.getElementById('before-savings').textContent = 'Błąd'; document.getElementById('after-savings').textContent = d.error; return; }
     const fmt = v => (v ?? 0).toFixed(0) + ' zł';

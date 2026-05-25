@@ -144,8 +144,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
         if request.method == "POST":
+            ct = request.headers.get("content-type", "")
             path = request.scope.get("path", "")
-            if not any(path.startswith(p) for p in self.EXEMPT_PATHS):
+            is_json = ct.startswith("application/json")
+            if not is_json and not any(path.startswith(p) for p in self.EXEMPT_PATHS):
                 body = await request.body()
                 form_token = ""
                 for part in body.decode("utf-8", errors="replace").split("&"):
@@ -154,7 +156,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                         form_token = unquote_plus(part.split("=", 1)[1])
                         break
                 if not _csrf_verify(form_token):
-                    return Response("Nieprawidłowy token CSRF", status_code=403)
+                    return JSONResponse({"error": "Nieprawidłowy token CSRF"}, status_code=403)
 
         if request.method == "GET":
             request.state.csrf_token = _csrf_generate()
