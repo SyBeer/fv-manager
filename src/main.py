@@ -799,14 +799,13 @@ async def investments_list(request: Request):
 
 
 @app.post("/inwestycje/nowa")
-async def create_investment(
-    request: Request,
-    date: str = Form(...),
-    description: str = Form(...),
-    cost_pln: float = Form(...),
-    power_kwp: float = Form(None),
-    notes: str = Form(None),
-):
+async def create_investment(request: Request):
+    form = await request.form()
+    date = form.get("date", "").strip()
+    description = form.get("description", "").strip()
+    cost_pln = _ff(form, "cost_pln", required=True)
+    power_kwp = _ff(form, "power_kwp")
+    notes = form.get("notes", "").strip() or None
     db = await get_db()
     try:
         await db.execute(
@@ -834,20 +833,18 @@ async def edit_investment_form(request: Request, inv_id: int):
 
 
 @app.post("/inwestycje/{inv_id}/edytuj")
-async def update_investment(
-    request: Request,
-    inv_id: int,
-    date: str = Form(...),
-    description: str = Form(...),
-    cost_pln: float = Form(...),
-    power_kwp: float | None = Form(None),
-    notes: str | None = Form(None),
-):
+async def update_investment(request: Request, inv_id: int):
+    form = await request.form()
+    date = form.get("date", "").strip()
+    description = form.get("description", "").strip()
+    cost_pln = _ff(form, "cost_pln", required=True)
+    power_kwp = _ff(form, "power_kwp")
+    notes = form.get("notes", "").strip() or None
     db = await get_db()
     try:
         await db.execute(
             "UPDATE investments SET date=?, description=?, cost_pln=?, power_kwp=?, notes=? WHERE id=?",
-            (date, description, cost_pln, power_kwp or None, notes or None, inv_id),
+            (date, description, cost_pln, power_kwp, notes, inv_id),
         )
         await db.commit()
     finally:
@@ -1393,17 +1390,16 @@ async def vehicle_detail(request: Request, vehicle_id: int):
 
 
 @app.post("/ev/settings")
-async def save_ev_settings(
-    request: Request,
-    efficiency_kwh_per_100km: float = Form(...),
-    fuel_consumption_l_per_100km: float = Form(...),
-    annual_km: float = Form(...),
-    fuel_type: str = Form("PB95"),
-    ha_solar_entity: str = Form(None),
-    ha_grid_consumed_entity: str = Form(None),
-    ha_grid_returned_entity: str = Form(None),
-    net_metering_ratio: float = Form(0.80),
-):
+async def save_ev_settings(request: Request):
+    form = await request.form()
+    efficiency_kwh_per_100km = _ff(form, "efficiency_kwh_per_100km", required=True)
+    fuel_consumption_l_per_100km = _ff(form, "fuel_consumption_l_per_100km", required=True)
+    annual_km = _ff(form, "annual_km", required=True)
+    fuel_type = form.get("fuel_type", "PB95")
+    ha_solar_entity = form.get("ha_solar_entity", "").strip() or None
+    ha_grid_consumed_entity = form.get("ha_grid_consumed_entity", "").strip() or None
+    ha_grid_returned_entity = form.get("ha_grid_returned_entity", "").strip() or None
+    net_metering_ratio = _ff(form, "net_metering_ratio") or 0.80
     db = await get_db()
     try:
         await db.execute(
@@ -1423,16 +1419,11 @@ async def save_ev_settings(
 
 
 @app.post("/ev/pojazdy/{vehicle_id}/monthly/{period}/edytuj")
-async def edit_vehicle_monthly(
-    request: Request,
-    vehicle_id: int,
-    period: str,
-    kwh: float = Form(...),
-    km: str = Form(None),
-    odometer_km: str = Form(None),
-):
-    km_val = float(km.replace(",", ".")) if km and km.strip() else None
-    odometer_val = float(odometer_km.replace(",", ".")) if odometer_km and odometer_km.strip() else None
+async def edit_vehicle_monthly(request: Request, vehicle_id: int, period: str):
+    form = await request.form()
+    kwh = _ff(form, "kwh", required=True)
+    km_val = _ff(form, "km")
+    odometer_val = _ff(form, "odometer_km")
     db = await get_db()
     try:
         await db.execute(
@@ -1448,23 +1439,22 @@ async def edit_vehicle_monthly(
 
 
 @app.post("/ev/pojazdy/nowy")
-async def create_vehicle(
-    request: Request,
-    name: str = Form(...),
-    efficiency_kwh_per_100km: float = Form(...),
-    fuel_consumption_l_per_100km: float = Form(...),
-    fuel_type: str = Form("PB95"),
-    notes: str = Form(None),
-    date_from: str = Form(None),
-    date_to: str = Form(None),
-    przebieg_km: float = Form(None),
-):
+async def create_vehicle(request: Request):
+    form = await request.form()
+    name = form.get("name", "").strip()
+    efficiency_kwh_per_100km = _ff(form, "efficiency_kwh_per_100km", required=True)
+    fuel_consumption_l_per_100km = _ff(form, "fuel_consumption_l_per_100km", required=True)
+    fuel_type = form.get("fuel_type", "PB95")
+    notes = form.get("notes", "").strip() or None
+    date_from_raw = form.get("date_from", "").strip()
+    date_to_raw = form.get("date_to", "").strip()
+    przebieg_km = _ff(form, "przebieg_km")
     db = await get_db()
     try:
         await db.execute(
             "INSERT INTO vehicles (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes, date_from, date_to, przebieg_km) VALUES (?,?,?,?,?,?,?,?)",
             (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
-             notes or None, date_from.strip() or None if date_from else None, date_to.strip() or None if date_to else None, przebieg_km),
+             notes, date_from_raw or None, date_to_raw or None, przebieg_km),
         )
         await db.commit()
     finally:
@@ -1487,24 +1477,22 @@ async def delete_vehicle(request: Request, vid: int):
 
 
 @app.post("/ev/pojazdy/{vid}/edytuj")
-async def update_vehicle(
-    request: Request,
-    vid: int,
-    name: str = Form(...),
-    efficiency_kwh_per_100km: float = Form(...),
-    fuel_consumption_l_per_100km: float = Form(...),
-    fuel_type: str = Form("PB95"),
-    notes: str = Form(None),
-    date_from: str = Form(None),
-    date_to: str = Form(None),
-    przebieg_km: float = Form(None),
-):
+async def update_vehicle(request: Request, vid: int):
+    form = await request.form()
+    name = form.get("name", "").strip()
+    efficiency_kwh_per_100km = _ff(form, "efficiency_kwh_per_100km", required=True)
+    fuel_consumption_l_per_100km = _ff(form, "fuel_consumption_l_per_100km", required=True)
+    fuel_type = form.get("fuel_type", "PB95")
+    notes = form.get("notes", "").strip() or None
+    date_from_raw = form.get("date_from", "").strip()
+    date_to_raw = form.get("date_to", "").strip()
+    przebieg_km = _ff(form, "przebieg_km")
     db = await get_db()
     try:
         await db.execute(
             "UPDATE vehicles SET name=?, efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?, fuel_type=?, notes=?, date_from=?, date_to=?, przebieg_km=? WHERE id=?",
             (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
-             notes or None, date_from.strip() or None if date_from else None, date_to.strip() or None if date_to else None, przebieg_km, vid),
+             notes, date_from_raw or None, date_to_raw or None, przebieg_km, vid),
         )
         await db.commit()
     finally:
@@ -1544,13 +1532,12 @@ async def edit_ev_monthly(request: Request, period: str):
 
 
 @app.post("/ev/fuel-price")
-async def add_fuel_price(
-    request: Request,
-    date: str = Form(...),
-    price_per_liter: float = Form(...),
-    fuel_type: str = Form("PB95"),
-    source: str = Form(None),
-):
+async def add_fuel_price(request: Request):
+    form = await request.form()
+    date = form.get("date", "").strip()
+    price_per_liter = _ff(form, "price_per_liter", required=True)
+    fuel_type = form.get("fuel_type", "PB95")
+    source = form.get("source", "").strip() or None
     db = await get_db()
     try:
         await db.execute(
@@ -1663,17 +1650,16 @@ async def delete_billing_period(request: Request, bp_id: int):
 
 
 @app.post("/pv/rce-price")
-async def add_rce_price(
-    request: Request,
-    date: str = Form(...),
-    price_per_kwh: float = Form(...),
-    source: str = Form(None),
-):
+async def add_rce_price(request: Request):
+    form = await request.form()
+    date = form.get("date", "").strip()
+    price_per_kwh = _ff(form, "price_per_kwh", required=True)
+    source = form.get("source", "").strip() or None
     db = await get_db()
     try:
         await db.execute(
             "INSERT INTO rce_prices (date, price_per_kwh, source) VALUES (?,?,?)",
-            (date, price_per_kwh, source or None),
+            (date, price_per_kwh, source),
         )
         await db.commit()
     finally:
@@ -1695,10 +1681,9 @@ async def delete_rce_price(request: Request, price_id: int):
 
 
 @app.post("/pv/settings")
-async def save_pv_settings(
-    request: Request,
-    panel_degradation_rate_pct: float = Form(0.6),
-):
+async def save_pv_settings(request: Request):
+    form = await request.form()
+    panel_degradation_rate_pct = _ff(form, "panel_degradation_rate_pct") or 0.6
     db = await get_db()
     try:
         await db.execute(

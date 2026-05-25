@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.4] — 2026-05-25
+
+### Poprawiono
+- `main.py`: rozszerzenie fixa Safari/przecinek na wszystkie pozostałe formularze — `_ff()` zamiast `float = Form(...)` w endpointach: `/inwestycje/nowa`, `/inwestycje/{id}/edytuj`, `/ev/pojazdy/nowy`, `/ev/pojazdy/{id}/edytuj`, `/ev/pojazdy/{id}/monthly/{period}/edytuj`, `/ev/fuel-price`, `/ev/settings`, `/pv/rce-price`, `/pv/settings`
+
 ## [3.0.3] — 2026-05-25
 
 ### Poprawiono
