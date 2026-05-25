@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.5] — 2026-05-25
+
+### Poprawiono
+- `main.py`, `base.html`: fix CSRF dla Safari/ITP — token renderowany server-side w `<meta name="csrf-token">` zamiast czytany z `document.cookie` (Safari blokował odczyt JS do cookie); `csrf_token_plain` cookie usunięty; `samesite` zmieniony z `strict` na `lax` (działa też w HA ingress iframe)
+
 ## [3.0.4] — 2026-05-25
 
 ### Poprawiono

@@ -146,7 +146,6 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 cookie_signed = request.cookies.get("csrf_token", "")
                 if not cookie_signed:
                     return Response("Nieprawidłowy token CSRF", status_code=403)
-                # Read raw body to extract csrf_token without consuming the stream
                 body = await request.body()
                 form_token = ""
                 for part in body.decode("utf-8", errors="replace").split("&"):
@@ -157,13 +156,18 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 if not _csrf_verify(cookie_signed, form_token):
                     return Response("Nieprawidłowy token CSRF", status_code=403)
 
+        # Generate token before endpoint runs so _t() can embed it server-side
+        if request.method == "GET":
+            token = _csrf_generate()
+            request.state.csrf_token = token
+        else:
+            request.state.csrf_token = ""
+
         response = await call_next(request)
 
         if request.method == "GET" and response.status_code == 200:
-            token = _csrf_generate()
-            signed = _csrf_sign(token)
-            response.set_cookie("csrf_token", signed, httponly=True, samesite="strict")
-            response.set_cookie("csrf_token_plain", token, httponly=False, samesite="strict")
+            signed = _csrf_sign(request.state.csrf_token)
+            response.set_cookie("csrf_token", signed, httponly=True, samesite="lax")
 
         return response
 
@@ -191,8 +195,9 @@ templates.env.globals["app_version"] = APP_VERSION
 
 
 def _t(request: Request, name: str, context: dict | None = None):
-    """TemplateResponse helper — injects root_path into every context."""
-    ctx = {"rp": request.scope.get("root_path", ""), **(context or {})}
+    """TemplateResponse helper — injects root_path and csrf_token into every context."""
+    csrf = getattr(request.state, "csrf_token", "")
+    ctx = {"rp": request.scope.get("root_path", ""), "csrf_token": csrf, **(context or {})}
     return templates.TemplateResponse(request=request, name=name, context=ctx)
 
 
