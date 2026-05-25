@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.6] — 2026-05-25
+
+### Poprawiono
+- `main.py`: CSRF przepisany na cookie-free — signed token (itsdangerous) generowany server-side i embedowany w HTML, walidacja po samej sygnaturze bez cookies; naprawia CSRF 403 w HA ingress (iframe blokował SameSite cookies)
+
 ## [3.0.5] — 2026-05-25
 
 ### Poprawiono

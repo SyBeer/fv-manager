@@ -114,22 +114,23 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
 
 
 # ── CSRF middleware ──────────────────────────────────────────────────────────
+# Cookie-free approach: signed token embedded server-side in HTML <meta>.
+# Signature is verified on POST without any cookies — works in HA ingress iframe.
 
 _CSRF_SECRET = os.getenv("SECRET_KEY", _secrets.token_hex(32))
 _csrf_signer = URLSafeSerializer(_CSRF_SECRET, salt="csrf")
 
 
 def _csrf_generate() -> str:
-    return _secrets.token_hex(32)
+    """Return a signed CSRF token ready to embed in HTML."""
+    return _csrf_signer.dumps(_secrets.token_hex(16))
 
 
-def _csrf_sign(token: str) -> str:
-    return _csrf_signer.dumps(token)
-
-
-def _csrf_verify(signed: str, token: str) -> bool:
+def _csrf_verify(signed_token: str) -> bool:
+    """Verify a signed CSRF token (no cookie required)."""
     try:
-        return _csrf_signer.loads(signed) == token
+        _csrf_signer.loads(signed_token)
+        return True
     except BadSignature:
         return False
 
@@ -143,9 +144,6 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if request.method == "POST":
             path = request.url.path
             if not any(path.startswith(p) for p in self.EXEMPT_PATHS):
-                cookie_signed = request.cookies.get("csrf_token", "")
-                if not cookie_signed:
-                    return Response("Nieprawidłowy token CSRF", status_code=403)
                 body = await request.body()
                 form_token = ""
                 for part in body.decode("utf-8", errors="replace").split("&"):
@@ -153,23 +151,15 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                         from urllib.parse import unquote_plus
                         form_token = unquote_plus(part.split("=", 1)[1])
                         break
-                if not _csrf_verify(cookie_signed, form_token):
+                if not _csrf_verify(form_token):
                     return Response("Nieprawidłowy token CSRF", status_code=403)
 
-        # Generate token before endpoint runs so _t() can embed it server-side
         if request.method == "GET":
-            token = _csrf_generate()
-            request.state.csrf_token = token
+            request.state.csrf_token = _csrf_generate()
         else:
             request.state.csrf_token = ""
 
-        response = await call_next(request)
-
-        if request.method == "GET" and response.status_code == 200:
-            signed = _csrf_sign(request.state.csrf_token)
-            response.set_cookie("csrf_token", signed, httponly=True, samesite="lax")
-
-        return response
+        return await call_next(request)
 
 
 app.add_middleware(CSRFMiddleware)
