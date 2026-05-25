@@ -132,7 +132,7 @@
           </div>
           <div>
             <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Nr faktury</label>
-            <input type="text" name="invoice_number" value="{{ reading.invoice_number if reading else '' }}">
+            <input type="text" name="invoice_number" value="{{ reading.invoice_number or '' if reading else '' }}">
           </div>
           <div>
             <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Faktura brutto [zł]</label>
@@ -222,7 +222,8 @@ async function showRoiPreview() {
   try {
     const res = await fetch('{{ rp }}/api/roi-preview', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
     const d = await res.json();
-    const fmt = v => v.toFixed(0) + ' zł';
+    if (d.error) { document.getElementById('before-savings').textContent = 'Błąd'; document.getElementById('after-savings').textContent = d.error; return; }
+    const fmt = v => (v ?? 0).toFixed(0) + ' zł';
     document.getElementById('before-savings').textContent = fmt(d.before.total_savings_pln);
     document.getElementById('before-roi').textContent = d.before.roi_achieved ? '✅ ROI osiągnięty' : `Pozostało: ${fmt(d.before.remaining_to_roi)} (${d.before.months_to_roi} mies.)`;
     document.getElementById('after-savings').textContent = fmt(d.after.total_savings_pln);
@@ -231,7 +232,7 @@ async function showRoiPreview() {
     document.getElementById('roi-diff').textContent = diff >= 0
       ? `Zmiana zwiększa oszczędności o ${Math.abs(diff).toFixed(0)} zł`
       : `Zmiana zmniejsza oszczędności o ${Math.abs(diff).toFixed(0)} zł`;
-  } catch(e) { document.getElementById('before-savings').textContent = 'Błąd'; }
+  } catch(e) { document.getElementById('before-savings').textContent = 'Błąd'; document.getElementById('after-savings').textContent = e.message || ''; }
 }
 {% endif %}
 

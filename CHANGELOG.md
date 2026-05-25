@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.0.3] — 2026-05-25
+
+### Poprawiono
+- `main.py`: helper `_ff()` — parsowanie floatów z formularza toleruje przecinek jako separator dziesiętny (Safari/macOS z polską lokalizacją submituje `"965,434"` zamiast `"965.434"`)
+- `main.py`: `try/except` w endpointach `POST /odczyty/nowy` i `POST /odczyty/{id}/edytuj` — błąd parsowania zwraca stronę z komunikatem zamiast 500 JSON (który Safari traktował jako plik do pobrania)
+- `main.py`: `roi_preview` — dodano `billing_periods`, `rce_prices`, `nm_ratio`, `default_price` + `try/except` z JSON error response
+- `reading_form.html`: `invoice_number or ''` — Python `None` nie renderuje się jako string `"None"`
+- `reading_form.html`: modal ROI preview — obsługa błędu serwera i ochrona `fmt` przed `null`
+
 ## [3.0.2] — 2026-05-24
 
 ### Poprawiono

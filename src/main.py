@@ -30,6 +30,16 @@ def _default_price() -> float:
     except (ValueError, TypeError):
         return 0.75
 
+
+def _ff(form, key: str, required: bool = False) -> float | None:
+    """Parse float from form field, tolerating comma as decimal separator (Safari/Polish locale)."""
+    v = form.get(key, "").strip().replace(",", ".")
+    if not v:
+        if required:
+            raise ValueError(f"Pole {key} jest wymagane")
+        return None
+    return float(v)
+
 import aiosqlite
 from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
@@ -575,16 +585,32 @@ async def new_reading_form(request: Request):
 async def create_reading(request: Request):
     form = await request.form()
     period = form["period"]
-    year = int(form["year"])
-    month = int(form["month"])
-    days = int(form["days"]) if form.get("days") else None
-    production_kwh = float(form["production_kwh"])
-    sent_to_grid_kwh = float(form["sent_to_grid_kwh"])
-    taken_from_grid_kwh = float(form["taken_from_grid_kwh"])
-    price_per_kwh = float(form["price_per_kwh"]) if form.get("price_per_kwh") else None
-    invoice_number = form.get("invoice_number") or None
-    invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
-    notes = form.get("notes") or None
+    try:
+        year = int(form["year"])
+        month = int(form["month"])
+        days = int(form["days"]) if form.get("days") else None
+        production_kwh = _ff(form, "production_kwh", required=True)
+        sent_to_grid_kwh = _ff(form, "sent_to_grid_kwh", required=True)
+        taken_from_grid_kwh = _ff(form, "taken_from_grid_kwh", required=True)
+        price_per_kwh = _ff(form, "price_per_kwh")
+        invoice_number = form.get("invoice_number") or None
+        invoice_gross = _ff(form, "invoice_gross")
+        notes = form.get("notes") or None
+    except (ValueError, KeyError) as exc:
+        db = await get_db()
+        try:
+            vehicles = await _get_vehicles(db)
+            settings = await _get_ev_settings(db)
+            next_year, next_month = await _next_period(db)
+        finally:
+            await db.close()
+        return _t(request, "reading_form.html", {
+            "error": f"Błąd parsowania danych: {exc}",
+            "vehicles": _vehicles_for_period(vehicles, ""),
+            "settings": settings,
+            "next_year": next_year,
+            "next_month": next_month,
+        })
 
     error = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
     if error:
@@ -603,10 +629,10 @@ async def create_reading(request: Request):
             "next_month": month,
         })
 
-    ev_entries = [(int(k.removeprefix("ev_v_")), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
-    km_entries = {int(k.removeprefix("ev_km_v_")): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
-    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
-    legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
+    ev_entries = [(int(k.removeprefix("ev_v_")), float(v.replace(",", "."))) for k, v in form.items() if k.startswith("ev_v_") and v]
+    km_entries = {int(k.removeprefix("ev_km_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_km_v_") and v}
+    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
+    legacy_kwh = _ff(form, "ev_kwh")
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
     db = await get_db()
@@ -660,16 +686,32 @@ async def edit_reading_form(request: Request, reading_id: int):
 async def update_reading(request: Request, reading_id: int):
     form = await request.form()
     period = form["period"]
-    year = int(form["year"])
-    month = int(form["month"])
-    days = int(form["days"]) if form.get("days") else None
-    production_kwh = float(form["production_kwh"])
-    sent_to_grid_kwh = float(form["sent_to_grid_kwh"])
-    taken_from_grid_kwh = float(form["taken_from_grid_kwh"])
-    price_per_kwh = float(form["price_per_kwh"]) if form.get("price_per_kwh") else None
-    invoice_number = form.get("invoice_number") or None
-    invoice_gross = float(form["invoice_gross"]) if form.get("invoice_gross") else None
-    notes = form.get("notes") or None
+    try:
+        year = int(form["year"])
+        month = int(form["month"])
+        days = int(form["days"]) if form.get("days") else None
+        production_kwh = _ff(form, "production_kwh", required=True)
+        sent_to_grid_kwh = _ff(form, "sent_to_grid_kwh", required=True)
+        taken_from_grid_kwh = _ff(form, "taken_from_grid_kwh", required=True)
+        price_per_kwh = _ff(form, "price_per_kwh")
+        invoice_number = form.get("invoice_number") or None
+        invoice_gross = _ff(form, "invoice_gross")
+        notes = form.get("notes") or None
+    except (ValueError, KeyError) as exc:
+        db = await get_db()
+        try:
+            cur = await db.execute("SELECT * FROM readings WHERE id=?", (reading_id,))
+            reading = await cur.fetchone()
+            vehicles = await _get_vehicles(db)
+            settings = await _get_ev_settings(db)
+        finally:
+            await db.close()
+        return _t(request, "reading_form.html", {
+            "error": f"Błąd parsowania danych: {exc}",
+            "reading": dict(reading) if reading else None,
+            "vehicles": _vehicles_for_period(vehicles, period),
+            "settings": settings,
+        })
 
     error = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
     if error:
@@ -689,10 +731,10 @@ async def update_reading(request: Request, reading_id: int):
             "settings": settings,
         })
 
-    ev_entries = [(int(k.removeprefix("ev_v_")), float(v)) for k, v in form.items() if k.startswith("ev_v_") and v]
-    km_entries = {int(k.removeprefix("ev_km_v_")): float(v) for k, v in form.items() if k.startswith("ev_km_v_") and v}
-    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
-    legacy_kwh = float(form["ev_kwh"]) if form.get("ev_kwh") else None
+    ev_entries = [(int(k.removeprefix("ev_v_")), float(v.replace(",", "."))) for k, v in form.items() if k.startswith("ev_v_") and v]
+    km_entries = {int(k.removeprefix("ev_km_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_km_v_") and v}
+    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
+    legacy_kwh = _ff(form, "ev_kwh")
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
     db = await get_db()
@@ -1818,43 +1860,51 @@ async def ha_solar_fetch(period: str):
 @app.post("/api/roi-preview")
 async def roi_preview(data: dict):
     """Calculate ROI before/after for edit confirmation modal."""
-    db = await get_db()
     try:
-        readings = await _get_readings(db)
-        investments = await _get_investments(db)
-        ev_settings = await _get_ev_settings(db)
-        fuel_prices = await _get_fuel_prices(db)
-        vehicles = await _get_vehicles(db)
-        ev_monthly = await _get_ev_monthly_all(db)
-    finally:
-        await db.close()
+        db = await get_db()
+        try:
+            readings = await _get_readings(db)
+            investments = await _get_investments(db)
+            ev_settings = await _get_ev_settings(db)
+            fuel_prices = await _get_fuel_prices(db)
+            vehicles = await _get_vehicles(db)
+            ev_monthly = await _get_ev_monthly_all(db)
+            billing_periods = await _get_billing_periods(db)
+            rce_prices = await _get_rce_prices(db)
+        finally:
+            await db.close()
 
-    ev_monthly = _inject_odometer_km(ev_monthly)
-    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
-    total = sum(i["cost_pln"] for i in investments)
-    roi_before = calc_roi(readings, total) if readings and total > 0 else {}
+        nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+        default_price = _default_price()
+        ev_monthly = _inject_odometer_km(ev_monthly)
+        readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
+        total = sum(i["cost_pln"] for i in investments)
+        roi_before = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else {}
 
-    # Apply hypothetical edit
-    reading_id = data.get("id")
-    patched = _ev_enrich(
-        [{**r, **data} if r["id"] == reading_id else r for r in readings],
-        ev_settings, fuel_prices, vehicles, ev_monthly,
-    )
-    roi_after = calc_roi(patched, total) if patched and total > 0 else {}
-    return JSONResponse({
-        "before": {
-            "total_savings_pln": roi_before.get("total_savings_pln", 0),
-            "remaining_to_roi": roi_before.get("remaining_to_roi", 0),
-            "months_to_roi": roi_before.get("months_to_roi", 0),
-            "roi_achieved": roi_before.get("roi_achieved", False),
-        },
-        "after": {
-            "total_savings_pln": roi_after.get("total_savings_pln", 0),
-            "remaining_to_roi": roi_after.get("remaining_to_roi", 0),
-            "months_to_roi": roi_after.get("months_to_roi", 0),
-            "roi_achieved": roi_after.get("roi_achieved", False),
-        },
-    })
+        # Apply hypothetical edit
+        reading_id = data.get("id")
+        patched = _ev_enrich(
+            [{**r, **data} if r["id"] == reading_id else r for r in readings],
+            ev_settings, fuel_prices, vehicles, ev_monthly,
+        )
+        roi_after = calc_roi(patched, total, default_price, nm_ratio, billing_periods, rce_prices) if patched and total > 0 else {}
+        return JSONResponse({
+            "before": {
+                "total_savings_pln": roi_before.get("total_savings_pln") or 0,
+                "remaining_to_roi": roi_before.get("remaining_to_roi") or 0,
+                "months_to_roi": roi_before.get("months_to_roi") or 0,
+                "roi_achieved": roi_before.get("roi_achieved", False),
+            },
+            "after": {
+                "total_savings_pln": roi_after.get("total_savings_pln") or 0,
+                "remaining_to_roi": roi_after.get("remaining_to_roi") or 0,
+                "months_to_roi": roi_after.get("months_to_roi") or 0,
+                "roi_achieved": roi_after.get("roi_achieved", False),
+            },
+        })
+    except Exception as exc:
+        logger.exception("roi_preview error: %s", exc)
+        return JSONResponse({"error": str(exc)}, status_code=500)
 
 
 # ── API ───────────────────────────────────────────────────────────────────────
