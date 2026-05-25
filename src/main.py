@@ -45,7 +45,7 @@ from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, StreamingResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
-from itsdangerous import URLSafeSerializer, BadSignature
+from itsdangerous import URLSafeSerializer, BadSignature, BadData
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -93,7 +93,7 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
         if not password:
             return await call_next(request)
 
-        if request.url.path.startswith("/api/summary"):
+        if request.scope.get("path", "").startswith("/api/summary"):
             return await call_next(request)
 
         auth = request.headers.get("Authorization", "")
@@ -128,10 +128,12 @@ def _csrf_generate() -> str:
 
 def _csrf_verify(signed_token: str) -> bool:
     """Verify a signed CSRF token (no cookie required)."""
+    if not signed_token:
+        return False
     try:
         _csrf_signer.loads(signed_token)
         return True
-    except BadSignature:
+    except (BadSignature, BadData):
         return False
 
 
@@ -142,7 +144,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request, call_next):
         if request.method == "POST":
-            path = request.url.path
+            path = request.scope.get("path", "")
             if not any(path.startswith(p) for p in self.EXEMPT_PATHS):
                 body = await request.body()
                 form_token = ""

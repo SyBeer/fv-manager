@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.0.7] — 2026-05-25
+
+### Poprawiono
+- `main.py`: middleware używa `scope["path"]` zamiast `url.path` — w HA ingress `url.path` zawiera prefix `/api/hassio_ingress/xxx/` co powodowało niedziałanie EXEMPT_PATHS (CSRF i auth sprawdzały błędne ścieżki)
+- `main.py`: `_csrf_verify` — guard na pusty token + `except (BadSignature, BadData)` — malformed token dawał nieobsługiwany wyjątek zamiast 403
+
 ## [3.0.6] — 2026-05-25
 
 ### Poprawiono
