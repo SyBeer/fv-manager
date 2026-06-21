@@ -94,6 +94,7 @@
         <th>Okres</th>
         <th>kWh EV</th>
         <th>km</th>
+        <th>kWh/100km</th>
         <th>Koszt paliwa (gdyby)</th>
         <th>Koszt prądu</th>
         <th>Oszczędność netto</th>
@@ -113,6 +114,7 @@
         {% endif %}
       </td>
       <td>{{ r.km_driven|fmtn }} km{% if not r.km_actual %} <span style="font-size:.75rem; color:var(--text-4);">(est.)</span>{% endif %}</td>
+      <td style="color:var(--c-blue-2);">{% if r.efficiency_real is not none %}{{ r.efficiency_real|fmtn(1) }}{% if not r.km_actual %} <span style="font-size:.75rem; color:var(--text-4);">(est.)</span>{% endif %}{% else %}—{% endif %}</td>
       <td style="color:var(--c-red-light);">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
       <td style="color:var(--text-2);">{{ r.electricity_cost|fmtn(2) }} zł</td>
       <td style="color:var(--c-green); font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
@@ -126,7 +128,7 @@
     </tr>
     <!-- Inline edit row for {{ r.period }} -->
     <tr id="ev-edit-{{ r.period|replace('.','_') }}" style="display:none;">
-      <td colspan="8" style="padding:.75rem; background:var(--bg);">
+      <td colspan="9" style="padding:.75rem; background:var(--bg);">
         <form method="post" action="{{ rp }}/ev/monthly/{{ r.period }}/edytuj"
               style="display:flex; flex-direction:column; gap:.6rem;">
           <div style="font-size:.8rem; color:var(--text-2); margin-bottom:.25rem;">

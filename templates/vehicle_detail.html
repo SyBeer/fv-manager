@@ -127,6 +127,7 @@ new Chart(document.getElementById('vehicleChart'), {
         <th>Okres</th>
         <th>kWh</th>
         <th>km</th>
+        <th>kWh/100km</th>
         <th>Źródło km</th>
         <th>Koszt prądu</th>
         <th>Koszt paliwa (gdyby)</th>
@@ -143,9 +144,12 @@ new Chart(document.getElementById('vehicleChart'), {
       <td>
         {% if m.km_driven is not none %}{{ m.km_driven|fmtn }} km{% else %}—{% endif %}
       </td>
+      <td style="color:var(--c-blue-2);">
+        {% if m.efficiency_real is not none %}{{ m.efficiency_real|fmtn(1) }}{% if not m.km_actual %} <span style="color:var(--text-4); font-size:.75rem;">(est.)</span>{% endif %}{% else %}—{% endif %}
+      </td>
       <td>
         {% if m.km_source == 'manual' %}<span class="badge-green">ręczne</span>
-        {% elif m.km_source == 'licznik' %}<span class="badge-blue">licznik</span>
+        {% elif m.km_source and m.km_source.startswith('licznik') %}<span class="badge-blue">{{ m.km_source }}</span>
         {% else %}<span style="color:var(--text-4); font-size:.8rem;">(est.)</span>{% endif %}
       </td>
       <td style="color:var(--text-2);">

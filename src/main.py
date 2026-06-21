@@ -1285,6 +1285,7 @@ async def ev_page(request: Request):
             "ev_net_savings": round(period_savings, 2),
             "km_driven": round(period_km, 1),
             "km_actual": any(x.get("km_actual") for x in vehicle_rows),
+            "efficiency_real": round(period_total_kwh / period_km * 100, 1) if period_km else None,
             "liters_saved": round(period_liters, 2),
             "fuel_cost_equivalent": round(sum(x["fuel_cost_equivalent"] for x in vehicle_rows), 2),
             "electricity_cost": round(sum(x["electricity_cost"] for x in vehicle_rows), 2),
@@ -1387,6 +1388,7 @@ async def vehicle_detail(request: Request, vehicle_id: int):
             "odometer_km": e.get("odometer_km"),
             "km_actual": km_actual,
             "km_source": km_source,
+            "efficiency_real": round(e["kwh"] / km * 100, 1) if km else None,
             "price_per_kwh": price_kwh,
             "fuel_price": fuel_price,
             **(calc if calc else {

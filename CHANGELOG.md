@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1] — 2026-06-21
+
+### Dodano
+- `main.py`, `ev.html`, `vehicle_detail.html`: kolumna „kWh/100km" (efektywność rzeczywista = `kWh / km × 100`) w danych miesięcznych EV — w „Historia miesięczna" (`/ev`) oraz na stronie pojazdu. Dla km estymowanego z kWh wartość oznaczona „(est.)"; brak km → „—"
+
+### Poprawiono
+- `vehicle_detail.html`: badge „Źródło km" obejmuje teraz wartość „licznik (od startu)" (pierwszy miesiąc kotwiczony do `przebieg_km`) — wcześniej wpadała do „(est.)"
+
 ## [3.1.0] — 2026-06-21
 
 ### Dodano
