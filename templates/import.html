@@ -11,15 +11,25 @@
   </button>
 </div>
 <script>
-function setTheme(t) {
+function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('theme', t);
   document.getElementById('btn-theme-dark').style.opacity = t === 'dark' ? '1' : '.5';
   document.getElementById('btn-theme-light').style.opacity = t === 'light' ? '1' : '.5';
 }
+function setTheme(t) {
+  applyTheme(t);
+  // Trwały zapis po stronie serwera (JSON POST omija CSRF) — przeżywa czyszczenie localStorage.
+  fetch('{{ rp }}/ev/theme', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({theme: t}),
+  }).catch(function(){});
+}
 (function(){
-  var t = localStorage.getItem('theme') || 'dark';
-  setTheme(t);
+  // Źródłem prawdy jest data-theme renderowane przez serwer.
+  var t = document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'dark';
+  applyTheme(t);
 })();
 </script>
 <div style="max-width:700px;">

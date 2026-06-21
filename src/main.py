@@ -76,9 +76,26 @@ def _read_version() -> str:
 APP_VERSION = _read_version()
 
 
+_THEME = "dark"
+
+
+async def _load_theme() -> None:
+    """Wczytaj zapisany motyw z app_settings do cache modułowego."""
+    global _THEME
+    db = await get_db()
+    try:
+        cur = await db.execute("SELECT theme FROM app_settings WHERE id=1")
+        row = await cur.fetchone()
+        if row and row["theme"]:
+            _THEME = row["theme"]
+    finally:
+        await db.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await _load_theme()
     yield
 
 
@@ -191,7 +208,7 @@ templates.env.globals["app_version"] = APP_VERSION
 def _t(request: Request, name: str, context: dict | None = None):
     """TemplateResponse helper — injects root_path and csrf_token into every context."""
     csrf = getattr(request.state, "csrf_token", "")
-    ctx = {"rp": request.scope.get("root_path", ""), "csrf_token": csrf, **(context or {})}
+    ctx = {"rp": request.scope.get("root_path", ""), "csrf_token": csrf, "theme": _THEME, **(context or {})}
     return templates.TemplateResponse(request=request, name=name, context=ctx)
 
 
@@ -256,13 +273,18 @@ async def _get_ev_monthly_all(db: aiosqlite.Connection) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def _inject_odometer_km(ev_monthly: list[dict]) -> list[dict]:
+def _inject_odometer_km(ev_monthly: list[dict], vehicles: list[dict] | None = None) -> list[dict]:
     """For records without manual km but with odometer_km, inject computed km from delta.
 
     The computed value is runtime-only — never written back to the database.
-    Priority: manual km > odometer delta > None (estimated from kWh).
+    Priority: manual km > odometer delta > anchor (vehicles.przebieg_km dla pierwszego
+    miesiąca) > None (estimated from kWh).
+
+    `vehicles` (opcjonalne): pozwala zakotwiczyć pierwszy wpis pojazdu względem
+    `przebieg_km` (stan licznika na starcie trackowania) zamiast estymować go z kWh.
     """
     from collections import defaultdict
+    baseline = {v["id"]: v.get("przebieg_km") for v in (vehicles or [])}
     by_vehicle: dict[int, list[dict]] = defaultdict(list)
     for e in ev_monthly:
         by_vehicle[e["vehicle_id"]].append(e)
@@ -279,6 +301,11 @@ def _inject_odometer_km(ev_monthly: list[dict]) -> list[dict]:
                 prev_odometer = entries[idx - 1].get("odometer_km")
                 if prev_odometer is not None:
                     e["km"] = max(0.0, e["odometer_km"] - prev_odometer)
+            elif idx == 0:
+                # Pierwszy miesiąc pojazdu — kotwica do przebieg_km zamiast estymaty z kWh.
+                anchor = baseline.get(e["vehicle_id"])
+                if anchor is not None:
+                    e["km"] = max(0.0, e["odometer_km"] - anchor)
         result.append(e)
     return result
 
@@ -448,7 +475,7 @@ async def dashboard(request: Request):
     finally:
         await db.close()
 
-    ev_monthly = _inject_odometer_km(ev_monthly)
+    ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total_investment = sum(i["cost_pln"] for i in investments)
     default_price = _default_price()
@@ -790,7 +817,7 @@ async def investments_list(request: Request):
         ev_monthly = await _get_ev_monthly_all(db)
     finally:
         await db.close()
-    ev_monthly = _inject_odometer_km(ev_monthly)
+    ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     roi = calc_roi(readings, total) if readings and total > 0 else None
@@ -881,7 +908,7 @@ async def roi_page(request: Request):
     finally:
         await db.close()
 
-    ev_monthly = _inject_odometer_km(ev_monthly)
+    ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
     default_price = _default_price()
@@ -1200,7 +1227,7 @@ async def ev_page(request: Request):
     finally:
         await db.close()
 
-    ev_monthly_all = _inject_odometer_km(ev_monthly_all)
+    ev_monthly_all = _inject_odometer_km(ev_monthly_all, vehicles)
     vmap = {v["id"]: v for v in vehicles}
     by_period: dict[str, list[dict]] = {}
     for e in ev_monthly_all:
@@ -1308,7 +1335,7 @@ async def vehicle_detail(request: Request, vehicle_id: int):
         )
         entries_raw = [dict(r) for r in await cur.fetchall()]
         original_km = {e["period"]: e.get("km") for e in entries_raw}
-        entries = _inject_odometer_km(entries_raw)
+        entries = _inject_odometer_km(entries_raw, [vehicle])
 
         cur = await db.execute("SELECT period, price_per_kwh FROM readings")
         price_map = {r["period"]: r["price_per_kwh"] for r in await cur.fetchall()}
@@ -1324,7 +1351,7 @@ async def vehicle_detail(request: Request, vehicle_id: int):
     default_price = _default_price()
 
     monthly = []
-    for e in entries:
+    for idx_e, e in enumerate(entries):
         year, month_str = e["period"].split(".")
         period_end = f"{year}-{month_str.zfill(2)}-28"
         fuel_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
@@ -1336,7 +1363,8 @@ async def vehicle_detail(request: Request, vehicle_id: int):
         if km is None:
             km_source = "est"
         elif orig is None and e.get("odometer_km") is not None:
-            km_source = "licznik"
+            # Pierwszy miesiąc kotwiczony do przebieg_km, kolejne — delta między odczytami.
+            km_source = "licznik (od startu)" if idx_e == 0 else "licznik"
         else:
             km_source = "manual"
 
@@ -1448,6 +1476,10 @@ async def create_vehicle(request: Request):
     date_from_raw = form.get("date_from", "").strip()
     date_to_raw = form.get("date_to", "").strip()
     przebieg_km = _ff(form, "przebieg_km")
+    rp = request.scope.get("root_path", "")
+    if przebieg_km is None or przebieg_km < 0:
+        # Stan licznika na starcie jest wymagany — bez niego pierwszy miesiąc liczy się jako estymata z kWh.
+        return RedirectResponse(f"{rp}/ev?err=przebieg_required", status_code=303)
     db = await get_db()
     try:
         await db.execute(
@@ -1486,8 +1518,27 @@ async def update_vehicle(request: Request, vid: int):
     date_from_raw = form.get("date_from", "").strip()
     date_to_raw = form.get("date_to", "").strip()
     przebieg_km = _ff(form, "przebieg_km")
+    rp = request.scope.get("root_path", "")
     db = await get_db()
     try:
+        cur = await db.execute("SELECT przebieg_km FROM vehicles WHERE id=?", (vid,))
+        row = await cur.fetchone()
+        current = row["przebieg_km"] if row else None
+        if przebieg_km is None:
+            if current is None:
+                # Dotąd brak stanu początkowego — wymagaj wprowadzenia.
+                return RedirectResponse(f"{rp}/ev?err=przebieg_required", status_code=303)
+            przebieg_km = current  # puste pole → zachowaj obecną wartość, nie nadpisuj NULL-em
+        if przebieg_km < 0:
+            return RedirectResponse(f"{rp}/ev?err=przebieg_required", status_code=303)
+        # Stan początkowy nie może być wyższy niż najmniejszy zapisany odczyt licznika.
+        cur = await db.execute(
+            "SELECT MIN(odometer_km) AS m FROM ev_monthly WHERE vehicle_id=? AND odometer_km IS NOT NULL", (vid,)
+        )
+        mrow = await cur.fetchone()
+        min_odo = mrow["m"] if mrow else None
+        if min_odo is not None and przebieg_km > min_odo:
+            return RedirectResponse(f"{rp}/ev?err=przebieg_gt_min&min={min_odo:.0f}", status_code=303)
         await db.execute(
             "UPDATE vehicles SET name=?, efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?, fuel_type=?, notes=?, date_from=?, date_to=?, przebieg_km=? WHERE id=?",
             (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
@@ -1496,7 +1547,6 @@ async def update_vehicle(request: Request, vid: int):
         await db.commit()
     finally:
         await db.close()
-    rp = request.scope.get("root_path", "")
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
@@ -1550,6 +1600,47 @@ async def add_fuel_price(request: Request):
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
+@app.post("/ev/fuel-price/{price_id}/edytuj")
+async def edit_fuel_price(request: Request, price_id: int):
+    form = await request.form()
+    date = form.get("date", "").strip()
+    price_per_liter = _ff(form, "price_per_liter", required=True)
+    fuel_type = form.get("fuel_type", "PB95")
+    source = form.get("source", "").strip() or None
+    db = await get_db()
+    try:
+        await db.execute(
+            "UPDATE fuel_prices SET date=?, price_per_liter=?, fuel_type=?, source=? WHERE id=?",
+            (date, price_per_liter, fuel_type, source, price_id),
+        )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
+
+
+@app.post("/ev/theme")
+async def save_theme(request: Request):
+    """Trwały zapis motywu UI (jasny/ciemny) w app_settings. JSON POST omija CSRF."""
+    global _THEME
+    try:
+        data = await request.json()
+    except Exception:
+        return JSONResponse({"error": "Nieprawidłowy JSON"}, status_code=400)
+    theme = (data or {}).get("theme")
+    if theme not in ("dark", "light"):
+        return JSONResponse({"error": "Nieprawidłowy motyw"}, status_code=400)
+    db = await get_db()
+    try:
+        await db.execute("UPDATE app_settings SET theme=? WHERE id=1", (theme,))
+        await db.commit()
+    finally:
+        await db.close()
+    _THEME = theme
+    return JSONResponse({"ok": True, "theme": theme})
+
+
 @app.post("/ev/fuel-price/{price_id}/usun")
 async def delete_fuel_price(request: Request, price_id: int):
     db = await get_db()
@@ -1581,7 +1672,7 @@ async def pv_page(request: Request):
     finally:
         await db.close()
 
-    ev_monthly = _inject_odometer_km(ev_monthly)
+    ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, settings, fuel_prices, vehicles, ev_monthly)
     nm_ratio = settings.get("net_metering_ratio") or 0.80
     default_price = _default_price()
@@ -1860,7 +1951,7 @@ async def roi_preview(data: dict):
 
         nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
         default_price = _default_price()
-        ev_monthly = _inject_odometer_km(ev_monthly)
+        ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
         readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
         total = sum(i["cost_pln"] for i in investments)
         roi_before = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else {}

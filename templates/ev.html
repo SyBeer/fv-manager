@@ -1,7 +1,32 @@
 {% extends "base.html" %}
 {% block title %}EV — FV Manager{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+{% endblock %}
 {% block content %}
 <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;"><i class="ph-bold ph-car"></i> Oszczędności EV</h1>
+
+{% set err = request.query_params.get('err') %}
+{% if err %}
+<div class="card" style="margin-bottom:1rem; border-left:3px solid var(--c-red); color:var(--c-red-light); font-size:.85rem;">
+  <i class="ph-bold ph-warning-circle"></i>
+  {% if err == 'przebieg_required' %}Pole „Stan licznika przy starcie" jest wymagane (liczba ≥ 0).
+  {% elif err == 'przebieg_gt_min' %}Stan początkowy licznika jest większy niż najmniejszy zapisany odczyt ({{ request.query_params.get('min') }} km). Zmniejsz wartość lub popraw odczyty.
+  {% else %}Błąd walidacji formularza.{% endif %}
+</div>
+{% endif %}
+
+{% set missing = vehicles | selectattr('przebieg_km', 'none') | list %}
+{% if missing %}
+<div class="card" style="margin-bottom:1rem; border-left:3px solid var(--c-yellow); color:var(--text-2); font-size:.85rem;">
+  <i class="ph-bold ph-warning"></i> Pojazdy bez stanu początkowego licznika:
+  <strong>{{ missing | map(attribute='name') | join(', ') }}</strong>.
+  Uzupełnij przez edycję pojazdu — inaczej pierwszy miesiąc liczony jest jako estymata z kWh.
+</div>
+{% endif %}
 
 <!-- Podsumowanie -->
 {% if monthly_ev %}
@@ -12,7 +37,7 @@
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-blue-2);">{{ total_km|fmtn }} km</div>
-    <div class="stat-label">Łącznie przejechane (z EV kWh)</div>
+    <div class="stat-label">Łącznie przejechane (licznik / est.)</div>
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-yellow);">{{ total_liters_saved|fmtn }} L</div>
@@ -49,6 +74,9 @@
           <div style="color:var(--c-green); font-size:1.15rem; font-weight:700;">{{ vs.total_savings|fmtn(2) }} zł</div>
           <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">oszczędności vs paliwo</div>
         </div>
+      </div>
+      <div style="text-align:right; margin-top:.6rem;">
+        <span style="color:var(--accent); font-size:.78rem; font-weight:600;">Szczegóły <i class="ph-bold ph-arrow-right"></i></span>
       </div>
     </div>
   </a>
@@ -202,7 +230,7 @@
                 <input type="text" name="date_from" value="{{ v.date_from or '' }}" placeholder="Od RRRR.MM" pattern="\d{4}\.(0[1-9]|1[0-2])" style="font-size:.85rem;">
                 <input type="text" name="date_to"   value="{{ v.date_to or '' }}"   placeholder="Do RRRR.MM"  pattern="\d{4}\.(0[1-9]|1[0-2])" style="font-size:.85rem;">
               </div>
-              <input type="number" name="przebieg_km" value="{{ v.przebieg_km or '' }}" step="1" placeholder="Przebieg km (opcjonalnie)" style="font-size:.85rem;">
+              <input type="number" name="przebieg_km" value="{{ v.przebieg_km if v.przebieg_km is not none else '' }}" step="1" min="0" required placeholder="Stan licznika przy starcie [km]" title="Odczyt licznika auta w dniu Od (date_from). Od tej wartości liczone są przejechane km." style="font-size:.85rem;">
               <button type="submit" class="btn btn-primary" style="font-size:.8rem; align-self:flex-start;"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
             </form>
           </details>
@@ -254,8 +282,9 @@
         </div>
       </div>
       <div>
-        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Przebieg km (opcjonalnie)</label>
-        <input type="number" name="przebieg_km" step="1" placeholder="np. 45000">
+        <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Stan licznika przy starcie [km]</label>
+        <input type="number" name="przebieg_km" step="1" min="0" required placeholder="np. 45000">
+        <div style="font-size:.72rem; color:var(--text-4); margin-top:.25rem;">Odczyt licznika auta w dniu „Od (date_from)". Od tej wartości algorytm zaczyna liczyć przejechane km.</div>
       </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">+ Dodaj</button>
     </form>
@@ -275,9 +304,46 @@
         <td><span class="badge-blue">{{ p.fuel_type }}</span></td>
         <td style="color:var(--c-yellow); font-weight:600;">{{ p.price_per_liter|fmtn(2) }} zł</td>
         <td style="color:var(--text-3); font-size:.8rem;">{{ p.source or '—' }}</td>
-        <td>
+        <td style="white-space:nowrap;">
+          <button type="button" onclick="toggleEvEdit('fuel-edit-{{ p.id }}')"
+                  class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-pencil-simple"></i></button>
           <form method="post" action="{{ rp }}/ev/fuel-price/{{ p.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć?')">
             <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      <!-- Inline edit row for fuel price {{ p.id }} -->
+      <tr id="fuel-edit-{{ p.id }}" style="display:none;">
+        <td colspan="5" style="padding:.75rem; background:var(--bg);">
+          <form method="post" action="{{ rp }}/ev/fuel-price/{{ p.id }}/edytuj"
+                style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:.6rem;">
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Data</label>
+              <input type="text" name="date" class="fuel-date" value="{{ p.date }}" placeholder="RRRR-MM-DD" required autocomplete="off">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Cena [zł/L]</label>
+              <input type="number" name="price_per_liter" step="0.01" value="{{ p.price_per_liter }}" required style="width:100px;">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Rodzaj</label>
+              <select name="fuel_type">
+                <option value="PB95" {{ 'selected' if p.fuel_type == 'PB95' else '' }}>PB95</option>
+                <option value="PB98" {{ 'selected' if p.fuel_type == 'PB98' else '' }}>PB98</option>
+                <option value="ON" {{ 'selected' if p.fuel_type == 'ON' else '' }}>ON (diesel)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Źródło</label>
+              <input type="text" name="source" value="{{ p.source or '' }}" placeholder="np. Orlen, PKN">
+            </div>
+            <div style="display:flex; gap:.5rem;">
+              <button type="submit" class="btn btn-primary" style="font-size:.8rem; padding:.35rem .9rem;">
+                <i class="ph-bold ph-floppy-disk"></i> Zapisz
+              </button>
+              <button type="button" onclick="toggleEvEdit('fuel-edit-{{ p.id }}')"
+                      class="btn btn-ghost" style="font-size:.8rem; padding:.35rem .9rem;">Anuluj</button>
+            </div>
           </form>
         </td>
       </tr>
@@ -289,8 +355,8 @@
     <form method="post" action="{{ rp }}/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
       <div class="grid-2">
         <div>
-          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Data</label>
-          <input type="date" name="date" required>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Data (RRRR-MM-DD)</label>
+          <input type="text" name="date" class="fuel-date" placeholder="RRRR-MM-DD" required autocomplete="off">
         </div>
         <div>
           <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Cena [zł/L]</label>
@@ -322,5 +388,6 @@ function toggleEvEdit(id) {
   const row = document.getElementById(id);
   if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
 }
+flatpickr(".fuel-date", { locale: "pl", dateFormat: "Y-m-d", allowInput: true, disableMobile: true });
 </script>
 {% endblock %}

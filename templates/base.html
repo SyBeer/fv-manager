@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" data-theme="{{ theme | default('dark') }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -95,8 +95,14 @@
 </style>
 <script>
   (function(){
-    var t = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', t);
+    // Serwer renderuje data-theme z app_settings (źródło prawdy, przeżywa czyszczenie localStorage).
+    // Jeśli serwer ustawił motyw — tylko mirror do localStorage; w innym wypadku fallback.
+    var srv = document.documentElement.getAttribute('data-theme');
+    if (srv) {
+      localStorage.setItem('theme', srv);
+    } else {
+      document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    }
   })();
 </script>
 {% block head %}{% endblock %}

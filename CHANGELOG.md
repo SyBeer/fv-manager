@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.1.0] — 2026-06-21
+
+### Dodano
+- `main.py`, `ev.html`: edycja wpisu ceny paliwa — nowy route `POST /ev/fuel-price/{price_id}/edytuj` (`UPDATE fuel_prices`) oraz inline-formularz edycji (data, cena, rodzaj, źródło) przy każdym wierszu w tabeli „Ceny paliw", uruchamiany ikoną ołówka obok kosza (wykorzystuje istniejący `toggleEvEdit`)
+
+### Zmieniono
+- `main.py` (`_inject_odometer_km`): `vehicles.przebieg_km` (stan licznika na starcie trackowania) jest teraz kotwicą „miesiąca zerowego" — pierwszy wpis pojazdu liczy `km = pierwszy.odometer_km − przebieg_km` zamiast estymaty z kWh; gdy każdy miesiąc ma odczyt licznika, „Łącznie km" = `ostatni odometer − przebieg_km`, zgodnie z licznikiem (wcześniej suma zawyżała stan licznika przez estymatę pierwszego miesiąca)
+- `main.py`, `ev.html`: pole „Stan licznika przy starcie" wymagane przy rejestracji i edycji pojazdu (było opcjonalne); walidacja `przebieg_km ≥ 0` oraz `≤ MIN(odometer_km)` zapisanych odczytów
+
+### Dodano
+- `ev.html`: banner ostrzegawczy nad listą pojazdów dla aut bez `przebieg_km` (pierwszy miesiąc liczony jako estymata) + bannery błędów walidacji formularza pojazdu
+- strona pojazdu: pierwszy miesiąc oznaczony źródłem „licznik (od startu)"
+- `ev.html`: wyraźny link „Szczegóły →" w prawym dolnym rogu karty pojazdu (prowadzi do `/ev/pojazdy/{id}`); etykieta karty zbiorczej zmieniona z „Łącznie przejechane (z EV kWh)" na „(licznik / est.)" — wartość jest teraz licznikowa
+
+### Poprawiono
+- `db.py`, `main.py`, `base.html`, `import.html`: motyw jasny/ciemny zapisywany trwale w `app_settings` (kolumna `theme`) i renderowany server-side na `<html data-theme>` — wcześniej żył tylko w `localStorage`, który w iframe HA ingress / Safari ITP jest czyszczony po kilku dniach, przez co motyw wracał do ciemnego; nowy endpoint `POST /ev/theme` (JSON, omija CSRF), `localStorage` zdegradowany do mirrora
+- `pv.html`, `ev.html`: spójny format dat — pola `<input type="date">` (okresy rozliczeniowe, ceny RCE, ceny paliw) zastąpione polami flatpickr `dateFormat: "Y-m-d"`; natywny picker renderował w locale `DD.MM.RRRR` mimo etykiety „RRRR-MM-DD" — teraz wszystkie pola dat wyświetlają RRRR-MM-DD zgodnie z etykietą (jak w `investments`)
+
 ## [3.0.8] — 2026-05-25
 
 ### Poprawiono
