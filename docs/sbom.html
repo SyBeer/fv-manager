@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FV Manager SBOM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --ground: #eef1f5;
+    --card: #ffffff;
+    --card-2: #f8fafc;
+    --text: #0f172a;
+    --text-2: #475569;
+    --text-3: #7c8798;
+    --border: #dfe4ea;
+    --border-strong: #c8cfd9;
+    --accent: #c2620a;      /* solar amber, darkened for light ground */
+    --accent-soft: #fbe4cf;
+    --runtime: #15803d;
+    --runtime-soft: #dcfce7;
+    --dev: #64748b;
+    --dev-soft: #eaeef3;
+    --shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 24px -12px rgba(15,23,42,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0d1524;
+      --card: #17202f;
+      --card-2: #1c2637;
+      --text: #e6ebf2;
+      --text-2: #9fadc0;
+      --text-3: #6b7a8f;
+      --border: #29344a;
+      --border-strong: #384663;
+      --accent: #f59e0b;
+      --accent-soft: #3a2c12;
+      --runtime: #4ade80;
+      --runtime-soft: #14321f;
+      --dev: #8595aa;
+      --dev-soft: #232f43;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0d1524;
+    --card: #17202f;
+    --card-2: #1c2637;
+    --text: #e6ebf2;
+    --text-2: #9fadc0;
+    --text-3: #6b7a8f;
+    --border: #29344a;
+    --border-strong: #384663;
+    --accent: #f59e0b;
+    --accent-soft: #3a2c12;
+    --runtime: #4ade80;
+    --runtime-soft: #14321f;
+    --dev: #8595aa;
+    --dev-soft: #232f43;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: clamp(1.25rem, 4vw, 3.5rem) clamp(1rem, 4vw, 2rem) 4rem; }
+
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .72rem; font-weight: 500;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* Header */
+  header { border-bottom: 1px solid var(--border); padding-bottom: 1.75rem; margin-bottom: 2rem; }
+  .sun { color: var(--accent); }
+  h1 {
+    font-size: clamp(1.7rem, 5vw, 2.6rem);
+    font-weight: 700; line-height: 1.1; margin: .5rem 0 .25rem;
+    text-wrap: balance; letter-spacing: -.02em;
+  }
+  .sub { color: var(--text-2); font-size: 1rem; max-width: 60ch; margin: 0; }
+
+  /* Meta grid */
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 1.75rem;
+  }
+  .meta div { background: var(--card); padding: .85rem 1rem; }
+  .meta dt {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: .3rem;
+  }
+  .meta dd {
+    margin: 0; font-family: "IBM Plex Mono", monospace;
+    font-size: .92rem; font-weight: 500; color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Stat row */
+  .stats { display: flex; flex-wrap: wrap; gap: .9rem; margin: 2rem 0; }
+  .stat {
+    flex: 1 1 140px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.1rem 1.25rem; box-shadow: var(--shadow);
+  }
+  .stat .n { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+  .stat .l { font-size: .8rem; color: var(--text-2); margin-top: .4rem; }
+  .stat.rt { border-top: 3px solid var(--runtime); }
+  .stat.dv { border-top: 3px solid var(--dev); }
+  .stat.tot { border-top: 3px solid var(--accent); }
+
+  section { margin-top: 2.5rem; }
+  .sec-head { display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.15rem; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .count { font-family: "IBM Plex Mono", monospace; font-size: .8rem; color: var(--text-3); }
+
+  /* Component list */
+  .list { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) auto minmax(0, 1.4fr);
+    align-items: center; gap: 1rem;
+    padding: .85rem 1.15rem;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    text-decoration: none; color: inherit;
+    transition: background .12s;
+  }
+  .row:first-child { border-top: none; }
+  .row:hover { background: var(--card-2); }
+  .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .pkg { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+  .pkg .name { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pkg .arrow { color: var(--text-3); font-size: .8rem; opacity: 0; transition: opacity .12s; flex-shrink: 0; }
+  .row:hover .arrow { opacity: 1; }
+  .ver {
+    font-family: "IBM Plex Mono", monospace; font-size: .85rem;
+    color: var(--text); background: var(--accent-soft);
+    padding: .15rem .5rem; border-radius: 5px;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .purpose { color: var(--text-2); font-size: .88rem; text-align: right; }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr auto; row-gap: .35rem; }
+    .purpose { grid-column: 1 / -1; text-align: left; font-size: .82rem; }
+  }
+
+  /* Explainer */
+  .note { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 1.25rem 1.4rem; }
+  .note h3 { margin: 0 0 .5rem; font-size: .95rem; font-weight: 600; }
+  .note p { margin: 0 0 .6rem; color: var(--text-2); font-size: .92rem; }
+  .note p:last-child { margin-bottom: 0; }
+  .note code { font-family: "IBM Plex Mono", monospace; font-size: .85em; background: var(--card-2); padding: .1rem .35rem; border-radius: 4px; border: 1px solid var(--border); }
+
+  footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: var(--text-3); display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Software Bill of Materials · CycloneDX</div>
+    <h1><span class="sun">☀</span> FV Manager — SBOM</h1>
+    <p class="sub">Kompletny spis zależności dystrybuowanego dodatku Home Assistant <span class="mono">fv-manager</span> w wydaniu <strong>v3.2.0</strong> — każdy komponent, jego wersja i przeznaczenie.</p>
+
+    <dl class="meta">
+      <div><dt>Wersja add-onu</dt><dd>3.2.0</dd></div>
+      <div><dt>Format</dt><dd>CycloneDX 1.6</dd></div>
+      <div><dt>Komponentów</dt><dd>11</dd></div>
+      <div><dt>Wygenerowano</dt><dd>2026-08-27</dd></div>
+      <div><dt>Źródło</dt><dd>requirements.txt</dd></div>
+      <div><dt>Narzędzie</dt><dd>cyclonedx-py</dd></div>
+    </dl>
+  </header>
+
+  <div class="stats">
+    <div class="stat tot"><div class="n">11</div><div class="l">Komponenty łącznie</div></div>
+    <div class="stat rt"><div class="n" style="color:var(--runtime)">9</div><div class="l">Runtime — w obrazie produkcyjnym</div></div>
+    <div class="stat dv"><div class="n" style="color:var(--dev)">2</div><div class="l">Deweloperskie — tylko testy</div></div>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Runtime</h2><span class="count">9 pakietów · trafiają do obrazu Docker</span></div>
+    <div class="list">
+      <a class="row" href="https://pypi.org/project/fastapi/0.136.1/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">fastapi</span><span class="arrow">↗</span></span>
+        <span class="ver">0.136.1</span>
+        <span class="purpose">framework webowy — routing i API</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/uvicorn/0.46.0/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">uvicorn</span><span class="arrow">↗</span></span>
+        <span class="ver">0.46.0</span>
+        <span class="purpose">serwer ASGI — uruchamia aplikację</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/jinja2/3.1.6/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">jinja2</span><span class="arrow">↗</span></span>
+        <span class="ver">3.1.6</span>
+        <span class="purpose">silnik szablonów HTML</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/aiosqlite/0.22.1/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">aiosqlite</span><span class="arrow">↗</span></span>
+        <span class="ver">0.22.1</span>
+        <span class="purpose">asynchroniczny dostęp do bazy SQLite</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/httpx/0.28.1/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">httpx</span><span class="arrow">↗</span></span>
+        <span class="ver">0.28.1</span>
+        <span class="purpose">klient HTTP — pobieranie danych z Home Assistant</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/python-multipart/0.0.27/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">python-multipart</span><span class="arrow">↗</span></span>
+        <span class="ver">0.0.27</span>
+        <span class="purpose">parsowanie formularzy (POST)</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/itsdangerous/2.2.0/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">itsdangerous</span><span class="arrow">↗</span></span>
+        <span class="ver">2.2.0</span>
+        <span class="purpose">podpisane tokeny CSRF</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/python-dotenv/1.2.2/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">python-dotenv</span><span class="arrow">↗</span></span>
+        <span class="ver">1.2.2</span>
+        <span class="purpose">konfiguracja ze zmiennych środowiskowych</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/anyio/4.13.0/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">anyio</span><span class="arrow">↗</span></span>
+        <span class="ver">4.13.0</span>
+        <span class="purpose">warstwa zgodności async (baza FastAPI/httpx)</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Deweloperskie</h2><span class="count">2 pakiety · tylko testy, nie w produkcji</span></div>
+    <div class="list">
+      <a class="row" href="https://pypi.org/project/pytest/9.0.3/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">pytest</span><span class="arrow">↗</span></span>
+        <span class="ver">9.0.3</span>
+        <span class="purpose">framework testowy</span>
+      </a>
+      <a class="row" href="https://pypi.org/project/pytest-asyncio/1.3.0/" target="_blank" rel="noopener">
+        <span class="pkg"><span class="name">pytest-asyncio</span><span class="arrow">↗</span></span>
+        <span class="ver">1.3.0</span>
+        <span class="purpose">obsługa testów asynchronicznych</span>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <div class="note">
+      <h3>Po co ten spis?</h3>
+      <p>SBOM to maszynowo-czytelna „lista składników" oprogramowania — jak etykieta na produkcie. Gdy w którejś bibliotece zostanie ujawniona podatność (CVE), wystarczy sprawdzić tę listę, by od razu wiedzieć, czy dodatek jej używa i w jakiej wersji — bez ręcznego przeszukiwania kodu.</p>
+      <p>Plik źródłowy <code>sbom.cdx.json</code> (CycloneDX 1.6) jest wersjonowany razem z kodem i dołączony do wydania v3.2.0. Można go wgrać do narzędzi takich jak <span class="mono">OWASP Dependency-Track</span> do ciągłego monitorowania podatności.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>fv-manager v3.2.0</span>
+    <span>CycloneDX 1.6</span>
+    <span>pkg:pypi/*</span>
+    <span>wygenerowano 2026-08-27</span>
+  </footer>
+</div>
+</body>
+</html>
