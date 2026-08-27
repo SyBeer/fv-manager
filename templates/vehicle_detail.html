@@ -39,11 +39,12 @@
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
   <div class="card">
     <div class="stat-value" style="color:var(--c-blue-2);">{{ total_km|fmtn }} km</div>
-    <div class="stat-label">Łącznie km</div>
+    <div class="stat-label">km domowe (FV)</div>
+    {% if total_public_km %}<div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">łącznie z publicznym: {{ total_km_all|fmtn }} km</div>{% endif %}
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-blue);">{{ total_kwh|fmtn(1) }} kWh</div>
-    <div class="stat-label">Łącznie energia EV</div>
+    <div class="stat-label">Energia domowa (FV)</div>
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-green);">{{ total_savings|fmtn(2) }} zł</div>
@@ -58,6 +59,13 @@
     <div class="stat-value" style="color:var(--c-purple);">{{ avg_efficiency|fmtn(1) }} kWh/100km</div>
     <div class="stat-label">Śr. efektywność (rzeczywista)</div>
     <div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">spec: {{ vehicle.efficiency_kwh_per_100km }} kWh/100km</div>
+  </div>
+  {% endif %}
+  {% if total_public_kwh or total_public_km or total_public_cost %}
+  <div class="card" style="border:1px dashed var(--border);">
+    <div class="stat-value" style="color:var(--text-3);">{{ total_public_cost|fmtn(2) }} zł</div>
+    <div class="stat-label"><i class="ph-bold ph-charging-station"></i> Ładowanie publiczne (poza FV)</div>
+    <div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">{{ total_public_kwh|fmtn(1) }} kWh · {{ total_public_km|fmtn }} km</div>
   </div>
   {% endif %}
 </div>

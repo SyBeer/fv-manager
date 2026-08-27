@@ -152,6 +152,14 @@ async def init_db() -> None:
         except Exception:
             pass
 
+        # Ładowanie publiczne — poza wynikiem opłacalności FV (osobne kWh/km/koszt).
+        for col in ["public_kwh", "public_km", "public_cost_pln"]:
+            try:
+                await db.execute(f"ALTER TABLE ev_monthly ADD COLUMN {col} REAL")
+                await db.commit()
+            except Exception:
+                pass
+
         for col, definition in [
             ("ha_solar_entity", "TEXT"),
             ("ha_grid_consumed_entity", "TEXT"),

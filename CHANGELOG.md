@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.2.0] — 2026-08-27
+
+### Dodano
+- **Rozdzielenie ładowania EV domowego (liczone do opłacalności FV) od publicznego (poza FV).** Ładowanie na ładowarkach publicznych nie pochodzi z licznika/PV, więc nie powinno wpływać na wynik opłacalności instalacji — teraz jest odnotowywane osobno (kWh, km, koszt) i wyłączone z kalkulacji FV, ale wliczane do pełnego TCO i przebiegu pojazdu.
+  - `db.py`: `ev_monthly` + kolumny `public_kwh`, `public_km`, `public_cost_pln` (migracja `ALTER TABLE`, idempotentna)
+  - `main.py`: `create_reading`, `edit_vehicle_monthly`, `edit_ev_monthly` zapisują pola publiczne (obsługa wpisu tylko-publicznego); `_agg_vehicles_ev` i `vehicle_detail` raportują dane publiczne osobno oraz `total_km_all` (domowe + publiczne). Logika `calc_ev_savings` / `_ev_enrich` (opłacalność FV) bez zmian — otrzymuje wyłącznie wartości domowe
+  - `reading_form.html`, `ev.html`: sekcje „Domowe — liczone do FV" / „Publiczne — poza FV" w formularzu dodawania i edycji
+  - `vehicle_detail.html`: karta kosztu ładowania publicznego + przebieg łączny (z publicznym)
+  - testy: `test_ev_public_charging.py` (6 przypadków — wykluczenie z FV, raportowanie osobne, przebieg łączny, wpis tylko-publiczny, wsteczna zgodność)
+- `base.html`: pozycja menu „Nowy wpis" z ikoną (skrót do `/odczyty/nowy`)
+
+### Zmieniono
+- `reading_form.html`: nagłówek sekcji faktury „Faktura (opcjonalnie)" → „Faktura za energię elektryczną (opcjonalnie)"
+- `base.html`: podświetlenie „Odczyty" w menu nie obejmuje już strony „Nowy wpis"
+
 ## [3.1.1] — 2026-06-21
 
 ### Dodano

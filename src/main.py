@@ -322,14 +322,33 @@ def _agg_vehicles_ev(
     vmap = {v["id"]: v for v in vehicles}
     agg: dict[int, dict] = {}
 
+    def _init(vid: int) -> dict:
+        return agg.setdefault(vid, {
+            "kwh": 0.0, "km": 0.0, "savings": 0.0,
+            "public_kwh": 0.0, "public_km": 0.0, "public_cost": 0.0,
+        })
+
     for e in ev_monthly:
         vid = e["vehicle_id"]
         v = vmap.get(vid)
-        if not v or not e.get("kwh"):
+        if not v:
             continue
-        if vid not in agg:
-            agg[vid] = {"kwh": 0.0, "km": 0.0, "savings": 0.0}
-        agg[vid]["kwh"] += e["kwh"]
+
+        # Publiczne ładowanie — poza wynikiem FV, ale liczone do TCO i przebiegu.
+        pub_kwh = e.get("public_kwh") or 0.0
+        pub_km = e.get("public_km") or 0.0
+        pub_cost = e.get("public_cost_pln") or 0.0
+        if pub_kwh or pub_km or pub_cost:
+            s = _init(vid)
+            s["public_kwh"] += pub_kwh
+            s["public_km"] += pub_km
+            s["public_cost"] += pub_cost
+
+        # Domowe ładowanie — jedyne, które wchodzi do opłacalności FV.
+        if not e.get("kwh"):
+            continue
+        s = _init(vid)
+        s["kwh"] += e["kwh"]
 
         year, month_str = e["period"].split(".")
         period_end = f"{year}-{month_str.zfill(2)}-28"
@@ -346,8 +365,8 @@ def _agg_vehicles_ev(
                 fuel_price_per_liter=fuel_obj["price_per_liter"],
                 km_driven=e.get("km"),
             )
-            agg[vid]["km"] += calc["km_driven"]
-            agg[vid]["savings"] += calc["ev_net_savings"]
+            s["km"] += calc["km_driven"]
+            s["savings"] += calc["ev_net_savings"]
 
     result = []
     for v in vehicles:
@@ -360,6 +379,10 @@ def _agg_vehicles_ev(
             "total_kwh": round(s["kwh"], 1),
             "total_km": round(s["km"], 1),
             "total_savings": round(s["savings"], 2),
+            "total_public_kwh": round(s["public_kwh"], 1),
+            "total_public_km": round(s["public_km"], 1),
+            "total_public_cost": round(s["public_cost"], 2),
+            "total_km_all": round(s["km"] + s["public_km"], 1),
         })
     return result
 
@@ -655,11 +678,22 @@ async def create_reading(request: Request):
             "next_month": month,
         })
 
+    def _vprefix(prefix: str) -> dict[int, float]:
+        return {int(k.removeprefix(prefix)): float(v.replace(",", ".")) for k, v in form.items() if k.startswith(prefix) and v}
+
     ev_entries = [(int(k.removeprefix("ev_v_")), float(v.replace(",", "."))) for k, v in form.items() if k.startswith("ev_v_") and v]
-    km_entries = {int(k.removeprefix("ev_km_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_km_v_") and v}
-    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
+    km_entries = _vprefix("ev_km_v_")
+    odometer_entries = _vprefix("ev_odometer_v_")
+    # Ładowanie publiczne — poza wynikiem FV.
+    pub_kwh_entries = _vprefix("ev_pub_kwh_v_")
+    pub_km_entries = _vprefix("ev_pub_km_v_")
+    pub_cost_entries = _vprefix("ev_pub_cost_v_")
     legacy_kwh = _ff(form, "ev_kwh")
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
+
+    # Pojazdy, które mają jakiekolwiek dane (domowe lub publiczne) w tym okresie.
+    all_vids = {vid for vid, _ in ev_entries} | pub_kwh_entries.keys() | pub_km_entries.keys() | pub_cost_entries.keys()
+    home_kwh = dict(ev_entries)
 
     db = await get_db()
     try:
@@ -671,12 +705,13 @@ async def create_reading(request: Request):
             (period, year, month, days, production_kwh, sent_to_grid_kwh,
              taken_from_grid_kwh, ev_kwh_total, price_per_kwh, invoice_number, invoice_gross, notes),
         )
-        for vid, kwh in ev_entries:
-            km = km_entries.get(vid)
-            odometer = odometer_entries.get(vid)
+        for vid in sorted(all_vids):
             await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?)",
-                (period, vid, kwh, km, odometer),
+                """INSERT OR REPLACE INTO ev_monthly
+                   (period, vehicle_id, kwh, km, odometer_km, public_kwh, public_km, public_cost_pln)
+                   VALUES (?,?,?,?,?,?,?,?)""",
+                (period, vid, home_kwh.get(vid) or 0.0, km_entries.get(vid), odometer_entries.get(vid),
+                 pub_kwh_entries.get(vid), pub_km_entries.get(vid), pub_cost_entries.get(vid)),
             )
         await db.commit()
     finally:
@@ -1304,6 +1339,9 @@ async def ev_page(request: Request):
                 "kwh": e["kwh"],
                 "km": e.get("km"),
                 "odometer_km": e.get("odometer_km"),
+                "public_kwh": e.get("public_kwh"),
+                "public_km": e.get("public_km"),
+                "public_cost_pln": e.get("public_cost_pln"),
             }
 
     price_map_ev = {r["period"]: r.get("price_per_kwh") for r in readings}
@@ -1391,6 +1429,9 @@ async def vehicle_detail(request: Request, vehicle_id: int):
             "efficiency_real": round(e["kwh"] / km * 100, 1) if km else None,
             "price_per_kwh": price_kwh,
             "fuel_price": fuel_price,
+            "public_kwh": e.get("public_kwh"),
+            "public_km": e.get("public_km"),
+            "public_cost_pln": e.get("public_cost_pln"),
             **(calc if calc else {
                 "km_driven": None, "fuel_cost_equivalent": None,
                 "electricity_cost": None, "ev_net_savings": None, "liters_saved": None,
@@ -1401,6 +1442,9 @@ async def vehicle_detail(request: Request, vehicle_id: int):
     total_km = sum(m["km_driven"] for m in monthly if m["km_driven"])
     total_savings = sum(m["ev_net_savings"] for m in monthly if m["ev_net_savings"])
     total_liters = sum(m["liters_saved"] for m in monthly if m["liters_saved"])
+    total_public_kwh = sum(m["public_kwh"] or 0 for m in monthly)
+    total_public_km = sum(m["public_km"] or 0 for m in monthly)
+    total_public_cost = sum(m["public_cost_pln"] or 0 for m in monthly)
     real_km_entries = [(m["kwh"], m["km"]) for m in monthly if m["km_actual"] and m["kwh"] and m["km"]]
     avg_efficiency = (
         sum(kwh for kwh, _ in real_km_entries) / sum(km for _, km in real_km_entries) * 100
@@ -1415,6 +1459,10 @@ async def vehicle_detail(request: Request, vehicle_id: int):
         "total_savings": round(total_savings, 2),
         "total_liters": round(total_liters, 2),
         "avg_efficiency": round(avg_efficiency, 2) if avg_efficiency else None,
+        "total_public_kwh": round(total_public_kwh, 1),
+        "total_public_km": round(total_public_km, 1),
+        "total_public_cost": round(total_public_cost, 2),
+        "total_km_all": round(total_km + total_public_km, 1),
     })
 
 
@@ -1453,12 +1501,17 @@ async def edit_vehicle_monthly(request: Request, vehicle_id: int, period: str):
     kwh = _ff(form, "kwh", required=True)
     km_val = _ff(form, "km")
     odometer_val = _ff(form, "odometer_km")
+    public_kwh = _ff(form, "public_kwh")
+    public_km = _ff(form, "public_km")
+    public_cost = _ff(form, "public_cost_pln")
     db = await get_db()
     try:
         await db.execute(
-            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?) "
-            "ON CONFLICT(period, vehicle_id) DO UPDATE SET kwh=excluded.kwh, km=excluded.km, odometer_km=excluded.odometer_km",
-            (period, vehicle_id, kwh, km_val, odometer_val),
+            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km, public_kwh, public_km, public_cost_pln) "
+            "VALUES (?,?,?,?,?,?,?,?) "
+            "ON CONFLICT(period, vehicle_id) DO UPDATE SET kwh=excluded.kwh, km=excluded.km, odometer_km=excluded.odometer_km, "
+            "public_kwh=excluded.public_kwh, public_km=excluded.public_km, public_cost_pln=excluded.public_cost_pln",
+            (period, vehicle_id, kwh, km_val, odometer_val, public_kwh, public_km, public_cost),
         )
         await db.commit()
     finally:
@@ -1554,28 +1607,49 @@ async def update_vehicle(request: Request, vid: int):
 
 @app.post("/ev/monthly/{period}/edytuj")
 async def edit_ev_monthly(request: Request, period: str):
-    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh, km_v_{vehicle_id}=km, odometer_v_{vehicle_id}=odometer_km."""
+    """Update ev_monthly entries for a given period. Expects form fields v_{vehicle_id}=kwh,
+    km_v_{vehicle_id}=km, odometer_v_{vehicle_id}=odometer_km oraz pola ładowania publicznego
+    public_kwh_v_{id}, public_km_v_{id}, public_cost_v_{id} (poza wynikiem FV)."""
     form = await request.form()
     rp = request.scope.get("root_path", "")
+
+    def _num(key: str) -> float | None:
+        raw = form.get(key)
+        if raw is None or not str(raw).strip():
+            return None
+        try:
+            return float(str(raw).replace(",", "."))
+        except (ValueError, TypeError):
+            return None
+
+    # Pojazdy z jakimikolwiek danymi (domowe lub publiczne) w tym okresie.
+    vids: set[int] = set()
+    for key in form:
+        for prefix in ("v_", "km_v_", "odometer_v_", "public_kwh_v_", "public_km_v_", "public_cost_v_"):
+            if key.startswith(prefix) and str(form.get(key)).strip():
+                try:
+                    vids.add(int(key.removeprefix(prefix)))
+                except ValueError:
+                    pass
+
     db = await get_db()
     try:
         await db.execute("DELETE FROM ev_monthly WHERE period=?", (period,))
-        for key, val in form.items():
-            if key.startswith("v_") and str(val).strip():
-                try:
-                    vid = int(key[2:])
-                    kwh = float(str(val).replace(",", "."))
-                    if kwh > 0:
-                        km_raw = form.get(f"km_v_{vid}")
-                        km = float(str(km_raw).replace(",", ".")) if km_raw and str(km_raw).strip() else None
-                        odometer_raw = form.get(f"odometer_v_{vid}")
-                        odometer = float(str(odometer_raw).replace(",", ".")) if odometer_raw and str(odometer_raw).strip() else None
-                        await db.execute(
-                            "INSERT INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?)",
-                            (period, vid, kwh, km, odometer),
-                        )
-                except (ValueError, TypeError):
-                    pass
+        for vid in sorted(vids):
+            kwh = _num(f"v_{vid}") or 0.0
+            pub_kwh = _num(f"public_kwh_v_{vid}")
+            pub_km = _num(f"public_km_v_{vid}")
+            pub_cost = _num(f"public_cost_v_{vid}")
+            # Pomiń pojazd bez żadnych danych domowych ani publicznych.
+            if kwh <= 0 and not (pub_kwh or pub_km or pub_cost):
+                continue
+            await db.execute(
+                """INSERT INTO ev_monthly
+                   (period, vehicle_id, kwh, km, odometer_km, public_kwh, public_km, public_cost_pln)
+                   VALUES (?,?,?,?,?,?,?,?)""",
+                (period, vid, kwh, _num(f"km_v_{vid}"), _num(f"odometer_v_{vid}"),
+                 pub_kwh, pub_km, pub_cost),
+            )
         await db.commit()
     finally:
         await db.close()

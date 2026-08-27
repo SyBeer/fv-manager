@@ -94,6 +94,7 @@
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.4rem;">
               <label style="font-size:.85rem; color:var(--c-blue-2);"><i class="ph-bold ph-car"></i> {{ v.name }}</label>
             </div>
+            <div style="font-size:.72rem; color:var(--text-4); margin-bottom:.3rem;"><i class="ph-bold ph-house"></i> Domowe — liczone do opłacalności FV</div>
             <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
               <input type="number" name="ev_v_{{ v.id }}" id="ev_v_{{ v.id }}" step="0.01"
                 value="{{ ev_rows[v.id]['kwh'] if ev_rows is defined and v.id in ev_rows else '' }}"
@@ -110,6 +111,23 @@
                 placeholder="stan licznika" style="flex:1.5; min-width:100px;">
               <span style="font-size:.8rem; color:var(--text-4); flex-shrink:0;">km (licznik)</span>
             </div>
+            <div style="font-size:.72rem; color:var(--text-4); margin:.5rem 0 .3rem;"><i class="ph-bold ph-charging-station"></i> Publiczne — poza opłacalnością FV</div>
+            <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+              <input type="number" name="ev_pub_kwh_v_{{ v.id }}" id="ev_pub_kwh_v_{{ v.id }}" step="0.01" min="0"
+                value="{{ ev_rows[v.id]['public_kwh'] if ev_rows is defined and v.id in ev_rows and ev_rows[v.id].get('public_kwh') is not none else '' }}"
+                placeholder="kWh public" style="flex:1; min-width:80px;">
+              <span style="font-size:.8rem; color:var(--text-4); flex-shrink:0;">kWh</span>
+              <span style="font-size:.75rem; color:var(--border); flex-shrink:0; padding:0 .25rem;">|</span>
+              <input type="number" name="ev_pub_km_v_{{ v.id }}" id="ev_pub_km_v_{{ v.id }}" step="1" min="0"
+                value="{{ ev_rows[v.id]['public_km'] if ev_rows is defined and v.id in ev_rows and ev_rows[v.id].get('public_km') is not none else '' }}"
+                placeholder="km public" style="flex:1; min-width:70px;">
+              <span style="font-size:.8rem; color:var(--text-4); flex-shrink:0;">km</span>
+              <span style="font-size:.75rem; color:var(--border); flex-shrink:0; padding:0 .25rem;">|</span>
+              <input type="number" name="ev_pub_cost_v_{{ v.id }}" id="ev_pub_cost_v_{{ v.id }}" step="0.01" min="0"
+                value="{{ ev_rows[v.id]['public_cost_pln'] if ev_rows is defined and v.id in ev_rows and ev_rows[v.id].get('public_cost_pln') is not none else '' }}"
+                placeholder="koszt" style="flex:1; min-width:80px;">
+              <span style="font-size:.8rem; color:var(--text-4); flex-shrink:0;">zł</span>
+            </div>
           </div>
           {% endfor %}
         {% else %}
@@ -124,7 +142,7 @@
       </div>
 
       <div style="border-top:1px solid var(--border); padding-top:1rem;">
-        <div style="font-size:.8rem; color:var(--text-3); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Faktura (opcjonalnie)</div>
+        <div style="font-size:.8rem; color:var(--text-3); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.05em;">Faktura za energię elektryczną (opcjonalnie)</div>
         <div class="grid-3">
           <div>
             <label style="display:block; margin-bottom:.4rem; font-size:.85rem; color:var(--text-2);">Cena kWh [zł]</label>

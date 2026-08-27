@@ -135,8 +135,11 @@
     <a href="{{ rp }}/roi" class="nav-link {% if request.url.path == '/roi' %}active{% endif %}">
       <i class="ph-bold ph-trend-up nav-icon"></i><span class="nav-text">ROI</span>
     </a>
-    <a href="{{ rp }}/odczyty" class="nav-link {% if '/odczyty' in request.url.path %}active{% endif %}">
+    <a href="{{ rp }}/odczyty" class="nav-link {% if request.url.path.endswith('/odczyty') %}active{% endif %}">
       <i class="ph-bold ph-gauge nav-icon"></i><span class="nav-text">Odczyty</span>
+    </a>
+    <a href="{{ rp }}/odczyty/nowy" class="nav-link {% if request.url.path.endswith('/odczyty/nowy') %}active{% endif %}" style="color:var(--accent);">
+      <i class="ph-bold ph-plus-circle nav-icon"></i><span class="nav-text">Nowy wpis</span>
     </a>
     <a href="{{ rp }}/inwestycje" class="nav-link {% if '/inwestycje' in request.url.path %}active{% endif %}">
       <i class="ph-bold ph-chart-bar nav-icon"></i><span class="nav-text">Inwestycje</span>

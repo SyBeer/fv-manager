@@ -162,6 +162,29 @@
                 <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">km (licznik)</span>
               </div>
             </div>
+            <div style="display:grid; grid-template-columns:200px auto auto auto; align-items:center; gap:.5rem .75rem; margin-top:.35rem;">
+              <span style="font-size:.72rem; color:var(--text-4);"><i class="ph-bold ph-charging-station"></i> publiczne (poza FV)</span>
+              <div style="display:flex; align-items:center; gap:.4rem;">
+                <input type="number" name="public_kwh_v_{{ v.id }}" step="0.01" min="0" placeholder="kWh"
+                       value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('public_kwh', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('public_kwh') is not none else '' }}"
+                       style="width:100px;">
+                <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">kWh</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:.4rem;">
+                <span style="font-size:.75rem; color:var(--border);">|</span>
+                <input type="number" name="public_km_v_{{ v.id }}" step="1" min="0" placeholder="km"
+                       value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('public_km', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('public_km') is not none else '' }}"
+                       style="width:80px;">
+                <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">km</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:.4rem;">
+                <span style="font-size:.75rem; color:var(--border);">|</span>
+                <input type="number" name="public_cost_v_{{ v.id }}" step="0.01" min="0" placeholder="koszt"
+                       value="{{ ev_raw.get(r.period, {}).get(v.id, {}).get('public_cost_pln', '') if ev_raw.get(r.period, {}).get(v.id) and ev_raw.get(r.period, {}).get(v.id, {}).get('public_cost_pln') is not none else '' }}"
+                       style="width:110px;">
+                <span style="font-size:.8rem; color:var(--text-4); white-space:nowrap;">zł</span>
+              </div>
+            </div>
             {% endif %}
             {% endfor %}
           {% else %}
