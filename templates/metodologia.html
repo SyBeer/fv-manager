@@ -74,13 +74,13 @@
       <span style="font-size:1.6rem;">🚗</span>
       <div>
         <div style="font-weight:700; font-size:1.05rem;">Oszczędność na paliwie (EV)</div>
-        <div style="color:var(--text-3); font-size:.85rem;">Ile zaoszczędziłeś nie tankując benzyny — niezależnie czy ładujesz z paneli czy z sieci.</div>
+        <div style="color:var(--text-3); font-size:.85rem;">Ile zaoszczędziłeś nie tankując benzyny — z rozdzieleniem ładowania domowego i publicznego.</div>
       </div>
     </div>
 
     <div style="background:var(--bg); border-radius:8px; padding:1rem;">
       <p style="color:var(--text); font-size:.9rem; margin:0 0 .75rem;">
-        Wpisujesz miesięcznie ile kWh naładowałeś i ile km faktycznie przejechałeś (z licznika). Aplikacja porównuje:
+        Dla każdego pojazdu i miesiąca aplikacja porównuje koszt przejechanych km na benzynie z kosztem energii elektrycznej:
       </p>
       <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
         <div style="background:var(--badge-red-bg); color:var(--badge-red-text); border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
@@ -92,13 +92,33 @@
         </div>
         <span style="color:var(--text-3); font-size:1.2rem;">=</span>
         <div style="background:var(--badge-yellow-bg); color:var(--badge-yellow-text); border-radius:6px; padding:.4rem .75rem; font-size:.85rem; font-weight:600;">
-          Twoja oszczędność EV
+          Oszczędność vs paliwo
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg); border-radius:8px; padding:1rem; margin-top:.75rem;">
+      <p style="color:var(--text); font-size:.9rem; font-weight:600; margin:0 0 .6rem;">Dwa rodzaje ładowania liczone osobno:</p>
+      <div style="display:flex; align-items:flex-start; gap:.6rem; margin-bottom:.6rem;">
+        <span style="font-size:1.1rem;">🏠</span>
+        <div style="font-size:.85rem; color:var(--text-2);">
+          <strong style="color:var(--text);">Domowe</strong> — prąd z Twojego licznika (sieć/PV). Koszt = zużyte kWh × Twoja cena prądu. Wchodzi zarówno do <strong>opłacalności FV</strong>, jak i do <strong>oszczędności vs paliwo</strong>.
+        </div>
+      </div>
+      <div style="display:flex; align-items:flex-start; gap:.6rem;">
+        <span style="font-size:1.1rem;">⚡</span>
+        <div style="font-size:.85rem; color:var(--text-2);">
+          <strong style="color:var(--text);">Publiczne</strong> — ładowarki poza domem. Podajesz kWh, km i <strong>faktyczny koszt (zł)</strong>. <strong>Nie wchodzi do opłacalności FV</strong> (ten prąd nie pochodzi z Twojego licznika/PV), ale liczy się do oszczędności vs paliwo:
+          <div style="margin-top:.4rem; font-size:.82rem; color:var(--text-3);">oszczędność_publiczna = uniknięte_paliwo(km) − koszt_publiczny</div>
         </div>
       </div>
     </div>
 
     <p style="color:var(--text-3); font-size:.82rem; margin-top:.75rem; margin-bottom:.4rem;">
-      💡 Nie musisz śledzić czy ładujesz z paneli czy z sieci — licznik dwukierunkowy uwzględnia to automatycznie w danych PV.
+      💡 Ładowania domowego nie musisz rozdzielać na „z paneli / z sieci" — licznik dwukierunkowy uwzględnia to automatycznie w danych PV. Osobno wpisujesz tylko ładowanie publiczne.
+    </p>
+    <p style="color:var(--text-3); font-size:.82rem; margin:0 0 .4rem;">
+      ⚠️ Oszczędność publiczna bywa <strong>ujemna</strong> — gdy ładowarka publiczna była droższa niż benzyna na tych kilometrach (typowo powyżej ok. <em>spalanie × cena_paliwa ÷ efektywność_EV</em> zł/kWh). To celowy sygnał, że publiczne ładowanie się nie opłaciło.
     </p>
     <p style="color:var(--text-3); font-size:.82rem; margin:0;">
       📍 Jeśli nie wpiszesz km, aplikacja wyliczy je ze wzoru (kWh ÷ efektywność) i oznaczy jako <em>(est.)</em> — wynik jest wtedy przybliżony, bo nie uwzględnia przesunięcia czasowego między ładowaniem a jazdą.
@@ -129,8 +149,11 @@
           Łączna inwestycja → ROI ✓
         </div>
       </div>
-      <p style="color:var(--text-2); font-size:.85rem; margin:0;">
+      <p style="color:var(--text-2); font-size:.85rem; margin:0 0 .5rem;">
         Inwestycja obejmuje <strong>wszystkie etapy</strong>: panele, falownik, magazyn energii, ładowarkę EV — wpisujesz je w sekcji Inwestycje i są sumowane automatycznie.
+      </p>
+      <p style="color:var(--text-3); font-size:.82rem; margin:0;">
+        ℹ️ Do ROI wliczana jest oszczędność EV z <strong>ładowania domowego</strong> (prąd z Twojego licznika/PV). Ładowanie <strong>publiczne</strong> pozostaje poza opłacalnością instalacji — liczy się tylko do porównania auta z paliwem.
       </p>
     </div>
 
@@ -162,7 +185,8 @@
           <li>Produkcja paneli (kWh)</li>
           <li>Energia oddana do sieci (kWh)</li>
           <li>Energia pobrana z sieci (kWh)</li>
-          <li>Energia naładowana do auta (kWh) i przejechane km</li>
+          <li>Ładowanie domowe auta (kWh) i przejechane km</li>
+          <li>Ładowanie publiczne auta (kWh, km, koszt) — opcjonalnie</li>
           <li>Cena prądu z faktury (opcjonalnie)</li>
         </ul>
       </div>

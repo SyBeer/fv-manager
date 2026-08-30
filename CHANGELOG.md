@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.2.2] — 2026-08-30
+
+### Poprawiono
+- **Edycja miesięcznego wpisu w panelu per samochód kasowała dane ładowania publicznego.** Modal edycji na stronie pojazdu (`/ev/pojazdy/{id}`) miał tylko pola domowe (kWh/km/licznik), a handler `edit_vehicle_monthly` nadpisywał kolumny `public_*` pustymi wartościami → zapis przez ten modal wymazywał wcześniej wprowadzone ładowanie publiczne (regresja z 3.2.1). Modal ma teraz sekcję „Ładowanie publiczne (poza FV)" z polami kWh/km/koszt, z poprawnym prefillem
+
+### Zmieniono
+- `ev.html`: reorganizacja strony EV — przyciski „Dodaj pojazd" i „Dodaj cenę paliwa" przeniesione na samą górę (kotwice do formularzy); sekcja „Ceny paliw" przeniesiona pod konfigurację pojazdów (układ pionowy zamiast dwóch kolumn)
+- `metodologia.html` („Jak liczymy"): opis oszczędności EV rozbity na ładowanie domowe (opłacalność FV + vs paliwo) i publiczne (poza FV, tylko vs paliwo) ze wzorem i wyjaśnieniem ujemnej oszczędności publicznej; blok ROI i lista danych wejściowych zaktualizowane
+- `README.md`: udokumentowany pełny schemat `ev_monthly` (km, odometer_km, public_*), nowa sekcja o dwóch miarach oszczędności, założenia i logika kalkulacji
+
 ## [3.2.1] — 2026-08-30
 
 ### Poprawiono

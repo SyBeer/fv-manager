@@ -7,7 +7,12 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
 {% endblock %}
 {% block content %}
-<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;"><i class="ph-bold ph-car"></i> Oszczędności EV</h1>
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1rem;"><i class="ph-bold ph-car"></i> Oszczędności EV</h1>
+
+<div style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+  <a href="#add-vehicle" class="btn btn-primary" style="font-size:.85rem;"><i class="ph-bold ph-car"></i> Dodaj pojazd</a>
+  <a href="#add-fuel-price" class="btn btn-ghost" style="font-size:.85rem;"><i class="ph-bold ph-gas-pump"></i> Dodaj cenę paliwa</a>
+</div>
 
 {% set err = request.query_params.get('err') %}
 {% if err %}
@@ -213,7 +218,7 @@
 </div>
 {% endif %}
 
-<div class="grid-2" style="margin-bottom:1.5rem;">
+<div style="display:flex; flex-direction:column; gap:1.5rem; margin-bottom:1.5rem;">
 
   <!-- Pojazdy -->
   <div class="card">
@@ -269,7 +274,7 @@
     </table>
     </div>
     {% endif %}
-    <h3 style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:var(--text-2);">+ Dodaj pojazd</h3>
+    <h3 id="add-vehicle" style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:var(--text-2); scroll-margin-top:1rem;">+ Dodaj pojazd</h3>
     <form method="post" action="{{ rp }}/ev/pojazdy/nowy" style="display:flex; flex-direction:column; gap:.6rem;">
       <input type="text" name="name" placeholder="Nazwa np. Tesla Model Y" required>
       <div class="grid-2">
@@ -377,6 +382,7 @@
     </table>
     </div>
     {% endif %}
+    <h3 id="add-fuel-price" style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:var(--text-2); scroll-margin-top:1rem;">+ Dodaj cenę paliwa</h3>
     <form method="post" action="{{ rp }}/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
       <div class="grid-2">
         <div>

@@ -1,4 +1,4 @@
-# FV Manager v3.2.1
+# FV Manager v3.2.2
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant i Tesla Fleet API.
@@ -10,10 +10,11 @@ Dostępna jako standalone FastAPI app oraz jako HA Add-on (ingress panel w sideb
 
 - Dane źródłowe pochodzą z **licznika dwukierunkowego** (forward = pobrane z sieci, reverse = oddane do sieci)
 - Model oszczędności oparty na **starym net-meteringu** (80% oddanej energii wraca do puli rozliczeniowej)
-- ROI = suma (oszczędności FV + oszczędności EV) vs suma nakładów inwestycyjnych
+- ROI = suma (oszczędności FV + oszczędności EV z ładowania **domowego**) vs suma nakładów inwestycyjnych
 - Break-even: ekstrapolacja liniowa na podstawie historycznej średniej miesięcznej
 - Obsługa **wielu etapów inwestycji** (panele, inwerter, magazyn, ładowarka EV)
 - Obsługa **wielu pojazdów EV** z osobnym zużyciem miesięcznym per pojazd
+- **Rozdzielenie ładowania domowego (z licznika/PV) i publicznego**: publiczne nie wchodzi do opłacalności FV, ale liczy się do porównania auta z paliwem
 
 ---
 
@@ -111,12 +112,19 @@ notes                         TEXT
 ### `ev_monthly` — zużycie EV per pojazd per miesiąc
 
 ```sql
-id          INTEGER PRIMARY KEY AUTOINCREMENT
-period      TEXT NOT NULL                -- "2024.06"
-vehicle_id  INTEGER NOT NULL REFERENCES vehicles(id)
-kwh         REAL NOT NULL
+id              INTEGER PRIMARY KEY AUTOINCREMENT
+period          TEXT NOT NULL                -- "2024.06"
+vehicle_id      INTEGER NOT NULL REFERENCES vehicles(id)
+kwh             REAL NOT NULL                -- ładowanie DOMOWE (licznik/PV) — wchodzi do opłacalności FV
+km              REAL                         -- km przejechane (ręczne); jeśli brak → liczone z odometer_km lub estymata
+odometer_km     REAL                         -- stan licznika auta (do wyliczenia km jako delta)
+public_kwh      REAL                         -- ładowanie PUBLICZNE — poza opłacalnością FV
+public_km       REAL                         -- km z ładowania publicznego
+public_cost_pln REAL                         -- faktyczny koszt ładowania publicznego (zł)
 UNIQUE(period, vehicle_id)
 ```
+
+Rozróżnienie **domowe vs publiczne**: `kwh`/`km` to ładowanie z Twojego licznika (sieć/PV) — jedyne, które wchodzi do opłacalności FV/ROI. Kolumny `public_*` to ładowanie na ładowarkach publicznych — nie wpływa na opłacalność instalacji, ale wchodzi do porównania auta z paliwem.
 
 ### `ev_settings` — konfiguracja EV + integracje (singleton, id=1)
 
@@ -195,6 +203,22 @@ electricity_cost = ev_kwh × price_per_kwh
 ev_net_savings  = fuel_cost - electricity_cost
 ```
 
+`calc_ev_savings` dotyczy ładowania **domowego** — otrzymuje wyłącznie `kwh`/`km` (domowe).
+
+### Ładowanie domowe vs publiczne — dwie miary (`_agg_vehicles_ev`)
+
+Od 3.2.x agregat per pojazd rozdziela oszczędności na dwie pozycje:
+
+```
+savings_home   = calc_ev_savings(home_kwh, home_km, ...)      ← wchodzi do opłacalności FV/ROI
+savings_public = uniknięte_paliwo(public_km) − public_cost_pln ← poza FV, tylko vs paliwo
+total_savings  = savings_home + savings_public                 ← "Oszczędności vs paliwo"
+```
+
+- **Opłacalność FV/ROI** (`_ev_enrich` → `readings.ev_savings_pln`): tylko `savings_home` (prąd z licznika/PV).
+- **Opłacalność auta vs paliwo** (strona pojazdu, karty na `/ev`): `savings_home + savings_public`.
+- `savings_public` może być **ujemne**, gdy ładowarka publiczna była droższa niż benzyna na tych km (próg ≈ `fuel_l_per_100km × fuel_price / efficiency_kwh_per_100km` zł/kWh).
+
 ### Analiza wrażliwości (`roi_sensitivity`)
 
 Oblicza break-even dla cen kWh: 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20 zł.
@@ -202,7 +226,7 @@ Oblicza break-even dla cen kWh: 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20 z
 ### Wzbogacenie odczytów o EV (`_ev_enrich`)
 
 Dwie ścieżki (kolejność priorytetu):
-1. **Multi-vehicle** (preferred): dla każdego odczytu sumuje `calc_ev_savings` per pojazd z `ev_monthly`
+1. **Multi-vehicle** (preferred): dla każdego odczytu sumuje `calc_ev_savings` per pojazd z `ev_monthly` — tylko ładowanie **domowe** (`kwh`/`km`); pola `public_*` są pomijane, bo nie należą do opłacalności FV
 2. **Legacy fallback**: jeśli brak pojazdów — używa `readings.ev_kwh` + `ev_settings`
 
 ---

@@ -185,7 +185,7 @@ new Chart(document.getElementById('vehicleChart'), {
       </td>
       <td>
         <button class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;"
-                onclick="openEditModal('{{ m.period }}','{{ m.kwh }}','{{ m.km if m.km_source == 'manual' else '' }}','{{ m.odometer_km or '' }}')">
+                onclick="openEditModal('{{ m.period }}','{{ m.kwh }}','{{ m.km if m.km_source == 'manual' else '' }}','{{ m.odometer_km or '' }}','{{ m.public_kwh if m.public_kwh is not none else '' }}','{{ m.public_km if m.public_km is not none else '' }}','{{ m.public_cost_pln if m.public_cost_pln is not none else '' }}')">
           <i class="ph-bold ph-pencil-simple"></i>
         </button>
       </td>
@@ -226,6 +226,23 @@ new Chart(document.getElementById('vehicleChart'), {
       <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">Stan licznika [km]</label>
       <input id="editOdometer" type="number" name="odometer_km" step="1" min="0" placeholder="opcjonalne">
     </div>
+    <div style="border-top:1px solid var(--border); padding-top:.75rem; font-size:.72rem; color:var(--text-4); text-transform:uppercase; letter-spacing:.05em;">
+      <i class="ph-bold ph-charging-station"></i> Ładowanie publiczne (poza FV)
+    </div>
+    <div style="display:flex; gap:.5rem;">
+      <div style="flex:1;">
+        <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">kWh</label>
+        <input id="editPubKwh" type="number" name="public_kwh" step="0.01" min="0" placeholder="opcjonalne">
+      </div>
+      <div style="flex:1;">
+        <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">km</label>
+        <input id="editPubKm" type="number" name="public_km" step="1" min="0" placeholder="opcjonalne">
+      </div>
+    </div>
+    <div>
+      <label style="display:block; font-size:.75rem; color:var(--text-3); margin-bottom:.3rem;">Koszt publiczny [zł]</label>
+      <input id="editPubCost" type="number" name="public_cost_pln" step="0.01" min="0" placeholder="opcjonalne">
+    </div>
     <div style="display:flex; gap:.5rem;">
       <button type="submit" class="btn btn-primary" style="font-size:.85rem;"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
       <button type="button" onclick="closeEditModal()" class="btn btn-ghost" style="font-size:.85rem;">Anuluj</button>
@@ -237,12 +254,15 @@ new Chart(document.getElementById('vehicleChart'), {
 const _rp = {{ rp | tojson }};
 const _vid = {{ vehicle.id }};
 
-function openEditModal(period, kwh, km, odometer) {
+function openEditModal(period, kwh, km, odometer, pubKwh, pubKm, pubCost) {
   document.getElementById('editModalPeriod').textContent = period;
   document.getElementById('editModalForm').action = _rp + '/ev/pojazdy/' + _vid + '/monthly/' + period + '/edytuj';
   document.getElementById('editKwh').value = kwh;
   document.getElementById('editKm').value = km;
   document.getElementById('editOdometer').value = odometer;
+  document.getElementById('editPubKwh').value = pubKwh || '';
+  document.getElementById('editPubKm').value = pubKm || '';
+  document.getElementById('editPubCost').value = pubCost || '';
 
   const modal = document.getElementById('editModal');
   modal.style.display = 'block';
