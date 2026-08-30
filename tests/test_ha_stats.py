@@ -130,16 +130,25 @@ async def test_no_data_returns_none_not_zero(monkeypatch):
 
 
 async def test_wh_sensor_converts_to_kwh(monkeypatch):
-    """Wh sensor (e.g. Solaredge): change value divided by 1000."""
+    """Konwersja Wh→kWh jest delegowana do HA przez units={energy: kWh}.
+
+    Kod nie przelicza jednostek u siebie — prosi HA o dane od razu w kWh. Test
+    sprawdza rzeczywistą odpowiedzialność kodu: że zapytanie zawiera parametr
+    units, a wynik to wartość zwrócona przez HA (już przeliczona do kWh).
+    """
     entity = "sensor.solaredge_lifetime_energy"
+    captured = {}
 
     def post_fn(url, **kw):
-        return MockResponse(data=stats_body(entity, 800_000.0))  # 800 000 Wh = 800 kWh
+        captured["json"] = kw.get("json")
+        # HA, poproszony o units={energy: kWh}, zwraca dla czujnika Wh już 800 kWh.
+        return MockResponse(data=stats_body(entity, 800.0))
 
     monkeypatch.setattr(ha_stats, "_AsyncClient", lambda **kw: MockClient(wh_get, post_fn))
 
     result = await get_monthly_energy(entity, 2026, 4)
     assert result == 800.0
+    assert captured["json"]["units"] == {"energy": "kWh"}
 
 
 async def test_kwh_sensor_not_converted(monkeypatch):
