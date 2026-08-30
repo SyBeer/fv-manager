@@ -3,35 +3,13 @@
 {% block content %}
 <div class="card" style="margin-bottom:1.5rem; display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
   <span style="color:var(--text-3); font-size:.85rem;"><i class="ph-bold ph-palette"></i> Motyw interfejsu</span>
-  <button onclick="setTheme('dark')" id="btn-theme-dark" class="btn btn-ghost" style="font-size:.8rem;">
+  <button onclick="fvSetTheme('dark')" data-theme-btn="dark" class="btn btn-ghost" style="font-size:.8rem;">
     <i class="ph-bold ph-moon"></i> Ciemny
   </button>
-  <button onclick="setTheme('light')" id="btn-theme-light" class="btn btn-ghost" style="font-size:.8rem;">
+  <button onclick="fvSetTheme('light')" data-theme-btn="light" class="btn btn-ghost" style="font-size:.8rem;">
     <i class="ph-bold ph-sun"></i> Jasny
   </button>
 </div>
-<script>
-function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('theme', t);
-  document.getElementById('btn-theme-dark').style.opacity = t === 'dark' ? '1' : '.5';
-  document.getElementById('btn-theme-light').style.opacity = t === 'light' ? '1' : '.5';
-}
-function setTheme(t) {
-  applyTheme(t);
-  // Trwały zapis po stronie serwera (JSON POST omija CSRF) — przeżywa czyszczenie localStorage.
-  fetch('{{ rp }}/ev/theme', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({theme: t}),
-  }).catch(function(){});
-}
-(function(){
-  // Źródłem prawdy jest data-theme renderowane przez serwer.
-  var t = document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'dark';
-  applyTheme(t);
-})();
-</script>
 <div style="max-width:700px;">
   <h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1.5rem;"><i class="ph-bold ph-gear"></i> Ustawienia</h1>
 

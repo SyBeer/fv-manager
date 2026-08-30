@@ -95,14 +95,15 @@
 </style>
 <script>
   (function(){
-    // Serwer renderuje data-theme z app_settings (źródło prawdy, przeżywa czyszczenie localStorage).
-    // Jeśli serwer ustawił motyw — tylko mirror do localStorage; w innym wypadku fallback.
+    // Wybór motywu w localStorage jest nadrzędny — nie resetuje się przy restarcie
+    // serwera ani gdy zapis do bazy zawiedzie. Serwerowy data-theme (z app_settings)
+    // służy tylko jako wartość początkowa dla świeżej przeglądarki (brak localStorage).
     var srv = document.documentElement.getAttribute('data-theme');
-    if (srv) {
-      localStorage.setItem('theme', srv);
-    } else {
-      document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
-    }
+    var saved = null;
+    try { saved = localStorage.getItem('theme'); } catch (e) {}
+    var t = saved || srv || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    try { if (!saved && srv) localStorage.setItem('theme', srv); } catch (e) {}
   })();
 </script>
 {% block head %}{% endblock %}
@@ -163,6 +164,11 @@
       <i class="ph-bold ph-info nav-icon"></i><span class="nav-text">Jak liczymy?</span>
     </a>
 
+    <button type="button" onclick="fvToggleTheme()" class="nav-link" title="Przełącz motyw jasny/ciemny"
+            style="margin-top:auto; background:none; border:none; cursor:pointer; width:100%; text-align:left; font-family:inherit; border-top:1px solid var(--border); border-radius:0; padding-top:.75rem;">
+      <i id="sidebar-theme-icon" class="ph-bold ph-moon nav-icon"></i><span class="nav-text" id="sidebar-theme-label">Motyw: ciemny</span>
+    </button>
+
   </nav>
 
   <!-- Content -->
@@ -172,6 +178,38 @@
 </div>
 
 <script>
+// ── Motyw jasny/ciemny ────────────────────────────────────────────────────────
+var FV_RP = {{ rp | tojson }};
+function fvApplyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('theme', t); } catch (e) {}
+  var ic = document.getElementById('sidebar-theme-icon');
+  if (ic) ic.className = 'ph-bold nav-icon ' + (t === 'dark' ? 'ph-moon' : 'ph-sun');
+  var lb = document.getElementById('sidebar-theme-label');
+  if (lb) lb.textContent = 'Motyw: ' + (t === 'dark' ? 'ciemny' : 'jasny');
+  // Synchronizacja przycisków na stronie Ustawień (jeśli obecne).
+  document.querySelectorAll('[data-theme-btn]').forEach(function(b) {
+    b.style.opacity = b.getAttribute('data-theme-btn') === t ? '1' : '.5';
+  });
+}
+function fvSetTheme(t) {
+  fvApplyTheme(t);
+  // Trwały zapis po stronie serwera (dla świeżej przeglądarki). localStorage i tak
+  // jest nadrzędny, więc nieudany zapis nie zresetuje lokalnego wyboru.
+  fetch(FV_RP + '/ev/theme', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({theme: t}),
+  }).catch(function(){});
+}
+function fvToggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  fvSetTheme(cur === 'dark' ? 'light' : 'dark');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  fvApplyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+});
+
 function getCsrfToken() {
   const meta = document.querySelector('meta[name="csrf-token"]');
   return meta ? meta.getAttribute('content') : '';

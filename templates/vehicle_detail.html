@@ -148,10 +148,10 @@ new Chart(document.getElementById('vehicleChart'), {
         <th>km</th>
         <th>kWh/100km</th>
         <th>Źródło km</th>
-        <th>Koszt prądu</th>
-        <th>Koszt paliwa (gdyby)</th>
-        <th>Oszczędność</th>
-        <th>Litrów</th>
+        <th>Koszt prądu [zł]</th>
+        <th>Koszt paliwa (gdyby) [zł]</th>
+        <th>Oszczędność [zł]</th>
+        <th>Litrów [L]</th>
         <th></th>
       </tr>
     </thead>
@@ -159,9 +159,9 @@ new Chart(document.getElementById('vehicleChart'), {
     {% for m in monthly %}
     <tr>
       <td><strong>{{ m.period }}</strong></td>
-      <td style="color:var(--c-blue);">{{ m.kwh|fmtn(1) }} kWh</td>
+      <td style="color:var(--c-blue);">{{ m.kwh|fmtn(1) }}</td>
       <td>
-        {% if m.km_driven is not none %}{{ m.km_driven|fmtn }} km{% else %}—{% endif %}
+        {% if m.km_driven is not none %}{{ m.km_driven|fmtn }}{% else %}—{% endif %}
       </td>
       <td style="color:var(--c-blue-2);">
         {% if m.efficiency_real is not none %}{{ m.efficiency_real|fmtn(1) }}{% if not m.km_actual %} <span style="color:var(--text-4); font-size:.75rem;">(est.)</span>{% endif %}{% else %}—{% endif %}
@@ -172,16 +172,16 @@ new Chart(document.getElementById('vehicleChart'), {
         {% else %}<span style="color:var(--text-4); font-size:.8rem;">(est.)</span>{% endif %}
       </td>
       <td style="color:var(--text-2);">
-        {% if m.electricity_cost is not none %}{{ m.electricity_cost|fmtn(2) }} zł{% else %}—{% endif %}
+        {% if m.electricity_cost is not none %}{{ m.electricity_cost|fmtn(2) }}{% else %}—{% endif %}
       </td>
       <td style="color:var(--c-red-light);">
-        {% if m.fuel_cost_equivalent is not none %}{{ m.fuel_cost_equivalent|fmtn(2) }} zł{% else %}—{% endif %}
+        {% if m.fuel_cost_equivalent is not none %}{{ m.fuel_cost_equivalent|fmtn(2) }}{% else %}—{% endif %}
       </td>
       <td style="color:var(--c-green); font-weight:600;">
-        {% if m.ev_net_savings is not none %}{{ m.ev_net_savings|fmtn(2) }} zł{% else %}—{% endif %}
+        {% if m.ev_net_savings is not none %}{{ m.ev_net_savings|fmtn(2) }}{% else %}—{% endif %}
       </td>
       <td style="color:var(--c-yellow);">
-        {% if m.liters_saved is not none %}{{ m.liters_saved|fmtn(1) }} L{% else %}—{% endif %}
+        {% if m.liters_saved is not none %}{{ m.liters_saved|fmtn(1) }}{% else %}—{% endif %}
       </td>
       <td>
         <button class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;"

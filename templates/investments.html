@@ -32,15 +32,15 @@
 <div class="card" style="margin-bottom:1.5rem;"><div class="table-wrap">
   <table>
     <thead>
-      <tr><th>Data</th><th>Opis</th><th>Sumaryczna moc FV [kWp]</th><th>Koszt</th><th></th></tr>
+      <tr><th>Data</th><th>Opis</th><th>Sumaryczna moc FV [kWp]</th><th>Koszt [zł]</th><th></th></tr>
     </thead>
     <tbody>
     {% for inv in investments %}
     <tr>
       <td>{{ inv.date }}</td>
       <td>{{ inv.description }}</td>
-      <td style="color:var(--text-2);">{% if inv.power_kwp %}{{ inv.power_kwp }} kWp{% else %}—{% endif %}</td>
-      <td style="color:var(--c-yellow); font-weight:600;">{{ inv.cost_pln|fmtn }} zł</td>
+      <td style="color:var(--text-2);">{% if inv.power_kwp %}{{ inv.power_kwp }}{% else %}—{% endif %}</td>
+      <td style="color:var(--c-yellow); font-weight:600;">{{ inv.cost_pln|fmtn }}</td>
       <td style="white-space:nowrap;">
         <a href="{{ rp }}/inwestycje/{{ inv.id }}/edytuj" class="btn btn-ghost" style="font-size:.75rem; padding:.3rem .6rem;"><i class="ph-bold ph-pencil-simple"></i></a>
         <form method="post" action="{{ rp }}/inwestycje/{{ inv.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć tę inwestycję?')">

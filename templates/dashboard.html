@@ -131,24 +131,24 @@
     <thead>
       <tr>
         <th>Okres</th>
-        <th>Produkcja</th>
-        <th>Autokonsumpcja</th>
-        <th>Oddane <small style="color:var(--text-4);">(2.8.0)</small></th>
-        <th>Pobrane <small style="color:var(--text-4);">(1.8.0)</small></th>
-        <th>Zużycie</th>
-        <th>Oszczędności</th>
+        <th>Produkcja [kWh]</th>
+        <th>Autokonsumpcja [kWh]</th>
+        <th>Oddane [kWh] <small style="color:var(--text-4);">(2.8.0)</small></th>
+        <th>Pobrane [kWh] <small style="color:var(--text-4);">(1.8.0)</small></th>
+        <th>Zużycie [kWh]</th>
+        <th>Oszczędności [zł]</th>
       </tr>
     </thead>
     <tbody>
     {% for r in readings|reverse %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:var(--c-yellow);">{{ r.production_kwh|fmtn(1) }} kWh</td>
-      <td style="color:var(--c-green);">{{ r.auto_consumption|fmtn(1) }} kWh</td>
-      <td style="color:var(--text-2);">{{ r.sent_to_grid_kwh|fmtn(1) }} kWh</td>
-      <td style="color:var(--c-red-light);">{{ r.taken_from_grid_kwh|fmtn(1) }} kWh</td>
-      <td>{{ r.total_consumed|fmtn(1) }} kWh</td>
-      <td style="color:var(--c-green);">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }} zł{% else %}<span style="color:var(--text-4);">—</span>{% endif %}</td>
+      <td style="color:var(--c-yellow);">{{ r.production_kwh|fmtn(1) }}</td>
+      <td style="color:var(--c-green);">{{ r.auto_consumption|fmtn(1) }}</td>
+      <td style="color:var(--text-2);">{{ r.sent_to_grid_kwh|fmtn(1) }}</td>
+      <td style="color:var(--c-red-light);">{{ r.taken_from_grid_kwh|fmtn(1) }}</td>
+      <td>{{ r.total_consumed|fmtn(1) }}</td>
+      <td style="color:var(--c-green);">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }}{% else %}<span style="color:var(--text-4);">—</span>{% endif %}</td>
     </tr>
     {% endfor %}
     </tbody>

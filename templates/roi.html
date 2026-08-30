@@ -98,9 +98,9 @@ new Chart(document.getElementById('roiChart'), {
   <table>
     <thead>
       <tr>
-        <th>Cena kWh</th>
-        <th>Oszczędności łącznie</th>
-        <th>Pozostało do zwrotu</th>
+        <th>Cena [zł/kWh]</th>
+        <th>Oszczędności łącznie [zł]</th>
+        <th>Pozostało do zwrotu [zł]</th>
         <th>Mies. do ROI</th>
         <th>Status</th>
       </tr>
@@ -108,10 +108,10 @@ new Chart(document.getElementById('roiChart'), {
     <tbody>
     {% for s in sensitivity %}
     <tr>
-      <td><strong>{{ s.price_per_kwh|fmtn(2) }} zł</strong></td>
-      <td style="color:var(--c-green);">{{ s.total_savings_pln|fmtn }} zł</td>
+      <td><strong>{{ s.price_per_kwh|fmtn(2) }}</strong></td>
+      <td style="color:var(--c-green);">{{ s.total_savings_pln|fmtn }}</td>
       <td style="color:{% if s.roi_achieved %}var(--c-green){% else %}var(--c-red-light){% endif %};">
-        {% if s.roi_achieved %}—{% else %}{{ s.remaining_to_roi|fmtn }} zł{% endif %}
+        {% if s.roi_achieved %}—{% else %}{{ s.remaining_to_roi|fmtn }}{% endif %}
       </td>
       <td>{% if s.roi_achieved %}<i class="ph-bold ph-check-circle" style="color:var(--c-green);"></i>{% else %}{{ s.months_to_roi }}{% endif %}</td>
       <td>{% if s.roi_achieved %}<span class="badge-green">ROI osiągnięty</span>{% else %}<span class="badge-yellow">W toku</span>{% endif %}</td>
@@ -167,7 +167,7 @@ new Chart(document.getElementById('roiChart'), {
       <tr>
         <th>Wzrost cen/rok</th>
         <th>Mies. do ROI</th>
-        <th>Prognozowane oszczędności łącznie</th>
+        <th>Prognozowane oszczędności łącznie [zł]</th>
         <th>Scenariusz</th>
       </tr>
     </thead>
@@ -178,7 +178,7 @@ new Chart(document.getElementById('roiChart'), {
       <td style="color:{% if s.months_to_roi %}var(--c-green){% else %}var(--text-2){% endif %}; font-weight:600;">
         {% if s.months_to_roi %}{{ s.months_to_roi }}{% else %}&gt; {{ forecast|length }}{% endif %}
       </td>
-      <td style="color:var(--c-blue-2);">{{ s.cumulative_savings|fmtn }} zł</td>
+      <td style="color:var(--c-blue-2);">{{ s.cumulative_savings|fmtn }}</td>
       <td>
         {% if s.scenario == 'pessimistic' %}<span class="badge-yellow">Pesymistyczny</span>
         {% elif s.scenario == 'base' %}<span class="badge-green">Bazowy</span>

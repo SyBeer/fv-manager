@@ -142,7 +142,7 @@
       {% for p in rce_prices %}
       <tr>
         <td>{{ p.date }}</td>
-        <td style="color:var(--accent); font-weight:600;">{{ p.price_per_kwh|fmtn(4) }} zł</td>
+        <td style="color:var(--accent); font-weight:600;">{{ p.price_per_kwh|fmtn(4) }}</td>
         <td style="color:var(--text-2); font-size:.82rem;">{{ p.source or "—" }}</td>
         <td>
           <form method="post" action="{{ rp }}/pv/rce-price/{{ p.id }}/usun">

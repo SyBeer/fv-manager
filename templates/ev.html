@@ -100,10 +100,10 @@
         <th>kWh EV</th>
         <th>km</th>
         <th>kWh/100km</th>
-        <th>Koszt paliwa (gdyby)</th>
-        <th>Koszt prądu</th>
-        <th>Oszczędność netto</th>
-        <th>Litrów zaoszczędzono</th>
+        <th>Koszt paliwa (gdyby) [zł]</th>
+        <th>Koszt prądu [zł]</th>
+        <th>Oszczędność netto [zł]</th>
+        <th>Litrów zaoszczędzono [L]</th>
         <th></th>
       </tr>
     </thead>
@@ -111,19 +111,19 @@
     {% for r in monthly_ev %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:var(--c-blue-2);">{{ r.ev_kwh|fmtn(1) }} kWh
+      <td style="color:var(--c-blue-2);">{{ r.ev_kwh|fmtn(1) }}
         {% if r.vehicles|length > 1 %}
         <div style="font-size:.75rem; color:var(--text-4); margin-top:.2rem;">
           {% for v in r.vehicles %}{{ v.name }}: {{ v.kwh|fmtn(1) }}{% if not loop.last %}, {% endif %}{% endfor %}
         </div>
         {% endif %}
       </td>
-      <td>{{ r.km_driven|fmtn }} km{% if not r.km_actual %} <span style="font-size:.75rem; color:var(--text-4);">(est.)</span>{% endif %}</td>
+      <td>{{ r.km_driven|fmtn }}{% if not r.km_actual %} <span style="font-size:.75rem; color:var(--text-4);">(est.)</span>{% endif %}</td>
       <td style="color:var(--c-blue-2);">{% if r.efficiency_real is not none %}{{ r.efficiency_real|fmtn(1) }}{% if not r.km_actual %} <span style="font-size:.75rem; color:var(--text-4);">(est.)</span>{% endif %}{% else %}—{% endif %}</td>
-      <td style="color:var(--c-red-light);">{{ r.fuel_cost_equivalent|fmtn(2) }} zł</td>
-      <td style="color:var(--text-2);">{{ r.electricity_cost|fmtn(2) }} zł</td>
-      <td style="color:var(--c-green); font-weight:600;">{{ r.ev_net_savings|fmtn(2) }} zł</td>
-      <td style="color:var(--c-yellow);">{{ r.liters_saved|fmtn(1) }} L</td>
+      <td style="color:var(--c-red-light);">{{ r.fuel_cost_equivalent|fmtn(2) }}</td>
+      <td style="color:var(--text-2);">{{ r.electricity_cost|fmtn(2) }}</td>
+      <td style="color:var(--c-green); font-weight:600;">{{ r.ev_net_savings|fmtn(2) }}</td>
+      <td style="color:var(--c-yellow);">{{ r.liters_saved|fmtn(1) }}</td>
       <td style="white-space:nowrap;">
         <button onclick="toggleEvEdit('ev-edit-{{ r.period|replace('.','_') }}')"
                 class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;">
@@ -226,7 +226,7 @@
     {% if vehicles %}
     <div class="table-wrap">
     <table style="margin-bottom:1rem;">
-      <thead><tr><th>Nazwa</th><th>kWh/100km</th><th>L/100km</th><th>Paliwo</th><th>Od</th><th>Do</th><th>Przebieg</th><th></th></tr></thead>
+      <thead><tr><th>Nazwa</th><th>kWh/100km</th><th>L/100km</th><th>Paliwo</th><th>Od</th><th>Do</th><th>Przebieg [km]</th><th></th></tr></thead>
       <tbody>
       {% for v in vehicles %}
       <tr>
@@ -239,7 +239,7 @@
         <td><span class="badge-blue">{{ v.fuel_type }}</span></td>
         <td style="color:var(--text-2); font-size:.85rem;">{{ v.date_from or '—' }}</td>
         <td style="color:var(--text-2); font-size:.85rem;">{{ v.date_to or '—' }}</td>
-        <td style="color:var(--text-2); font-size:.85rem;">{% if v.przebieg_km %}{{ "{:,.0f}".format(v.przebieg_km).replace(",", " ") }} km{% else %}—{% endif %}</td>
+        <td style="color:var(--text-2); font-size:.85rem;">{% if v.przebieg_km %}{{ "{:,.0f}".format(v.przebieg_km).replace(",", " ") }}{% else %}—{% endif %}</td>
         <td style="white-space:nowrap;">
           <details style="display:inline;">
             <summary class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem; display:inline-block; cursor:pointer; list-style:none;"><i class="ph-bold ph-pencil-simple"></i></summary>
@@ -326,13 +326,13 @@
     {% if prices %}
     <div class="table-wrap">
     <table style="margin-bottom:1rem;">
-      <thead><tr><th>Data</th><th>Rodzaj</th><th>Cena/L</th><th>Źródło</th><th></th></tr></thead>
+      <thead><tr><th>Data</th><th>Rodzaj</th><th>Cena [zł/L]</th><th>Źródło</th><th></th></tr></thead>
       <tbody>
       {% for p in prices %}
       <tr>
         <td>{{ p.date }}</td>
         <td><span class="badge-blue">{{ p.fuel_type }}</span></td>
-        <td style="color:var(--c-yellow); font-weight:600;">{{ p.price_per_liter|fmtn(2) }} zł</td>
+        <td style="color:var(--c-yellow); font-weight:600;">{{ p.price_per_liter|fmtn(2) }}</td>
         <td style="color:var(--text-3); font-size:.8rem;">{{ p.source or '—' }}</td>
         <td style="white-space:nowrap;">
           <button type="button" onclick="toggleEvEdit('fuel-edit-{{ p.id }}')"

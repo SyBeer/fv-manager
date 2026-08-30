@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.3] — 2026-08-30
+
+### Dodano
+- **Trwały przełącznik motywu jasny/ciemny w menu bocznym** — dostępny na każdej stronie (wcześniej tylko w Ustawieniach). Wybór motywu jest zapisywany w `localStorage` jako nadrzędny: nie resetuje się przy restarcie serwera ani gdy zapis do bazy zawiedzie; serwer nadal zapisuje motyw w `app_settings` (dla świeżej przeglądarki), ale nie nadpisuje już lokalnego wyboru. `base.html` udostępnia wspólne `fvApplyTheme/fvSetTheme/fvToggleTheme`, `import.html` z nich korzysta (koniec duplikacji)
+
+### Zmieniono
+- **Jednostki przeniesione z komórek tabel do nagłówków kolumn** we wszystkich tabelach danych (dashboard, odczyty, ROI + prognoza, EV: historia/pojazdy/ceny paliw, pojazd: dane miesięczne, inwestycje, ceny prądu). Wiersze pokazują same liczby, nagłówki niosą jednostkę (`[kWh]`, `[zł]`, `[L]`, `[zł/kWh]`, `[zł/L]`, `[km]`). Tabela dokumentacyjna importu CSV bez zmian (jednostki są tam częścią nazw kolumn)
+
 ## [3.2.2] — 2026-08-30
 
 ### Poprawiono
