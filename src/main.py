@@ -324,7 +324,7 @@ def _agg_vehicles_ev(
 
     def _init(vid: int) -> dict:
         return agg.setdefault(vid, {
-            "kwh": 0.0, "km": 0.0, "savings": 0.0,
+            "kwh": 0.0, "km": 0.0, "savings_home": 0.0, "savings_public": 0.0,
             "public_kwh": 0.0, "public_km": 0.0, "public_cost": 0.0,
         })
 
@@ -334,21 +334,18 @@ def _agg_vehicles_ev(
         if not v:
             continue
 
-        # Publiczne ładowanie — poza wynikiem FV, ale liczone do TCO i przebiegu.
         pub_kwh = e.get("public_kwh") or 0.0
         pub_km = e.get("public_km") or 0.0
         pub_cost = e.get("public_cost_pln") or 0.0
-        if pub_kwh or pub_km or pub_cost:
-            s = _init(vid)
-            s["public_kwh"] += pub_kwh
-            s["public_km"] += pub_km
-            s["public_cost"] += pub_cost
-
-        # Domowe ładowanie — jedyne, które wchodzi do opłacalności FV.
-        if not e.get("kwh"):
+        home_kwh = e.get("kwh") or 0.0
+        if not (pub_kwh or pub_km or pub_cost or home_kwh):
             continue
+
         s = _init(vid)
-        s["kwh"] += e["kwh"]
+        s["public_kwh"] += pub_kwh
+        s["public_km"] += pub_km
+        s["public_cost"] += pub_cost
+        s["kwh"] += home_kwh
 
         year, month_str = e["period"].split(".")
         period_end = f"{year}-{month_str.zfill(2)}-28"
@@ -356,29 +353,44 @@ def _agg_vehicles_ev(
             (p for p in prices_desc if p["fuel_type"] == v["fuel_type"] and p["date"] <= period_end),
             next((p for p in prices_desc if p["fuel_type"] == v["fuel_type"]), None),
         )
-        if fuel_obj:
+        if not fuel_obj:
+            continue
+        fuel_price = fuel_obj["price_per_liter"]
+
+        # Domowe ładowanie — wchodzi do opłacalności FV oraz vs paliwo.
+        if home_kwh:
             calc = calc_ev_savings(
-                ev_kwh=e["kwh"],
+                ev_kwh=home_kwh,
                 price_per_kwh=price_map.get(e["period"]) or default_price,
                 efficiency_kwh_per_100km=v["efficiency_kwh_per_100km"],
                 fuel_consumption_l_per_100km=v["fuel_consumption_l_per_100km"],
-                fuel_price_per_liter=fuel_obj["price_per_liter"],
+                fuel_price_per_liter=fuel_price,
                 km_driven=e.get("km"),
             )
             s["km"] += calc["km_driven"]
-            s["savings"] += calc["ev_net_savings"]
+            s["savings_home"] += calc["ev_net_savings"]
+
+        # Publiczne ładowanie — poza opłacalnością FV, ale wchodzi do vs paliwo:
+        # uniknięte paliwo za publiczne km minus faktyczny koszt ładowania publicznego.
+        if pub_km or pub_cost:
+            fuel_avoided_pub = pub_km / 100 * v["fuel_consumption_l_per_100km"] * fuel_price
+            s["savings_public"] += fuel_avoided_pub - pub_cost
 
     result = []
     for v in vehicles:
         if v["id"] not in agg:
             continue
         s = agg[v["id"]]
+        savings_home = round(s["savings_home"], 2)
+        savings_public = round(s["savings_public"], 2)
         result.append({
             "id": v["id"],
             "name": v["name"],
             "total_kwh": round(s["kwh"], 1),
             "total_km": round(s["km"], 1),
-            "total_savings": round(s["savings"], 2),
+            "total_savings_home": savings_home,
+            "total_savings_public": savings_public,
+            "total_savings": round(savings_home + savings_public, 2),
             "total_public_kwh": round(s["public_kwh"], 1),
             "total_public_km": round(s["public_km"], 1),
             "total_public_cost": round(s["public_cost"], 2),
@@ -729,7 +741,10 @@ async def edit_reading_form(request: Request, reading_id: int):
         vehicles = await _get_vehicles(db)
         settings = await _get_ev_settings(db)
         ev_cur = await db.execute("SELECT * FROM ev_monthly WHERE period=(SELECT period FROM readings WHERE id=?)", (reading_id,))
-        ev_rows = {r["vehicle_id"]: {"kwh": r["kwh"], "km": r["km"], "odometer_km": r["odometer_km"]} for r in [dict(r) for r in await ev_cur.fetchall()]}
+        ev_rows = {r["vehicle_id"]: {
+            "kwh": r["kwh"], "km": r["km"], "odometer_km": r["odometer_km"],
+            "public_kwh": r["public_kwh"], "public_km": r["public_km"], "public_cost_pln": r["public_cost_pln"],
+        } for r in [dict(r) for r in await ev_cur.fetchall()]}
     finally:
         await db.close()
     if not row:
@@ -792,11 +807,20 @@ async def update_reading(request: Request, reading_id: int):
             "settings": settings,
         })
 
+    def _vprefix(prefix: str) -> dict[int, float]:
+        return {int(k.removeprefix(prefix)): float(v.replace(",", ".")) for k, v in form.items() if k.startswith(prefix) and v}
+
     ev_entries = [(int(k.removeprefix("ev_v_")), float(v.replace(",", "."))) for k, v in form.items() if k.startswith("ev_v_") and v]
-    km_entries = {int(k.removeprefix("ev_km_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_km_v_") and v}
-    odometer_entries = {int(k.removeprefix("ev_odometer_v_")): float(v.replace(",", ".")) for k, v in form.items() if k.startswith("ev_odometer_v_") and v}
+    km_entries = _vprefix("ev_km_v_")
+    odometer_entries = _vprefix("ev_odometer_v_")
+    pub_kwh_entries = _vprefix("ev_pub_kwh_v_")
+    pub_km_entries = _vprefix("ev_pub_km_v_")
+    pub_cost_entries = _vprefix("ev_pub_cost_v_")
     legacy_kwh = _ff(form, "ev_kwh")
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
+
+    all_vids = {vid for vid, _ in ev_entries} | pub_kwh_entries.keys() | pub_km_entries.keys() | pub_cost_entries.keys()
+    home_kwh = dict(ev_entries)
 
     db = await get_db()
     try:
@@ -812,12 +836,13 @@ async def update_reading(request: Request, reading_id: int):
         orig = await cur.fetchone()
         if orig:
             await db.execute("DELETE FROM ev_monthly WHERE period=?", (orig["period"],))
-        for vid, kwh in ev_entries:
-            km = km_entries.get(vid)
-            odometer = odometer_entries.get(vid)
+        for vid in sorted(all_vids):
             await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km) VALUES (?,?,?,?,?)",
-                (period, vid, kwh, km, odometer),
+                """INSERT OR REPLACE INTO ev_monthly
+                   (period, vehicle_id, kwh, km, odometer_km, public_kwh, public_km, public_cost_pln)
+                   VALUES (?,?,?,?,?,?,?,?)""",
+                (period, vid, home_kwh.get(vid) or 0.0, km_entries.get(vid), odometer_entries.get(vid),
+                 pub_kwh_entries.get(vid), pub_km_entries.get(vid), pub_cost_entries.get(vid)),
             )
         await db.commit()
     finally:
@@ -1419,6 +1444,15 @@ async def vehicle_detail(request: Request, vehicle_id: int):
         else:
             calc = None
 
+        # Oszczędność z ładowania publicznego vs paliwo (poza opłacalnością FV):
+        # uniknięte paliwo za publiczne km minus faktyczny koszt publiczny.
+        pub_km = e.get("public_km") or 0.0
+        pub_cost = e.get("public_cost_pln") or 0.0
+        if fuel_price and (pub_km or pub_cost):
+            public_savings = round(pub_km / 100 * vehicle["fuel_consumption_l_per_100km"] * fuel_price - pub_cost, 2)
+        else:
+            public_savings = None
+
         monthly.append({
             "period": e["period"],
             "kwh": e["kwh"],
@@ -1432,6 +1466,7 @@ async def vehicle_detail(request: Request, vehicle_id: int):
             "public_kwh": e.get("public_kwh"),
             "public_km": e.get("public_km"),
             "public_cost_pln": e.get("public_cost_pln"),
+            "public_savings": public_savings,
             **(calc if calc else {
                 "km_driven": None, "fuel_cost_equivalent": None,
                 "electricity_cost": None, "ev_net_savings": None, "liters_saved": None,
@@ -1440,7 +1475,9 @@ async def vehicle_detail(request: Request, vehicle_id: int):
 
     total_kwh = sum(m["kwh"] for m in monthly if m["kwh"])
     total_km = sum(m["km_driven"] for m in monthly if m["km_driven"])
-    total_savings = sum(m["ev_net_savings"] for m in monthly if m["ev_net_savings"])
+    total_savings_home = sum(m["ev_net_savings"] for m in monthly if m["ev_net_savings"])
+    total_savings_public = sum(m["public_savings"] for m in monthly if m["public_savings"])
+    total_savings = total_savings_home + total_savings_public
     total_liters = sum(m["liters_saved"] for m in monthly if m["liters_saved"])
     total_public_kwh = sum(m["public_kwh"] or 0 for m in monthly)
     total_public_km = sum(m["public_km"] or 0 for m in monthly)
@@ -1457,6 +1494,8 @@ async def vehicle_detail(request: Request, vehicle_id: int):
         "total_kwh": round(total_kwh, 1),
         "total_km": round(total_km, 1),
         "total_savings": round(total_savings, 2),
+        "total_savings_home": round(total_savings_home, 2),
+        "total_savings_public": round(total_savings_public, 2),
         "total_liters": round(total_liters, 2),
         "avg_efficiency": round(avg_efficiency, 2) if avg_efficiency else None,
         "total_public_kwh": round(total_public_kwh, 1),

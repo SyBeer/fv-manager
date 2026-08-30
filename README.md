@@ -1,4 +1,4 @@
-# FV Manager v3.2.0
+# FV Manager v3.2.1
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant i Tesla Fleet API.

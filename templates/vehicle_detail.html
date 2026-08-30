@@ -48,7 +48,18 @@
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-green);">{{ total_savings|fmtn(2) }} zł</div>
-    <div class="stat-label">Oszczędności vs paliwo</div>
+    <div class="stat-label">Oszczędności vs paliwo (razem)</div>
+    {% if total_public_km or total_public_cost %}
+    <div style="font-size:.75rem; color:var(--text-3); margin-top:.35rem; line-height:1.5;">
+      domowe (FV): <strong style="color:var(--c-green);">{{ total_savings_home|fmtn(2) }} zł</strong><br>
+      publiczne: <strong style="color:{% if total_savings_public < 0 %}var(--c-red){% else %}var(--c-green){% endif %};">{{ total_savings_public|fmtn(2) }} zł</strong>
+    </div>
+    {% if total_savings_public < 0 %}
+    <div style="font-size:.72rem; color:var(--c-red-light); margin-top:.4rem; line-height:1.4;">
+      <i class="ph-bold ph-warning"></i> Ładowanie publiczne droższe niż paliwo na tych kilometrach
+    </div>
+    {% endif %}
+    {% endif %}
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-yellow);">{{ total_liters|fmtn }} L</div>

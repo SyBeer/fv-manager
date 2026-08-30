@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.2.1] — 2026-08-30
+
+### Poprawiono
+- **Edycja odczytu gubiła dane ładowania publicznego.** `edit_reading_form` nie prefillował pól `public_kwh/public_km/public_cost_pln`, a `update_reading` ich nie parsował ani nie zapisywał (kasował `ev_monthly` i wstawiał bez kolumn publicznych) — edycja wpisu wymazywała wprowadzone wcześniej wartości publiczne. Teraz ścieżka edycji odzwierciedla `create_reading`
+
+### Zmieniono
+- **Opłacalność auta vs paliwo uwzględnia teraz ładowanie publiczne.** Wcześniej wynik pojazdu liczył wyłącznie ładowanie domowe. Ładowanie publiczne pozostaje poza opłacalnością FV/ROI (prąd nie z licznika/PV), ale wchodzi do porównania auta z benzyną: `oszczędność_publiczna = uniknięte_paliwo(public_km) − public_cost_pln`
+  - `main.py` (`_agg_vehicles_ev`, `vehicle_detail`): oszczędności rozbite na `savings_home` (FV) i `savings_public`, suma = „vs paliwo"
+  - `vehicle_detail.html`: karta „Oszczędności vs paliwo" pokazuje rozbicie domowe/publiczne; przy ujemnej wartości publicznej — podpowiedź „Ładowanie publiczne droższe niż paliwo na tych kilometrach"
+- testy: `test_ev_public_charging.py` rozszerzone o rozbicie oszczędności (home/public/suma), przypadek ujemnej oszczędności publicznej i miesiąc tylko-publiczny
+
 ## [3.2.0] — 2026-08-27
 
 ### Dodano
