@@ -72,7 +72,7 @@
           <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">łącznie km</div>
         </div>
         <div>
-          <div style="color:var(--c-blue); font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn(1) }} kWh</div>
+          <div style="color:var(--c-blue); font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn }} kWh</div>
           <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">energia EV</div>
         </div>
         <div style="grid-column:1/-1; margin-top:.25rem; padding-top:.5rem; border-top:1px solid var(--border);">
@@ -111,10 +111,10 @@
     {% for r in monthly_ev %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:var(--c-blue-2);">{{ r.ev_kwh|fmtn(1) }}
+      <td style="color:var(--c-blue-2);">{{ r.ev_kwh|fmtn }}
         {% if r.vehicles|length > 1 %}
         <div style="font-size:.75rem; color:var(--text-4); margin-top:.2rem;">
-          {% for v in r.vehicles %}{{ v.name }}: {{ v.kwh|fmtn(1) }}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% for v in r.vehicles %}{{ v.name }}: {{ v.kwh|fmtn }}{% if not loop.last %}, {% endif %}{% endfor %}
         </div>
         {% endif %}
       </td>

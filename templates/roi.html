@@ -42,7 +42,7 @@
   </div>
   {% endif %}
   <div class="card">
-    <div class="stat-value">{{ roi.total_production_kwh }} kWh</div>
+    <div class="stat-value">{{ roi.total_production_kwh|fmtn }} kWh</div>
     <div class="stat-label">Łączna produkcja ({{ roi.months_measured }} mies.)</div>
   </div>
 </div>

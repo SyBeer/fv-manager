@@ -29,12 +29,12 @@
     {% for r in readings %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:var(--c-yellow);">{{ r.production_kwh|fmtn(1) }}</td>
-      <td style="color:var(--c-green);">{{ r.auto_consumption|fmtn(1) }}</td>
-      <td style="color:var(--text-2);">{{ r.sent_to_grid_kwh|fmtn(1) }}</td>
-      <td style="color:var(--c-red-light);">{{ r.taken_from_grid_kwh|fmtn(1) }}</td>
-      <td>{{ r.total_consumed|fmtn(1) }}</td>
-      <td style="color:var(--c-blue);">{% if r.ev_kwh %}{{ r.ev_kwh|fmtn(1) }}{% else %}<span style="color:var(--text-4);">—</span>{% endif %}</td>
+      <td style="color:var(--c-yellow);">{{ r.production_kwh|fmtn }}</td>
+      <td style="color:var(--c-green);">{{ r.auto_consumption|fmtn }}</td>
+      <td style="color:var(--text-2);">{{ r.sent_to_grid_kwh|fmtn }}</td>
+      <td style="color:var(--c-red-light);">{{ r.taken_from_grid_kwh|fmtn }}</td>
+      <td>{{ r.total_consumed|fmtn }}</td>
+      <td style="color:var(--c-blue);">{% if r.ev_kwh %}{{ r.ev_kwh|fmtn }}{% else %}<span style="color:var(--text-4);">—</span>{% endif %}</td>
       <td style="color:var(--c-green);">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }}{% else %}<span style="color:var(--text-4);">—</span>{% endif %}</td>
       <td>
         {% if r.price_per_kwh %}

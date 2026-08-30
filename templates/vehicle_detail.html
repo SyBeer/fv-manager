@@ -43,7 +43,7 @@
     {% if total_public_km %}<div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">łącznie z publicznym: {{ total_km_all|fmtn }} km</div>{% endif %}
   </div>
   <div class="card">
-    <div class="stat-value" style="color:var(--c-blue);">{{ total_kwh|fmtn(1) }} kWh</div>
+    <div class="stat-value" style="color:var(--c-blue);">{{ total_kwh|fmtn }} kWh</div>
     <div class="stat-label">Energia domowa (FV)</div>
   </div>
   <div class="card">
@@ -76,7 +76,7 @@
   <div class="card" style="border:1px dashed var(--border);">
     <div class="stat-value" style="color:var(--text-3);">{{ total_public_cost|fmtn(2) }} zł</div>
     <div class="stat-label"><i class="ph-bold ph-charging-station"></i> Ładowanie publiczne (poza FV)</div>
-    <div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">{{ total_public_kwh|fmtn(1) }} kWh · {{ total_public_km|fmtn }} km</div>
+    <div style="font-size:.75rem; color:var(--text-3); margin-top:.25rem;">{{ total_public_kwh|fmtn }} kWh · {{ total_public_km|fmtn }} km</div>
   </div>
   {% endif %}
 </div>
@@ -159,7 +159,7 @@ new Chart(document.getElementById('vehicleChart'), {
     {% for m in monthly %}
     <tr>
       <td><strong>{{ m.period }}</strong></td>
-      <td style="color:var(--c-blue);">{{ m.kwh|fmtn(1) }}</td>
+      <td style="color:var(--c-blue);">{{ m.kwh|fmtn }}</td>
       <td>
         {% if m.km_driven is not none %}{{ m.km_driven|fmtn }}{% else %}—{% endif %}
       </td>

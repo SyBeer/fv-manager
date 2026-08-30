@@ -27,7 +27,7 @@
       <div class="stat-label">Łączne oszczędności</div>
     </div>
     <div>
-      <div class="stat-value">{{ roi.total_production_kwh }} kWh</div>
+      <div class="stat-value">{{ roi.total_production_kwh|fmtn }} kWh</div>
       <div class="stat-label">Łączna produkcja</div>
     </div>
     {% if not roi.roi_achieved and roi.months_to_roi > 0 %}
@@ -49,9 +49,9 @@
     <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
       <i class="ph-bold ph-sun"></i> Produkcja ({{ readings|length }} mies.)
     </div>
-    <div style="color:var(--c-yellow); font-size:1.5rem; font-weight:700;">{{ pv_stats.production_12m|fmtn(1) }} kWh</div>
+    <div style="color:var(--c-yellow); font-size:1.5rem; font-weight:700;">{{ pv_stats.production_12m|fmtn }} kWh</div>
     {% if pv_stats.avg_monthly_prod %}
-    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">śr. {{ pv_stats.avg_monthly_prod|fmtn(1) }} kWh/mies.</div>
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">śr. {{ pv_stats.avg_monthly_prod|fmtn }} kWh/mies.</div>
     {% endif %}
   </div>
 
@@ -59,7 +59,7 @@
     <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
       <i class="ph-bold ph-house-line"></i> Autokonsumpcja
     </div>
-    <div style="color:var(--c-green); font-size:1.5rem; font-weight:700;">{{ pv_stats.auto_12m|fmtn(1) }} kWh</div>
+    <div style="color:var(--c-green); font-size:1.5rem; font-weight:700;">{{ pv_stats.auto_12m|fmtn }} kWh</div>
     {% if pv_stats.auto_pct %}
     <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">{{ pv_stats.auto_pct }}% produkcji</div>
     {% endif %}
@@ -69,14 +69,14 @@
     <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
       <i class="ph-bold ph-arrow-up"></i> Oddane do sieci
     </div>
-    <div style="color:var(--text-2); font-size:1.5rem; font-weight:700;">{{ pv_stats.sent_12m|fmtn(1) }} kWh</div>
+    <div style="color:var(--text-2); font-size:1.5rem; font-weight:700;">{{ pv_stats.sent_12m|fmtn }} kWh</div>
   </div>
 
   <div class="card">
     <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
       <i class="ph-bold ph-arrow-down"></i> Pobrane z sieci
     </div>
-    <div style="color:var(--c-red-light); font-size:1.5rem; font-weight:700;">{{ pv_stats.taken_12m|fmtn(1) }} kWh</div>
+    <div style="color:var(--c-red-light); font-size:1.5rem; font-weight:700;">{{ pv_stats.taken_12m|fmtn }} kWh</div>
   </div>
 
   <div class="card">
@@ -106,7 +106,7 @@
           <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">łącznie km</div>
         </div>
         <div>
-          <div style="color:var(--c-blue); font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn(1) }} kWh</div>
+          <div style="color:var(--c-blue); font-size:1.05rem; font-weight:700;">{{ vs.total_kwh|fmtn }} kWh</div>
           <div style="color:var(--text-3); font-size:.72rem; text-transform:uppercase; letter-spacing:.04em;">energia EV</div>
         </div>
         <div style="grid-column:1/-1; margin-top:.25rem; padding-top:.5rem; border-top:1px solid var(--border);">
@@ -143,11 +143,11 @@
     {% for r in readings|reverse %}
     <tr>
       <td><strong>{{ r.period }}</strong></td>
-      <td style="color:var(--c-yellow);">{{ r.production_kwh|fmtn(1) }}</td>
-      <td style="color:var(--c-green);">{{ r.auto_consumption|fmtn(1) }}</td>
-      <td style="color:var(--text-2);">{{ r.sent_to_grid_kwh|fmtn(1) }}</td>
-      <td style="color:var(--c-red-light);">{{ r.taken_from_grid_kwh|fmtn(1) }}</td>
-      <td>{{ r.total_consumed|fmtn(1) }}</td>
+      <td style="color:var(--c-yellow);">{{ r.production_kwh|fmtn }}</td>
+      <td style="color:var(--c-green);">{{ r.auto_consumption|fmtn }}</td>
+      <td style="color:var(--text-2);">{{ r.sent_to_grid_kwh|fmtn }}</td>
+      <td style="color:var(--c-red-light);">{{ r.taken_from_grid_kwh|fmtn }}</td>
+      <td>{{ r.total_consumed|fmtn }}</td>
       <td style="color:var(--c-green);">{% if r.savings_pln %}{{ r.savings_pln|fmtn(2) }}{% else %}<span style="color:var(--text-4);">—</span>{% endif %}</td>
     </tr>
     {% endfor %}

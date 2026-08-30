@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.4] — 2026-08-30
+
+### Zmieniono
+- **Wartości energii kWh wyświetlane jako liczby całkowite, pogrupowane po 3** (np. `25 868 kWh` zamiast `25867.8 kWh`). Dotyczy kart statystyk (dashboard, PV, pojazd, EV) i kolumn kWh w tabelach. Zmiana `fmtn(1)` → `fmtn` (0 miejsc po przecinku); efektywność `kWh/100km`, litry i ceny zachowują miejsca po przecinku
+
+### Poprawiono
+- `dashboard.html`, `roi.html`: „Łączna produkcja" była renderowana bez filtra `fmtn` (surowe `25867.8 kWh` — z kropką i bez grupowania); dodano `|fmtn`
+
 ## [3.2.3] — 2026-08-30
 
 ### Dodano
