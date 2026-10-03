@@ -21,3 +21,113 @@ Zrodlo: [Biz] 01-interview/session-2026-09-27.md, Q-007
 Wplyw: brak R/A. Pytania: Q-004 i Q-006 zawężone do README.md vs metodologia.html; Q-003, Q-008, Q-009, Q-010 z `sprzeczne` na `otwarte` (luka: jak jest w v3.2.4).
 Zamyka pytanie: Q-007
 Otwiera pytania: -
+
+## D-002 | 2026-10-03 | Pula net-meteringu kumuluje się w cyklu rocznym
+Pytanie: Q-001 - jak rozliczana jest pula net-meteringu?
+Decyzja: Pula przechodzi z miesiąca na miesiąc (carry-over) i zeruje się raz w roku, w miesiącu startu cyklu rozliczeniowego (BR-001). Obecne działanie kodu v3.2.4 jest docelowe. Opis w README („każdy miesiąc osobno”) do poprawy.
+Powod: właściciel poprosił o propozycję wyjaśnienia; kod v3.2.4 liczy w ten sposób, właściciel zatwierdził (warsztat 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq001 (warsztat 2026-10-03); [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering
+Wplyw: BR-001, GLOSSARY: Pula net-meteringu. Brak R w PRD. Kandydat: poprawka README.
+Zamyka pytanie: Q-001
+Otwiera pytania: -
+
+## D-003 | 2026-10-03 | Miesiąc startu cyklu rozliczeniowego ustawia użytkownik
+Pytanie: Q-012 - w którym miesiącu zeruje się pula?
+Decyzja: Miesiąc startu rocznego cyklu rozliczeniowego jest ustawieniem użytkownika (domyślnie kwiecień). Dziś kod zawsze używa kwietnia (cycle_start_month=4) bez ustawienia w UI.
+Powod: „To powinno być konfigurowane przez użytkownika.” (właściciel instalacji, warsztat 2026-10-03)
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq012 (warsztat 2026-10-03)
+Wplyw: BR-001, GLOSSARY: Cykl rozliczeniowy. Kandydat R: ustawienie miesiąca startu cyklu.
+Zamyka pytanie: Q-012
+Otwiera pytania: -
+
+## D-004 | 2026-10-03 | Aplikacja obsługuje net-metering i net-billing, ceny RCE wpisywane ręcznie
+Pytanie: Q-002 - czy aplikacja obsługuje net-billing i skąd ceny RCE?
+Decyzja: Model rozliczeń (net-metering / net-billing) jest wybierany per okres rozliczeniowy ustawiany przez użytkownika na /pv. Ceny RCE użytkownik wpisuje ręcznie; aplikacja ich nie pobiera. Tekst metodologia.html o automatycznym pobieraniu do poprawy.
+Powod: właściciel poprosił o propozycję wyjaśnienia; zgodne z kodem v3.2.4, zatwierdzone (warsztat 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq002 (warsztat 2026-10-03); [App] kod-v3.2.4-2026-09-27.md, Net-billing i RCE
+Wplyw: GLOSSARY: Net-metering, Net-billing, Cena RCE, Okres rozliczeniowy. Kandydat: poprawka metodologia.html.
+Zamyka pytanie: Q-002
+Otwiera pytania: -
+
+## D-005 | 2026-10-03 | Aplikacja nie wyprowadza modelu rozliczeń z daty ustawowej
+Pytanie: Q-003 - od kiedy obowiązuje net-billing?
+Decyzja: Aplikacja nie koduje daty wejścia net-billingu; model wynika z okresów rozliczeniowych ustawionych przez użytkownika (D-004). Daty ustawowe tylko w tekście metodologii, wg A-001.
+Powod: właściciel poprosił o propozycję wyjaśnienia; zatwierdzone (warsztat 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq003 (warsztat 2026-10-03)
+Wplyw: A-001, GLOSSARY: Net-billing. Kandydat: poprawka metodologia.html.
+Zamyka pytanie: Q-003
+Otwiera pytania: -
+
+## D-006 | 2026-10-03 | Ceny paliwa wpisywane ręcznie
+Pytanie: Q-005 - skąd pochodzą ceny paliwa?
+Decyzja: Ceny paliwa wpisuje użytkownik ręcznie (data, cena, typ, źródło). Aplikacja ich nie pobiera. Tekst metodologia.html o automatycznym pobieraniu do poprawy.
+Powod: „ręcznie wpisuje” (właściciel instalacji, warsztat 2026-10-03); zgodne z kodem v3.2.4.
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq005 (warsztat 2026-10-03); [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa
+Wplyw: GLOSSARY: Cena paliwa. Kandydat: poprawka metodologia.html.
+Zamyka pytanie: Q-005
+Otwiera pytania: -
+
+## D-007 | 2026-10-03 | Śledzenie cen paliwa jako opcja wybierana przy pierwszym samochodzie
+Pytanie: Q-014 - gdzie wpisać ceny paliwa?
+Decyzja: Przy dodawaniu pierwszego samochodu właściciel decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa”. Jeśli nie - pozycji nie ma.
+Powod: „to właściciel powinien decydować czy chce dodawać te informacje (...) podejmuje decyzję w trakcie dodawania pierwszego samochodu” (właściciel instalacji, warsztat 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, nmuspw64n (warsztat 2026-10-03, dopisane w przeglądarce)
+Wplyw: Kandydaci R: wybór przy pierwszym samochodzie, warunkowa pozycja menu.
+Zamyka pytanie: Q-014
+Otwiera pytania: -
+
+## D-008 | 2026-10-03 | Dwa hasła: „Oszczędność EV z FV” i „Oszczędność EV vs paliwo”
+Pytanie: Q-006 - jak nazywać dwie liczby oszczędności EV?
+Decyzja: „Oszczędność EV z FV” = tylko ładowanie domowe, wchodzi do ROI. „Oszczędność EV vs paliwo” = ładowanie domowe + publiczne, na kartach /ev, nie wchodzi do ROI.
+Powod: „Nie wiem, zaproponuj coś” - propozycja zatwierdzona (właściciel instalacji, warsztat 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq006 (warsztat 2026-10-03); [Dok] README.md, Ładowanie domowe vs publiczne
+Wplyw: GLOSSARY: dwa hasła zamiast jednego.
+Zamyka pytanie: Q-006
+Otwiera pytania: -
+
+## D-009 | 2026-10-03 | Import CSV: cały plik albo nic, z raportem błędnych wierszy
+Pytanie: Q-008 - czy import CSV sprawdza dane?
+Decyzja: Jeśli choć jeden wiersz pliku jest błędny (zły format okresu RRRR.MM, wartość ujemna, oddane > produkcja), aplikacja nie zapisuje żadnego wiersza i pokazuje raport: numer wiersza i powód. Zmiana względem v3.2.4, który pomija błędne wiersze bez informacji (rejected=0). Przykład CSV w README do poprawy (separator „;”, polskie nagłówki).
+Powod: „system nie powinien załadować takiego pliku i wskazać raport które wiersze są błędne” (właściciel instalacji, sesja 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq008; czat sesji 2026-10-03
+Wplyw: BR-002. Kandydat R: import all-or-nothing z raportem.
+Zamyka pytanie: Q-008
+Otwiera pytania: -
+
+## D-010 | 2026-10-03 | „Wyczyść bazę” opisuje dokładnie, co usuwa
+Pytanie: Q-010 - co usuwa „Wyczyść bazę”?
+Decyzja: Przycisk usuwa wszystkie dane (odczyty, inwestycje, ceny paliwa, pojazdy, dane EV, okresy rozliczeniowe, ceny RCE; ustawienia zostają). Tekst w UI wymienia wszystko, co znika, i zaleca kopię (/backup/full) przed kliknięciem.
+Powod: „Nigdy - ale trzeba to uspójnić” (właściciel instalacji, warsztat 2026-10-03); propozycja zatwierdzona.
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq010; [App] kod-v3.2.4-2026-09-27.md, Czyszczenie bazy
+Wplyw: Kandydat R: tekst przycisku i ostrzeżenie.
+Zamyka pytanie: Q-010
+Otwiera pytania: -
+
+## D-011 | 2026-10-03 | /bateria i /ogrzewanie to makiety poza zakresem
+Pytanie: Q-013 - czym są strony /bateria i /ogrzewanie?
+Decyzja: To makiety przyszłych funkcji. Poza zakresem obecnej wersji (PRD §4).
+Powod: „To tylko mockupy aby dorobić taką funkcjonalność w przyszłości” (właściciel instalacji, warsztat 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq013
+Wplyw: PRD §4.
+Zamyka pytanie: Q-013
+Otwiera pytania: -
+
+## D-012 | 2026-10-03 | Analiza wrażliwości: 7 stałych cen
+Pytanie: Q-004 - układ analizy wrażliwości.
+Decyzja: Zostaje 7 stałych cen (0,50; 0,60; 0,70; 0,80; 0,90; 1,00; 1,20 zł/kWh), tylko podgląd. Bez wariantu procentowego. Do poprawy: metodologia.html („wzrost o 20%”) i podtytuł tabeli na /roi („×0.8” zamiast faktycznego współczynnika z ustawień).
+Powod: właściciel wybrał wariant (a) po sprawdzeniu kodu (sesja 2026-10-03).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq004; czat sesji 2026-10-03; [App] kod-v3.2.4-2026-09-27.md, Analiza wrażliwości
+Wplyw: Kandydaci: poprawka metodologia.html, podtytuł /roi.
+Zamyka pytanie: Q-004
+Otwiera pytania: -
