@@ -88,11 +88,13 @@ def test_cena_paliwa_dodana_przez_strone(client, query, post_form):
     assert query("SELECT source FROM fuel_prices")[0]["source"] == "Orlen"
 
 
-def test_zmiana_wyboru_sledzenia_pozniej(client, query, post_form):
+def test_AC_011_4_wlacz_i_wylacz_sledzenie_pozniej(client, query, post_form):
     post_form("/ev/pojazdy/nowy", {**VEHICLE, "fuel_tracking": "0"})
     post_form("/ev/fuel-tracking", {"fuel_tracking": "1"})
     assert query("SELECT fuel_tracking FROM app_settings")[0]["fuel_tracking"] == 1
     assert 'href="/ev/ceny-paliwa"' in client.get("/").text
+    post_form("/ev/fuel-tracking", {"fuel_tracking": "0"})
+    assert 'href="/ev/ceny-paliwa"' not in client.get("/").text
 
 
 def test_istniejaca_instalacja_z_pojazdem_ma_sledzenie_wlaczone(client, seed, query):

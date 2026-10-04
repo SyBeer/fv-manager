@@ -46,3 +46,12 @@ def test_ha_fetch_bez_ha_zwraca_blad_zamiast_wyjatku(client):
 
 def test_bez_encji_ha_brak_przyciskow(client):
     assert "Pobierz z HA" not in client.get("/odczyty/nowy").text
+
+
+def test_AC_001_5_km_ze_stanu_licznika():
+    import main
+    vehicles = [{"id": 1, "przebieg_km": 12000.0}]
+    ev = [{"period": "2026.01", "vehicle_id": 1, "km": None, "odometer_km": 13000.0},
+          {"period": "2026.02", "vehicle_id": 1, "km": None, "odometer_km": 14200.0}]
+    km = {e["period"]: e["km"] for e in main._inject_odometer_km(ev, vehicles)}
+    assert km == {"2026.01": 1000.0, "2026.02": 1200.0}
