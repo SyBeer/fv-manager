@@ -18,5 +18,5 @@ Zakwestionowane:
 Pola: data, cena, typ paliwa, źródło
 Stany: zapisana
 Przejscia: [*] -> zapisana (Właściciel instalacji, wpis ręczny, D-006)
-Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa; [Biz] D-006; obowiązuje od daty wpisu do następnego wpisu (D-023)
+Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa; [Biz] D-006; obowiązuje od daty wpisu do następnego wpisu (D-023); miesiące przed pierwszą ceną - wg pierwszej ceny (D-029)
 Zakwestionowane:

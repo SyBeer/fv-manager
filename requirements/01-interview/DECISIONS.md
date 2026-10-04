@@ -294,3 +294,13 @@ Zrodlo: [Biz] board.json, qq045
 Wplyw: R-019 (AC-019-2, AC-019-3, status zatwierdzone); R-001 (formularz odczytu) - PRD §6; ENTITIES.md Pojazd.
 Zamyka pytanie: Q-045
 Otwiera pytania: -
+
+## D-029 | 2026-10-04 | Miesiące przed pierwszą ceną paliwa
+Pytanie: Q-044 - jak liczyć oszczędność EV w miesiącach wcześniejszych niż pierwsza wpisana cena paliwa (dziś /ev bierze najnowszą cenę, ROI najstarszą dowolnego paliwa).
+Decyzja: Jeżeli miesiąc z danymi EV jest wcześniejszy niż pierwsza cena paliwa rodzaju używanego przez pojazd, to liczy się wg tej pierwszej ceny (przeliczenie wstecz). Od daty pierwszej ceny obowiązuje D-023 (od wpisu do wpisu). Ta sama reguła na kartach /ev i w ROI.
+Powod: właściciel nie zawsze wpisuje cenę paliwa od pierwszego dnia pojazdu; gdy przebieg był wpisany wcześniej, a cena paliwa później, przeliczenie ma iść wstecz do daty wpisania paliwa (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-044
+Wplyw: R-010 (nowe AC-010-4); R-006, R-008 (liczby ROI); uzupełnia D-023 - PRD §6.
+Zamyka pytanie: Q-044
+Otwiera pytania: -

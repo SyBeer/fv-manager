@@ -2,7 +2,7 @@
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
 Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy do napisania w budowie v3.4.0.
-Odcisk wymagan: sha256:4226614f5212cb987c52bdf2b2fce2e7ffbadad0bfa0ab427de124aa1f5ad6f6
+Odcisk wymagan: sha256:0bad40296613c0343982cd2c070423cfd7ef8e1804700a3a2882fc809861f216
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|
@@ -43,6 +43,7 @@ Odcisk wymagan: sha256:4226614f5212cb987c52bdf2b2fce2e7ffbadad0bfa0ab427de124aa1
 | R-010 | AC-010-1 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r009_r010_r011_ev.py::test_AC_010_1_oszczednosc_ev_z_fv_240_zl` |
 | R-010 | AC-010-2 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r009_r010_r011_ev.py::test_AC_010_2_ladowanie_publiczne_poza_roi` |
 | R-010 | AC-010-3 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | brak - błąd (D-023) |
+| R-010 | AC-010-4 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | brak - błąd (D-029) |
 | R-011 | AC-011-1 | [#29](http://192.168.1.4:3001/issues/29) (T-13) | `test_r009_r010_r011_ev.py::test_AC_011_1_pierwszy_samochod_pyta_o_ceny_paliwa` |
 | R-011 | AC-011-2 | [#29](http://192.168.1.4:3001/issues/29) (T-13) | `test_r009_r010_r011_ev.py::test_AC_011_2_sledzenie_wlaczone_pozycja_menu` |
 | R-011 | AC-011-3 | [#29](http://192.168.1.4:3001/issues/29) (T-13) | `test_r009_r010_r011_ev.py::test_AC_011_3_sledzenie_wylaczone_brak_pozycji` |

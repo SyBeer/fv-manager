@@ -153,7 +153,7 @@ Kryteria akceptacji:
 
 ### R-010 Oszczędności EV
 Opis:              Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.
-Zrodlo:            [App] src/services/calculations.py:275, calc_ev_savings; [Dok] README.md, EV (/ev); [Biz] board.json, qq006 (D-008); [Biz] board.json, qq038, qq039 (D-023)
+Zrodlo:            [App] src/services/calculations.py:275, calc_ev_savings; [Dok] README.md, EV (/ev); [Biz] board.json, qq006 (D-008); [Biz] board.json, qq038, qq039 (D-023); [Biz] session-2026-10-04.md, Q-044 (D-029)
 Zalozenia:         -
 Reguly:            BR-011
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
@@ -163,6 +163,7 @@ Kryteria akceptacji:
 - AC-010-1: Given w miesiącu 1 000 km, spalanie odpowiednika 7 l/100 km, paliwo 6,00 zł/l, ładowanie domowe 180 kWh, cena prądu 1,00 zł/kWh, When liczona jest oszczędność, Then Oszczędność EV z FV = 420 − 180 = 240 zł.
 - AC-010-2: Given w tym samym miesiącu także ładowanie publiczne, When właściciel otwiera /ev, Then karty pokazują Oszczędność EV vs paliwo (domowe + publiczne), a do ROI (R-006) trafia tylko Oszczędność EV z FV.
 - AC-010-3: Given pojazd na PB95 i ceny PB95 6,00 zł (2026-03-10) i 6,50 zł (2026-05-20) oraz cena ON 7,00 zł (2026-04-05), When liczona jest oszczędność za 2026.03, 2026.04 i 2026.05, Then marzec i kwiecień liczą się po 6,00 zł, maj po 6,50 zł - tak samo na kartach /ev i w ROI (D-023).
+- AC-010-4: Given pojazd na PB95 z danymi EV od 2025.11, pierwsza cena PB95 6,00 zł wpisana 2026-02-10 i druga 6,50 zł wpisana 2026-05-20, When liczona jest oszczędność za 2025.11-2026.05, Then miesiące 2025.11-2026.04 liczą się po 6,00 zł, a 2026.05 po 6,50 zł - tak samo na kartach /ev i w ROI (D-029).
 
 ### R-011 Śledzenie cen paliwa
 Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma. Stan docelowy.
@@ -324,6 +325,7 @@ wypelniana automatycznie)
 - 2026-10-04: D-023 -> R-010: dodane AC-010-3 (jedna reguła ceny paliwa dla /ev i ROI); R-006, R-008: liczby ROI mogą się zmienić. D-024 -> R-011: dodane AC-011-4. D-025 -> nowe R-019 (robocze, czeka na Q-045); R-010 obejmuje pojazdy nieaktywne. D-026 (BR-011) -> R-001, R-010 (Reguly: BR-011). BR-012 (A-014 niepotwierdzone) -> R-009. Zgoda właściciela instalacji („tak”, sync tablicy); kod v3.3.1 nie spełnia AC-010-3, AC-019-1.
 - 2026-10-04: D-027 (BR-012 nowe brzmienie, A-014 obalone) -> R-009: opis, dodane AC-009-3, AC-009-4; R-010, R-001: km i oszczędności przeliczane po zmianie przebiegu startowego. D-026 (BR-011) -> R-001: dodane AC-001-5. R-019: AC-019-2 (zaślepka) usunięte, kryterium formularza po Q-045. Zatwierdzone przez właściciela instalacji (/sdd:spec, „tak”); kod v3.3.1 nie spełnia AC-009-3, AC-009-4, AC-019-1.
 - 2026-10-04: D-028 -> R-019: opis, dodane AC-019-2, AC-019-3, status zatwierdzone; R-001: formularz odczytu bez pól EV pojazdu nieaktywnego. Zatwierdzone przez właściciela instalacji (sync tablicy, „tak”); kod v3.3.1 nie spełnia AC-019-1..AC-019-3.
+- 2026-10-04: D-029 (uzupełnia D-023) -> R-010: dodane AC-010-4 (miesiące przed pierwszą ceną paliwa liczone wg pierwszej ceny); R-006, R-008: liczby ROI. Zatwierdzone przez właściciela instalacji („tak”); kod v3.3.1 nie spełnia AC-010-4 na kartach /ev.
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

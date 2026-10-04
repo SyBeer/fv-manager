@@ -84,3 +84,7 @@
 2026-10-04 | spec --agent | constitution.md zregenerowane (słownik 24 hasła) | GLOSSARY.md
 2026-10-04 | validate | przebieg 8: 0 BLOCK, 0 WARN, gotowość 100% (19/19); nowy odcisk w raporcie i TRACEABILITY | GLOSSARY.md
 2026-10-04 | handover | Redmine: #20, #27, #28, #29 zaktualizowane (nowe AC), nowe #111 [R-019] Pojazd nieaktywny; 19 R pokrytych zadaniami #17..#34, #111; statusy bez zmian | 03-spec/agent
+2026-10-04 | interview | Q-044 -> D-029 (miesiące przed pierwszą ceną paliwa wg pierwszej ceny); R-010 AC-010-4; ENTITIES Cena paliwa; PRD §6; tablica p54 | [Biz] session-2026-10-04.md
+2026-10-04 | spec --agent | ev/tasks.md: T-12 R-010 z AC-010-4 (D-029) | PRD.md
+2026-10-04 | validate | przebieg 9: 0 BLOCK, 0 WARN, gotowość 100% (19/19), 66 AC, brak otwartych Q; TRACEABILITY: AC-010-4 | PRD.md
+2026-10-04 | handover | Redmine #28 [R-010] zaktualizowane (AC-010-4, D-029); status bez zmian | 03-spec/agent

@@ -747,16 +747,16 @@
     {
       "id": "p54",
       "type": "pol",
-      "text": "Miesiące przed pierwszą ceną paliwa: dziś /ev bierze najnowszą cenę, ROI najstarszą (do ustalenia)",
+      "text": "Jeżeli miesiąc z danymi EV jest przed pierwszą ceną paliwa, to liczy się wg tej pierwszej ceny (wstecz); dalej od wpisu do wpisu (docelowo; dziś /ev bierze najnowszą cenę)",
       "lane": "Pojazdy EV i paliwo",
       "col": 12,
-      "source": "[App] src/main.py:432-433, 459",
-      "ref": "Q-044",
-      "file": "01-interview/QUESTIONS.md",
+      "source": "[Biz] D-029; (dziś: [App] src/main.py:369-372 vs 437-443)",
+      "ref": "D-029",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-04T17:00:16.000Z",
-      "updated": "2026-10-04T19:18:25+02:00",
-      "synced": "2026-10-04T19:18:25+02:00"
+      "updated": "2026-10-04T22:14:58+02:00",
+      "synced": "2026-10-04T22:14:58+02:00"
     },
     {
       "id": "p55",
@@ -865,8 +865,8 @@
       "by": "agent",
       "created": "2026-10-04T19:18:25+02:00",
       "updated": "2026-10-04T19:18:25+02:00",
-      "synced": "2026-10-04T19:18:25+02:00"
+      "synced": "2026-10-04T22:14:58+02:00"
     }
   ],
-  "updated": "2026-10-04T19:53:32.803Z"
+  "updated": "2026-10-04T22:14:58+02:00"
 }

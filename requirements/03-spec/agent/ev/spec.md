@@ -18,7 +18,7 @@ Kryteria akceptacji:
 
 ### R-010 Oszczędności EV
 Opis:              Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.
-Zrodlo:            [App] src/services/calculations.py:275, calc_ev_savings; [Dok] README.md, EV (/ev); [Biz] board.json, qq006 (D-008); [Biz] board.json, qq038, qq039 (D-023)
+Zrodlo:            [App] src/services/calculations.py:275, calc_ev_savings; [Dok] README.md, EV (/ev); [Biz] board.json, qq006 (D-008); [Biz] board.json, qq038, qq039 (D-023); [Biz] session-2026-10-04.md, Q-044 (D-029)
 Zalozenia:         -
 Reguly:            BR-011
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
@@ -28,6 +28,7 @@ Kryteria akceptacji:
 - AC-010-1: Given w miesiącu 1 000 km, spalanie odpowiednika 7 l/100 km, paliwo 6,00 zł/l, ładowanie domowe 180 kWh, cena prądu 1,00 zł/kWh, When liczona jest oszczędność, Then Oszczędność EV z FV = 420 − 180 = 240 zł.
 - AC-010-2: Given w tym samym miesiącu także ładowanie publiczne, When właściciel otwiera /ev, Then karty pokazują Oszczędność EV vs paliwo (domowe + publiczne), a do ROI (R-006) trafia tylko Oszczędność EV z FV.
 - AC-010-3: Given pojazd na PB95 i ceny PB95 6,00 zł (2026-03-10) i 6,50 zł (2026-05-20) oraz cena ON 7,00 zł (2026-04-05), When liczona jest oszczędność za 2026.03, 2026.04 i 2026.05, Then marzec i kwiecień liczą się po 6,00 zł, maj po 6,50 zł - tak samo na kartach /ev i w ROI (D-023).
+- AC-010-4: Given pojazd na PB95 z danymi EV od 2025.11, pierwsza cena PB95 6,00 zł wpisana 2026-02-10 i druga 6,50 zł wpisana 2026-05-20, When liczona jest oszczędność za 2025.11-2026.05, Then miesiące 2025.11-2026.04 liczą się po 6,00 zł, a 2026.05 po 6,50 zł - tak samo na kartach /ev i w ROI (D-029).
 
 ### R-011 Śledzenie cen paliwa
 Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma. Stan docelowy.
