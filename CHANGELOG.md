@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1] — 2026-10-04
+
+### Poprawiono
+- `/ev`: checkbox „Śledzę ceny paliwa” i pola wyboru przy pierwszym aucie wyrównane z etykietą (pole stało nad tekstem)
+- `/roi`: kolumna tabeli scenariuszy nazywa się „Zwrot” (zmiana z 3.3.0 nie została zastosowana)
+- `/pv`: opcja „net-metering (pula …%)” pokazuje współczynnik puli z ustawień zamiast stałych 80%
+
 ## [3.3.0] — 2026-10-04
 
 Wydanie zbudowane wg wymagań `requirements/03-spec/PRD.md` (R-001..R-018, zadania Redmine #17..#34). Decyzje podjęte w trakcie budowy: `requirements/04-validation/build-2026-10-04.md`.
