@@ -167,11 +167,17 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             if not is_json and not any(path.startswith(p) for p in self.EXEMPT_PATHS):
                 body = await request.body()
                 form_token = ""
-                for part in body.decode("utf-8", errors="replace").split("&"):
-                    if part.startswith("csrf_token="):
-                        from urllib.parse import unquote_plus
-                        form_token = unquote_plus(part.split("=", 1)[1])
-                        break
+                text = body.decode("utf-8", errors="replace")
+                if ct.startswith("multipart/form-data"):
+                    # Formularze z plikiem (import CSV, przywracanie kopii): token jako osobna część.
+                    m = re.search(r'name="csrf_token"\r?\n\r?\n([^\r\n]*)', text)
+                    form_token = m.group(1) if m else ""
+                else:
+                    for part in text.split("&"):
+                        if part.startswith("csrf_token="):
+                            from urllib.parse import unquote_plus
+                            form_token = unquote_plus(part.split("=", 1)[1])
+                            break
                 if not _csrf_verify(form_token):
                     return JSONResponse({"error": "Nieprawidłowy token CSRF"}, status_code=403)
 
@@ -1078,52 +1084,95 @@ async def download_csv_template():
     )
 
 
+def _csv_float(value: str | None) -> float | None:
+    """Liczba z CSV: przecinek albo kropka dziesiętna, puste = None."""
+    value = (value or "").strip().replace(" ", "").replace(",", ".")
+    return float(value) if value else None
+
+
+def _parse_import_row(row: dict) -> tuple[dict | None, str | None]:
+    """Wiersz CSV -> (odczyt, None) albo (None, powód błędu)."""
+    period = row.get("Okres", "").strip()
+    try:
+        production_kwh = _csv_float(row.get("Produkcja [kWh]"))
+        sent_to_grid_kwh = _csv_float(row.get("Oddane [kWh]"))
+        taken_from_grid_kwh = _csv_float(row.get("Pobrane [kWh]"))
+        price = _csv_float(row.get("Cena kWh [zł]"))
+        ev_kwh = _csv_float(row.get("EV [kWh]"))
+        invoice_gross = _csv_float(row.get("Faktura brutto [zł]"))
+        days = int(_csv_float(row.get("Dni")) or 0) or None
+    except ValueError:
+        return None, "wartość nie jest liczbą"
+    if production_kwh is None or sent_to_grid_kwh is None or taken_from_grid_kwh is None:
+        return None, "brak produkcji, oddanej albo pobranej energii"
+    err = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
+    if err:
+        return None, err
+    year, month = int(period[:4]), int(period[5:7])
+    return {
+        "period": period, "year": year, "month": month, "days": days,
+        "production_kwh": production_kwh, "sent_to_grid_kwh": sent_to_grid_kwh,
+        "taken_from_grid_kwh": taken_from_grid_kwh, "ev_kwh": ev_kwh, "price_per_kwh": price,
+        "invoice_number": (row.get("Nr faktury") or "").strip() or None,
+        "invoice_gross": invoice_gross, "notes": (row.get("Notatki") or "").strip() or None,
+    }, None
+
+
 @app.post("/import/csv")
 async def do_import_csv(request: Request, file: UploadFile = File(...)):
+    """Import CSV: cały plik albo nic (R-004, D-009, BR-002).
+
+    Błąd w którymkolwiek wierszu -> nic nie jest zapisywane, raport podaje numer wiersza
+    w pliku (1 = nagłówek) i powód. Wiersz z okresem, który już istnieje, jest pomijany (Q-017).
+    """
     import csv, io
     rp = request.scope.get("root_path", "")
-    content = (await file.read()).decode("utf-8-sig")
-    reader = csv.DictReader(io.StringIO(content), delimiter=";")
+    try:
+        content = (await file.read()).decode("utf-8-sig")
+    except UnicodeDecodeError:
+        content = None
+    errors: list[tuple[int, str]] = []
+    parsed: list[dict] = []
+    if content is None:
+        errors.append((0, "plik nie jest zapisany w UTF-8"))
+    else:
+        reader = csv.DictReader(io.StringIO(content), delimiter=";")
+        for row in reader:
+            line = reader.line_num
+            if not (row.get("Okres") or "").strip():
+                continue
+            reading, err = _parse_import_row(row)
+            if err:
+                errors.append((line, err))
+            else:
+                parsed.append(reading)
+
+    if errors:
+        db = await get_db()
+        try:
+            settings = await _get_ev_settings(db)
+        finally:
+            await db.close()
+        return _t(request, "import.html", {"settings": settings, "import_errors": errors})
+
     db = await get_db()
     imported = skipped = 0
     try:
-        for row in reader:
-            period = row.get("Okres", "").strip()
-            if not period:
-                continue
-            try:
-                year, month = int(period.split(".")[0]), int(period.split(".")[1])
-                production_kwh = float(row["Produkcja [kWh]"])
-                sent_to_grid_kwh = float(row["Oddane [kWh]"])
-                taken_from_grid_kwh = float(row["Pobrane [kWh]"])
-                err = _validate_reading(period, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh)
-                if err:
-                    skipped += 1
-                    continue
-                await db.execute(
-                    """INSERT OR IGNORE INTO readings
-                       (period, year, month, days, production_kwh, sent_to_grid_kwh,
-                        taken_from_grid_kwh, ev_kwh, price_per_kwh, invoice_number, invoice_gross, notes)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                    (
-                        period, year, month,
-                        row.get("Dni") or None,
-                        production_kwh,
-                        sent_to_grid_kwh,
-                        taken_from_grid_kwh,
-                        row.get("EV [kWh]") or None,
-                        row.get("Cena kWh [zł]") or None,
-                        row.get("Nr faktury") or None,
-                        row.get("Faktura brutto [zł]") or None,
-                        row.get("Notatki") or None,
-                    ),
-                )
-                if db.total_changes > imported:
-                    imported += 1
-                else:
-                    skipped += 1
-            except Exception:
+        existing = {r[0] for r in await (await db.execute("SELECT period FROM readings")).fetchall()}
+        for r in parsed:
+            if r["period"] in existing:
                 skipped += 1
+                continue
+            existing.add(r["period"])
+            await db.execute(
+                """INSERT INTO readings
+                   (period, year, month, days, production_kwh, sent_to_grid_kwh,
+                    taken_from_grid_kwh, ev_kwh, price_per_kwh, invoice_number, invoice_gross, notes)
+                   VALUES (:period, :year, :month, :days, :production_kwh, :sent_to_grid_kwh,
+                    :taken_from_grid_kwh, :ev_kwh, :price_per_kwh, :invoice_number, :invoice_gross, :notes)""",
+                r,
+            )
+            imported += 1
         await db.commit()
     finally:
         await db.close()
