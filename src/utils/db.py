@@ -167,6 +167,7 @@ async def init_db() -> None:
             ("net_metering_ratio", "REAL NOT NULL DEFAULT 0.80"),
             ("panel_degradation_rate", "REAL NOT NULL DEFAULT 0.006"),
             ("theme", "TEXT NOT NULL DEFAULT 'dark'"),
+            ("cycle_start_month", "INTEGER NOT NULL DEFAULT 4"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE app_settings ADD COLUMN {col} {definition}")

@@ -493,6 +493,23 @@ def _validate_reading(
     return None
 
 
+def _cycle(settings: dict) -> int:
+    """Miesiąc startu cyklu rozliczeniowego z ustawień (R-003, D-003); domyślnie kwiecień."""
+    m = settings.get("cycle_start_month") or 4
+    return m if 1 <= m <= 12 else 4
+
+
+async def _enriched_readings(db: aiosqlite.Connection) -> list[dict]:
+    """Odczyty wzbogacone o rozliczenie miesiąca (pula, net-billing, RCE, cykl z ustawień)."""
+    readings = await _get_readings(db)
+    settings = await _get_ev_settings(db)
+    billing_periods = await _get_billing_periods(db)
+    rce_prices = await _get_rce_prices(db)
+    nm_ratio = settings.get("net_metering_ratio") or 0.80
+    return enrich_readings_sequence(readings, nm_ratio, _default_price(), billing_periods,
+                                    rce_prices, _cycle(settings))
+
+
 def _investment_now(investments: list[dict]) -> float:
     """Łączna inwestycja na dziś: etapy z datą nie późniejszą niż bieżący miesiąc (D-015)."""
     from datetime import date
@@ -517,7 +534,7 @@ async def _roi_state(db: aiosqlite.Connection) -> tuple[dict | None, list[dict],
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = _investment_now(investments)
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    roi = calc_roi(readings, total, _default_price(), nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
+    roi = calc_roi(readings, total, _default_price(), nm_ratio, billing_periods, rce_prices, _cycle(ev_settings)) if readings and total > 0 else None
     return roi, readings, investments
 
 
@@ -543,8 +560,8 @@ async def dashboard(request: Request):
     total_investment = _investment_now(investments)
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    roi = calc_roi(readings, total_investment, default_price, nm_ratio, billing_periods, rce_prices) if readings and total_investment > 0 else None
-    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
+    roi = calc_roi(readings, total_investment, default_price, nm_ratio, billing_periods, rce_prices, _cycle(ev_settings)) if readings and total_investment > 0 else None
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices, _cycle(ev_settings))
 
     price_map = {r["period"]: r.get("price_per_kwh") for r in readings}
     vehicles_summary = _agg_vehicles_ev(vehicles, ev_monthly, price_map, fuel_prices, default_price)
@@ -589,7 +606,7 @@ async def readings_list(request: Request):
 
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices, _cycle(ev_settings))
     for r in enriched:
         r["effective_price"] = r.get("price_per_kwh") or default_price
 
@@ -610,7 +627,7 @@ async def export_readings_csv():
 
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
-    enriched_map = {r["period"]: r for r in enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)}
+    enriched_map = {r["period"]: r for r in enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices, _cycle(ev_settings))}
     output = io.StringIO()
     writer = csv.writer(output, delimiter=";")
     writer.writerow([
@@ -994,11 +1011,11 @@ async def roi_page(request: Request):
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
 
-    roi = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
-    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio, billing_periods, rce_prices) if readings and total > 0 else []
+    roi = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices, _cycle(ev_settings)) if readings and total > 0 else None
+    sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio, billing_periods, rce_prices, _cycle(ev_settings)) if readings and total > 0 else []
 
     # Wykres: skumulowane oszczędności (PV + EV z FV) i inwestycja schodkowo wg dat etapów (D-015, D-021)
-    monthly_savings = roi_chart_series(readings, investments, nm_ratio, default_price, billing_periods, rce_prices)
+    monthly_savings = roi_chart_series(readings, investments, nm_ratio, default_price, billing_periods, rce_prices, _cycle(ev_settings))
 
     # Forecast i break-even
     degradation_rate = ev_settings.get("panel_degradation_rate") or 0.006
@@ -1799,7 +1816,7 @@ async def pv_page(request: Request):
     readings = _ev_enrich(readings, settings, fuel_prices, vehicles, ev_monthly)
     nm_ratio = settings.get("net_metering_ratio") or 0.80
     default_price = _default_price()
-    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices_all2)
+    enriched = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices_all2, _cycle(settings))
     last12 = enriched[-12:]
 
     pv_stats = None
@@ -1897,12 +1914,18 @@ async def delete_rce_price(request: Request, price_id: int):
 async def save_pv_settings(request: Request):
     form = await request.form()
     panel_degradation_rate_pct = _ff(form, "panel_degradation_rate_pct") or 0.6
+    try:
+        cycle_start_month = int(form.get("cycle_start_month") or 0)
+    except ValueError:
+        cycle_start_month = 0
     db = await get_db()
     try:
         await db.execute(
             "UPDATE app_settings SET panel_degradation_rate=? WHERE id=1",
             (panel_degradation_rate_pct / 100,),
         )
+        if 1 <= cycle_start_month <= 12:
+            await db.execute("UPDATE app_settings SET cycle_start_month=? WHERE id=1", (cycle_start_month,))
         await db.commit()
     finally:
         await db.close()
@@ -2077,7 +2100,7 @@ async def roi_preview(data: dict):
         ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
         readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
         total = _investment_now(investments)
-        roi_before = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else {}
+        roi_before = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices, _cycle(ev_settings)) if readings and total > 0 else {}
 
         # Apply hypothetical edit
         reading_id = data.get("id")
@@ -2085,7 +2108,7 @@ async def roi_preview(data: dict):
             [{**r, **data} if r["id"] == reading_id else r for r in readings],
             ev_settings, fuel_prices, vehicles, ev_monthly,
         )
-        roi_after = calc_roi(patched, total, default_price, nm_ratio, billing_periods, rce_prices) if patched and total > 0 else {}
+        roi_after = calc_roi(patched, total, default_price, nm_ratio, billing_periods, rce_prices, _cycle(ev_settings)) if patched and total > 0 else {}
         return JSONResponse({
             "before": {
                 "total_savings_pln": roi_before.get("total_savings_pln") or 0,

@@ -193,6 +193,16 @@
                value="{{ ((settings.panel_degradation_rate or 0.006) * 100) | round(2) }}">
         <small style="color:var(--text-3);">Typowo 0.5–0.7%/rok. Domyślnie 0.6%.</small>
       </div>
+      <div>
+        <label style="font-size:.8rem; color:var(--text-2);">Miesiąc startu cyklu rozliczeniowego</label>
+        <select name="cycle_start_month">
+          {% set months = ['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'] %}
+          {% for m in months %}
+          <option value="{{ loop.index }}" {% if (settings.cycle_start_month or 4) == loop.index %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+        <small style="color:var(--text-3);">W tym miesiącu zeruje się pula net-meteringu (roczne rozliczenie u sprzedawcy). Domyślnie kwiecień.</small>
+      </div>
       <button type="submit" class="btn btn-primary">Zapisz</button>
     </form>
   </div>
