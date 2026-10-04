@@ -168,12 +168,21 @@ async def init_db() -> None:
             ("panel_degradation_rate", "REAL NOT NULL DEFAULT 0.006"),
             ("theme", "TEXT NOT NULL DEFAULT 'dark'"),
             ("cycle_start_month", "INTEGER NOT NULL DEFAULT 4"),
+            ("fuel_tracking", "INTEGER"),
         ]:
             try:
                 await db.execute(f"ALTER TABLE app_settings ADD COLUMN {col} {definition}")
                 await db.commit()
             except Exception:
                 pass
+
+        # Śledzenie cen paliwa (R-011, D-007): istniejąca instalacja z pojazdami albo cenami paliwa
+        # zachowuje dotychczasowy widok (śledzenie włączone); nowa decyduje przy pierwszym samochodzie.
+        await db.execute(
+            """UPDATE app_settings SET fuel_tracking = 1 WHERE fuel_tracking IS NULL
+               AND (EXISTS (SELECT 1 FROM vehicles) OR EXISTS (SELECT 1 FROM fuel_prices))"""
+        )
+        await db.commit()
 
         # Record rename migration
         try:

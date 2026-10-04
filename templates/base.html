@@ -148,6 +148,11 @@
     <a href="{{ rp }}/ev" class="nav-link {% if request.url.path == '/ev' %}active{% endif %}">
       <i class="ph-bold ph-car nav-icon"></i><span class="nav-text">EV</span>
     </a>
+    {% if fuel_tracking %}
+    <a href="{{ rp }}/ev/ceny-paliwa" class="nav-link {% if request.url.path == '/ev/ceny-paliwa' %}active{% endif %}" style="padding-left:2.25rem;">
+      <i class="ph-bold ph-gas-pump nav-icon"></i><span class="nav-text">Ceny paliwa</span>
+    </a>
+    {% endif %}
     <a href="{{ rp }}/pv" class="nav-link {% if request.url.path == '/pv' %}active{% endif %}">
       <i class="ph-bold ph-solar-panel nav-icon"></i><span class="nav-text">PV</span>
     </a>

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Ceny paliwa — FV Manager{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pl.js"></script>
+{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1rem;"><i class="ph-bold ph-gas-pump"></i> Ceny paliwa</h1>
+<p style="color:var(--text-2); font-size:.9rem; margin-bottom:1.5rem;">
+  Ceny wpisujesz ręcznie. Do porównania kosztu EV z autem spalinowym aplikacja bierze ostatnią cenę z datą nie późniejszą niż koniec miesiąca.
+</p>
+  <!-- Ceny paliw -->
+  <div class="card">
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;"><i class="ph-bold ph-gas-pump"></i> Ceny paliw</h2>
+    {% if prices %}
+    <div class="table-wrap">
+    <table style="margin-bottom:1rem;">
+      <thead><tr><th>Data</th><th>Rodzaj</th><th>Cena [zł/L]</th><th>Źródło</th><th></th></tr></thead>
+      <tbody>
+      {% for p in prices %}
+      <tr>
+        <td>{{ p.date }}</td>
+        <td><span class="badge-blue">{{ p.fuel_type }}</span></td>
+        <td style="color:var(--c-yellow); font-weight:600;">{{ p.price_per_liter|fmtn(2) }}</td>
+        <td style="color:var(--text-3); font-size:.8rem;">{{ p.source or '—' }}</td>
+        <td style="white-space:nowrap;">
+          <button type="button" onclick="toggleEvEdit('fuel-edit-{{ p.id }}')"
+                  class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-pencil-simple"></i></button>
+          <form method="post" action="{{ rp }}/ev/fuel-price/{{ p.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć?')">
+            <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      <!-- Inline edit row for fuel price {{ p.id }} -->
+      <tr id="fuel-edit-{{ p.id }}" style="display:none;">
+        <td colspan="5" style="padding:.75rem; background:var(--bg);">
+          <form method="post" action="{{ rp }}/ev/fuel-price/{{ p.id }}/edytuj"
+                style="display:flex; flex-wrap:wrap; align-items:flex-end; gap:.6rem;">
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Data</label>
+              <input type="text" name="date" class="fuel-date" value="{{ p.date }}" placeholder="RRRR-MM-DD" required autocomplete="off">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Cena [zł/L]</label>
+              <input type="number" name="price_per_liter" step="0.01" value="{{ p.price_per_liter }}" required style="width:100px;">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Rodzaj</label>
+              <select name="fuel_type">
+                <option value="PB95" {{ 'selected' if p.fuel_type == 'PB95' else '' }}>PB95</option>
+                <option value="PB98" {{ 'selected' if p.fuel_type == 'PB98' else '' }}>PB98</option>
+                <option value="ON" {{ 'selected' if p.fuel_type == 'ON' else '' }}>ON (diesel)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Źródło</label>
+              <input type="text" name="source" value="{{ p.source or '' }}" placeholder="np. Orlen, PKN">
+            </div>
+            <div style="display:flex; gap:.5rem;">
+              <button type="submit" class="btn btn-primary" style="font-size:.8rem; padding:.35rem .9rem;">
+                <i class="ph-bold ph-floppy-disk"></i> Zapisz
+              </button>
+              <button type="button" onclick="toggleEvEdit('fuel-edit-{{ p.id }}')"
+                      class="btn btn-ghost" style="font-size:.8rem; padding:.35rem .9rem;">Anuluj</button>
+            </div>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% endif %}
+    <h3 id="add-fuel-price" style="font-size:.9rem; font-weight:600; margin-bottom:.75rem; color:var(--text-2); scroll-margin-top:1rem;">+ Dodaj cenę paliwa</h3>
+    <form method="post" action="{{ rp }}/ev/fuel-price" style="display:flex; flex-direction:column; gap:.75rem;">
+      <div class="grid-2">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Data (RRRR-MM-DD)</label>
+          <input type="text" name="date" class="fuel-date" placeholder="RRRR-MM-DD" required autocomplete="off">
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Cena [zł/L]</label>
+          <input type="number" name="price_per_liter" step="0.01" placeholder="6.50" required>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Rodzaj</label>
+          <select name="fuel_type">
+            <option value="PB95">PB95</option>
+            <option value="PB98">PB98</option>
+            <option value="ON">ON (diesel)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; margin-bottom:.3rem; font-size:.8rem; color:var(--text-2);">Źródło</label>
+          <input type="text" name="source" placeholder="np. Orlen, PKN">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start; font-size:.85rem;">+ Dodaj cenę</button>
+    </form>
+  </div>
+
+<script>
+function toggleEvEdit(id) {
+  const row = document.getElementById(id);
+  if (row) row.style.display = row.style.display === 'none' ? '' : 'none';
+}
+flatpickr(".fuel-date", { locale: "pl", dateFormat: "Y-m-d", allowInput: true, disableMobile: true });
+</script>
+{% endblock %}

@@ -80,16 +80,27 @@ _THEME = "dark"
 
 
 async def _load_theme() -> None:
-    """Wczytaj zapisany motyw z app_settings do cache modułowego."""
-    global _THEME
+    """Wczytaj zapisany motyw i śledzenie cen paliwa z app_settings do cache modułowego."""
+    global _THEME, _FUEL_TRACKING
     db = await get_db()
     try:
-        cur = await db.execute("SELECT theme FROM app_settings WHERE id=1")
+        cur = await db.execute("SELECT theme, fuel_tracking FROM app_settings WHERE id=1")
         row = await cur.fetchone()
         if row and row["theme"]:
             _THEME = row["theme"]
+        _FUEL_TRACKING = bool(row and row["fuel_tracking"])
     finally:
         await db.close()
+
+
+_FUEL_TRACKING = False
+
+
+async def _set_fuel_tracking(db: aiosqlite.Connection, enabled: bool) -> None:
+    """Zapisz wybór śledzenia cen paliwa (R-011, D-007) i odśwież cache menu."""
+    global _FUEL_TRACKING
+    await db.execute("UPDATE app_settings SET fuel_tracking=? WHERE id=1", (1 if enabled else 0,))
+    _FUEL_TRACKING = enabled
 
 
 @asynccontextmanager
@@ -214,7 +225,8 @@ templates.env.globals["app_version"] = APP_VERSION
 def _t(request: Request, name: str, context: dict | None = None):
     """TemplateResponse helper — injects root_path and csrf_token into every context."""
     csrf = getattr(request.state, "csrf_token", "")
-    ctx = {"rp": request.scope.get("root_path", ""), "csrf_token": csrf, "theme": _THEME, **(context or {})}
+    ctx = {"rp": request.scope.get("root_path", ""), "csrf_token": csrf, "theme": _THEME,
+           "fuel_tracking": _FUEL_TRACKING, **(context or {})}
     return templates.TemplateResponse(request=request, name=name, context=ctx)
 
 
@@ -1663,6 +1675,10 @@ async def create_vehicle(request: Request):
         return RedirectResponse(f"{rp}/ev?err=przebieg_required", status_code=303)
     db = await get_db()
     try:
+        is_first = (await (await db.execute("SELECT COUNT(*) FROM vehicles")).fetchone())[0] == 0
+        if is_first:
+            # Przy pierwszym samochodzie właściciel decyduje o śledzeniu cen paliwa (D-007).
+            await _set_fuel_tracking(db, form.get("fuel_tracking", "1") != "0")
         await db.execute(
             "INSERT INTO vehicles (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes, date_from, date_to, przebieg_km) VALUES (?,?,?,?,?,?,?,?)",
             (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
@@ -1799,7 +1815,7 @@ async def add_fuel_price(request: Request):
     finally:
         await db.close()
     rp = request.scope.get("root_path", "")
-    return RedirectResponse(f"{rp}/ev", status_code=303)
+    return RedirectResponse(f"{rp}/ev/ceny-paliwa", status_code=303)
 
 
 @app.post("/ev/fuel-price/{price_id}/edytuj")
@@ -1815,6 +1831,34 @@ async def edit_fuel_price(request: Request, price_id: int):
             "UPDATE fuel_prices SET date=?, price_per_liter=?, fuel_type=?, source=? WHERE id=?",
             (date, price_per_liter, fuel_type, source, price_id),
         )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev/ceny-paliwa", status_code=303)
+
+
+@app.get("/ev/ceny-paliwa", response_class=HTMLResponse)
+async def fuel_prices_page(request: Request):
+    """Ceny paliwa - pozycja menu pod EV, tylko gdy właściciel śledzi ceny (R-011, D-007)."""
+    rp = request.scope.get("root_path", "")
+    if not _FUEL_TRACKING:
+        return RedirectResponse(f"{rp}/ev", status_code=303)
+    db = await get_db()
+    try:
+        cur = await db.execute("SELECT * FROM fuel_prices ORDER BY date DESC")
+        prices = [dict(r) for r in await cur.fetchall()]
+    finally:
+        await db.close()
+    return _t(request, "fuel_prices.html", {"prices": prices})
+
+
+@app.post("/ev/fuel-tracking")
+async def save_fuel_tracking(request: Request):
+    form = await request.form()
+    db = await get_db()
+    try:
+        await _set_fuel_tracking(db, form.get("fuel_tracking") == "1")
         await db.commit()
     finally:
         await db.close()
@@ -1852,7 +1896,7 @@ async def delete_fuel_price(request: Request, price_id: int):
     finally:
         await db.close()
     rp = request.scope.get("root_path", "")
-    return RedirectResponse(f"{rp}/ev", status_code=303)
+    return RedirectResponse(f"{rp}/ev/ceny-paliwa", status_code=303)
 
 
 
