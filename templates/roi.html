@@ -135,19 +135,19 @@ new Chart(document.getElementById('roiChart'), {
   <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1rem;">
     <div class="card" style="background:var(--bg); text-align:center;">
       <div class="stat-value" style="color:var(--c-red-light); font-size:1.3rem;">
-        {% if confidence.pessimistic %}{{ confidence.pessimistic }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
+        {% if confidence.pessimistic %}{{ confidence.pessimistic }} mies.{% else %}&gt; {{ scenario_horizon }} mies.{% endif %}
       </div>
       <div class="stat-label">Pesymistyczny (0%)</div>
     </div>
     <div class="card" style="background:var(--bg); text-align:center; border-color:var(--accent);">
       <div class="stat-value" style="color:var(--c-yellow); font-size:1.3rem;">
-        {% if confidence.base %}{{ confidence.base }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
+        {% if confidence.base %}{{ confidence.base }} mies.{% else %}&gt; {{ scenario_horizon }} mies.{% endif %}
       </div>
       <div class="stat-label">Bazowy (+7%/rok)</div>
     </div>
     <div class="card" style="background:var(--bg); text-align:center;">
       <div class="stat-value" style="color:var(--c-green); font-size:1.3rem;">
-        {% if confidence.optimistic %}{{ confidence.optimistic }} mies.{% else %}&gt; {{ forecast|length }} mies.{% endif %}
+        {% if confidence.optimistic %}{{ confidence.optimistic }} mies.{% else %}&gt; {{ scenario_horizon }} mies.{% endif %}
       </div>
       <div class="stat-label">Optymistyczny (+12%/rok)</div>
     </div>
@@ -167,7 +167,7 @@ new Chart(document.getElementById('roiChart'), {
       <tr>
         <th>Wzrost cen/rok</th>
         <th>Mies. do ROI</th>
-        <th>Prognozowane oszczędności łącznie [zł]</th>
+        <th>Prognozowane oszczędności w {{ forecast|length }} mies. [zł]</th>
         <th>Scenariusz</th>
       </tr>
     </thead>
@@ -176,7 +176,7 @@ new Chart(document.getElementById('roiChart'), {
     <tr {% if s.scenario == 'base' %}style="background:#1e3a1e22;"{% endif %}>
       <td><strong>{{ s.label }}</strong></td>
       <td style="color:{% if s.months_to_roi %}var(--c-green){% else %}var(--text-2){% endif %}; font-weight:600;">
-        {% if s.months_to_roi %}{{ s.months_to_roi }}{% else %}&gt; {{ forecast|length }}{% endif %}
+        {% if s.months_to_roi %}zwrot za {{ s.months_to_roi }} mies.{% else %}zwrot za &gt; {{ scenario_horizon }} mies.{% endif %}
       </td>
       <td style="color:var(--c-blue-2);">{{ s.cumulative_savings|fmtn }}</td>
       <td>

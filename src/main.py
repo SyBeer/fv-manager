@@ -1025,7 +1025,8 @@ async def roi_page(request: Request):
 
     # Forecast i break-even
     degradation_rate = ev_settings.get("panel_degradation_rate") or 0.006
-    FORECAST_HORIZON = 36
+    FORECAST_HORIZON = 36      # wykres prognozy
+    SCENARIO_HORIZON = 360     # liczba miesięcy do zwrotu w tabeli scenariuszy (30 lat)
 
     has_enough_data = len(readings) >= 12
     forecast = forecast_months(
@@ -1036,6 +1037,17 @@ async def roi_page(request: Request):
     remaining_pln = roi["remaining_to_roi"] if roi and not roi["roi_achieved"] else 0.0
     growth_rates = [0.0, 0.03, 0.07, 0.12]
     scenarios = breakeven_scenarios(remaining_pln, forecast, growth_rates, default_price) if forecast and remaining_pln > 0 else []
+    if scenarios:
+        # Zwrot po horyzoncie wykresu: liczba miesięcy z dłuższej prognozy (D-013, D-019).
+        # Oszczędności łącznie w tabeli zostają za 36 mies. (jak wykres).
+        long_forecast = forecast_months(
+            readings, investments, SCENARIO_HORIZON, degradation_rate,
+            default_price, billing_periods, rce_prices, nm_ratio,
+        )
+        long_by_rate = {s["growth_rate"]: s for s in
+                        breakeven_scenarios(remaining_pln, long_forecast, growth_rates, default_price)}
+        for s in scenarios:
+            s["months_to_roi"] = long_by_rate[s["growth_rate"]]["months_to_roi"]
     confidence = breakeven_confidence_interval(scenarios) if scenarios else None
 
     return _t(request, "roi.html", {
@@ -1046,6 +1058,7 @@ async def roi_page(request: Request):
         "scenarios": scenarios,
         "confidence": confidence,
         "has_enough_data": has_enough_data,
+        "scenario_horizon": SCENARIO_HORIZON,
     })
 
 
