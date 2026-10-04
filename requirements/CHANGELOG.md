@@ -83,3 +83,4 @@
 2026-10-04 | domain | zatwierdzone hasła: Pojazd, Pojazd nieaktywny, Stan licznika, Śledzenie cen paliwa; Przebieg startowy - definicja uzupełniona o zmianę wartości (D-027) | właściciel instalacji
 2026-10-04 | spec --agent | constitution.md zregenerowane (słownik 24 hasła) | GLOSSARY.md
 2026-10-04 | validate | przebieg 8: 0 BLOCK, 0 WARN, gotowość 100% (19/19); nowy odcisk w raporcie i TRACEABILITY | GLOSSARY.md
+2026-10-04 | handover | Redmine: #20, #27, #28, #29 zaktualizowane (nowe AC), nowe #111 [R-019] Pojazd nieaktywny; 19 R pokrytych zadaniami #17..#34, #111; statusy bez zmian | 03-spec/agent

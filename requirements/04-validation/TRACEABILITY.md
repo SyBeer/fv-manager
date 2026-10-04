@@ -1,7 +1,7 @@
 # Śledzenie wymagań - R → AC → zadanie → test
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
-Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Przebieg 6 (2026-10-04): dopisane AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4, AC-019-1..AC-019-3 - bez testów, zadania wymagają ponownego handoveru.
+Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy do napisania w budowie v3.4.0.
 Odcisk wymagan: sha256:4226614f5212cb987c52bdf2b2fce2e7ffbadad0bfa0ab427de124aa1f5ad6f6
 
 | Wymaganie | Kryterium | Zadanie | Test |
@@ -38,11 +38,11 @@ Odcisk wymagan: sha256:4226614f5212cb987c52bdf2b2fce2e7ffbadad0bfa0ab427de124aa1
 | R-008 | AC-008-3 | [#26](http://192.168.1.4:3001/issues/26) (T-10) | `test_r008_roi_dashboard.py::test_AC_008_3_dashboard_po_36_miesiacach` |
 | R-009 | AC-009-1 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | `test_r009_r010_r011_ev.py::test_AC_009_1_pojazd_dodany` |
 | R-009 | AC-009-2 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | `test_r009_r010_r011_ev.py::test_AC_009_2_bez_przebiegu_nie_dodany` |
-| R-009 | AC-009-3 | [#27](http://192.168.1.4:3001/issues/27) (T-11) - ponowny handover | brak - zmiana (D-027) |
-| R-009 | AC-009-4 | [#27](http://192.168.1.4:3001/issues/27) (T-11) - ponowny handover | brak - zmiana (D-027) |
+| R-009 | AC-009-3 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | brak - zmiana (D-027) |
+| R-009 | AC-009-4 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | brak - zmiana (D-027) |
 | R-010 | AC-010-1 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r009_r010_r011_ev.py::test_AC_010_1_oszczednosc_ev_z_fv_240_zl` |
 | R-010 | AC-010-2 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r009_r010_r011_ev.py::test_AC_010_2_ladowanie_publiczne_poza_roi` |
-| R-010 | AC-010-3 | [#28](http://192.168.1.4:3001/issues/28) (T-12) - ponowny handover | brak - błąd (D-023) |
+| R-010 | AC-010-3 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | brak - błąd (D-023) |
 | R-011 | AC-011-1 | [#29](http://192.168.1.4:3001/issues/29) (T-13) | `test_r009_r010_r011_ev.py::test_AC_011_1_pierwszy_samochod_pyta_o_ceny_paliwa` |
 | R-011 | AC-011-2 | [#29](http://192.168.1.4:3001/issues/29) (T-13) | `test_r009_r010_r011_ev.py::test_AC_011_2_sledzenie_wlaczone_pozycja_menu` |
 | R-011 | AC-011-3 | [#29](http://192.168.1.4:3001/issues/29) (T-13) | `test_r009_r010_r011_ev.py::test_AC_011_3_sledzenie_wylaczone_brak_pozycji` |
@@ -68,9 +68,9 @@ Odcisk wymagan: sha256:4226614f5212cb987c52bdf2b2fce2e7ffbadad0bfa0ab427de124aa1
 | R-018 | AC-018-1 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | `test_r016_r018_teksty_tesla.py::test_AC_018_1_brak_tesla_w_kodzie` |
 | R-018 | AC-018-2 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | `test_r016_r018_teksty_tesla.py::test_AC_018_2_readme_i_changelog` |
 | R-018 | AC-018-3 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | `test_r016_r018_teksty_tesla.py::test_AC_018_3_migracja_nie_rusza_danych` |
-| R-019 | AC-019-1 | T-19 - do handoveru | brak - zmiana (D-025) |
-| R-019 | AC-019-2 | T-19 - do handoveru | brak - zmiana (D-028) |
-| R-019 | AC-019-3 | T-19 - do handoveru | brak - zmiana (D-028) |
+| R-019 | AC-019-1 | [#111](http://192.168.1.4:3001/issues/111) (T-19) | brak - zmiana (D-025) |
+| R-019 | AC-019-2 | [#111](http://192.168.1.4:3001/issues/111) (T-19) | brak - zmiana (D-028) |
+| R-019 | AC-019-3 | [#111](http://192.168.1.4:3001/issues/111) (T-19) | brak - zmiana (D-028) |
 
 ## Zasada dla dev
 Zmiana wymagania po przekazaniu = zmiana `03-spec/PRD.md` (przez właściciela) i ponowny handover (/sdd:spec --agent, /sdd:handover) - nigdy zadanie „z boku” w Redmine.
