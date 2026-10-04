@@ -17,7 +17,7 @@
   </div>
   <div class="card">
     <div class="stat-value" style="color:var(--c-green);">{{ roi.total_savings_pln|fmtn }} zł</div>
-    <div class="stat-label">Zaoszczędzono łącznie</div>
+    <div class="stat-label">Łączne oszczędności</div>
     {% if has_ev and roi.total_ev_savings_pln %}
     <div style="margin-top:.5rem; font-size:.78rem; color:var(--text-3); line-height:1.6;">
       <i class="ph-bold ph-sun"></i> FV: {{ roi.total_fv_savings_pln|fmtn }} zł<br>
@@ -38,7 +38,7 @@
   {% if not roi.roi_achieved %}
   <div class="card">
     <div class="stat-value" style="color:var(--c-yellow);">{{ roi.months_to_roi }} mies.</div>
-    <div class="stat-label">Szacowany czas do ROI</div>
+    <div class="stat-label">Mies. do ROI</div>
   </div>
   {% endif %}
   <div class="card">
