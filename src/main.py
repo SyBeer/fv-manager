@@ -473,7 +473,9 @@ def _ev_enrich(
             savings = None
             for e in entries:
                 v = vmap.get(e["vehicle_id"])
-                fuel_price = _fuel_price_for_month(fuel_prices, v["fuel_type"], r["period"]) if v else None
+                if not v or not e["kwh"]:
+                    continue  # bez ładowania domowego nie ma Oszczędności EV z FV (jak w _agg_vehicles_ev)
+                fuel_price = _fuel_price_for_month(fuel_prices, v["fuel_type"], r["period"])
                 if fuel_price is None:
                     continue
                 savings = (savings or 0.0) + calc_ev_savings(
@@ -1356,6 +1358,7 @@ async def ev_page(request: Request):
     finally:
         await db.close()
 
+    ev_monthly_raw = ev_monthly_all
     ev_monthly_all = _inject_odometer_km(ev_monthly_all, vehicles)
     vmap = {v["id"]: v for v in vehicles}
     by_period: dict[str, list[dict]] = {}
@@ -1390,7 +1393,7 @@ async def ev_page(request: Request):
             eff = v["efficiency_kwh_per_100km"] if v else settings.get("efficiency_kwh_per_100km", 16)
             fuel_cons = v["fuel_consumption_l_per_100km"] if v else settings.get("fuel_consumption_l_per_100km", 10)
             fuel_price = _fuel_price_for_month(all_fuel_prices, v["fuel_type"] if v else settings.get("fuel_type"), r["period"])
-            if fuel_price is None:
+            if fuel_price is None or not e["kwh"]:
                 continue
             s = calc_ev_savings(e["kwh"], price_kwh, eff, fuel_cons, fuel_price, km_driven=e.get("km"))
             period_total_kwh += e["kwh"]
@@ -1427,8 +1430,10 @@ async def ev_page(request: Request):
         total_liters_saved += period_liters
 
     # ev_raw: period → {vehicle_id → {kwh, km, odometer_km}} — for pre-filling edit forms
+    # Z wierszy z bazy, nie po _inject_odometer_km: km wyliczone z licznika nie mogą
+    # trafić do formularza jako ręczne (zapis by je zamroził).
     ev_raw: dict[str, dict[int, dict]] = {}
-    for e in ev_monthly_all:
+    for e in ev_monthly_raw:
         if e["vehicle_id"] is not None:
             ev_raw.setdefault(e["period"], {})[e["vehicle_id"]] = {
                 "kwh": e["kwh"],
@@ -1780,15 +1785,16 @@ async def edit_ev_monthly(request: Request, period: str):
             pub_kwh = _num(f"public_kwh_v_{vid}")
             pub_km = _num(f"public_km_v_{vid}")
             pub_cost = _num(f"public_cost_v_{vid}")
-            # Pomiń pojazd bez żadnych danych domowych ani publicznych.
-            if kwh <= 0 and not (pub_kwh or pub_km or pub_cost):
+            km = _num(f"km_v_{vid}")
+            odometer = _num(f"odometer_v_{vid}")
+            # Pomiń pojazd bez żadnych danych (domowe, publiczne, km, stan licznika).
+            if kwh <= 0 and not (pub_kwh or pub_km or pub_cost) and km is None and odometer is None:
                 continue
             await db.execute(
                 """INSERT INTO ev_monthly
                    (period, vehicle_id, kwh, km, odometer_km, public_kwh, public_km, public_cost_pln)
                    VALUES (?,?,?,?,?,?,?,?)""",
-                (period, vid, kwh, _num(f"km_v_{vid}"), _num(f"odometer_v_{vid}"),
-                 pub_kwh, pub_km, pub_cost),
+                (period, vid, kwh, km, odometer, pub_kwh, pub_km, pub_cost),
             )
         await db.commit()
     finally:

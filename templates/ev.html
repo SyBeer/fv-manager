@@ -241,6 +241,7 @@
         <td style="color:var(--text-2); font-size:.85rem;">{{ v.date_to or '—' }}</td>
         <td style="color:var(--text-2); font-size:.85rem;">{% if v.przebieg_km %}{{ "{:,.0f}".format(v.przebieg_km).replace(",", " ") }}{% else %}—{% endif %}</td>
         <td style="white-space:nowrap;">
+          <div style="display:inline-flex; gap:.25rem; align-items:flex-start;">
           <details style="display:inline;">
             <summary class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem; display:inline-block; cursor:pointer; list-style:none;"><i class="ph-bold ph-pencil-simple"></i></summary>
             <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/edytuj"
@@ -274,6 +275,7 @@
           <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ v.name }}? Usunie też historię EV tego pojazdu.')">
             <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-trash"></i></button>
           </form>
+          </div>
         </td>
       </tr>
       {% endfor %}
