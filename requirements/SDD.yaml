@@ -5,4 +5,7 @@ owners:                # role biznesowe, ktore zatwierdzaja (rola, nie osoba)
   - role: "właściciel instalacji"
     approves: [R, D, GLOSSARY, BR]
 gate_blocking_status: "blokuje go-live"   # etykieta pytan blokujacych
-backlog: jira          # none | linear | jira | file
+backlog: redmine       # none | linear | jira | file
+redmine_url: "http://192.168.1.4:3001"
+redmine_project: "fv-manager"
+redmine_ac_field: "Kryteria akceptacji"   # pole wlasne Redmine na kryteria (wymagane przy zmianie statusu)

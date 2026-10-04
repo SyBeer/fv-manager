@@ -27,3 +27,27 @@
 2026-10-04 | interview | A-009 potwierdzone (Q-029 odpowiedziane; bez przebiegu startowego brak rejestracji samochodu); kaskada: BR-008, brak R | [Biz] session-2026-10-04.md, Q-029
 2026-10-04 | interview | A-010 potwierdzone częściowo (Q-030 odpowiedziane; mechanizm API zostaje [Dok]); kaskada: BR-009, brak R | [Biz] session-2026-10-04.md, Q-030
 2026-10-04 | sdd:board sync | PRD §5a: kandydaci K-9..K-17 z 19 karteczek cmd/rm/ev, p36 -> K-4; tablica 57/57 ✓ | board.json; [App] kod-v3.2.4-2026-09-27.md, [Dok] README.md
+2026-10-04 | spec | GLOSSARY: 9 haseł zatwierdzone (paczki rozliczenia + EV/paliwo) - zatwierdził właściciel instalacji | [Biz] czat sesji 2026-10-04
+2026-10-04 | spec | PRD: §1-3, R-001..R-004 (robocze) z K-9, K-11, K-1, K-4; RULES/ASSUMPTIONS: kolumny Wymagania; tablica: ref R-xxx | [Biz] czat sesji 2026-10-04 (zgoda właściciela)
+2026-10-04 | spec | PRD: R-005..R-008 (robocze) z K-8, K-12, K-13, K-15; nowe A-011 niepotwierdzone (R-008); tablica: ref R-xxx | [Biz] czat sesji 2026-10-04 (zgoda właściciela)
+2026-10-04 | spec | PRD: R-009..R-012 (robocze) z K-2, K-3, K-10, K-14; nowe A-012 niepotwierdzone (R-012); tablica: ref R-xxx | [Biz] czat sesji 2026-10-04 (zgoda właściciela)
+2026-10-04 | spec | PRD: R-013..R-016 (robocze) z K-5, K-6, K-7, K-16, K-17; nowe A-013 niepotwierdzone (R-015); wszyscy kandydaci K-1..K-17 zmapowani na R | [Biz] czat sesji 2026-10-04 (zgoda właściciela)
+2026-10-04 | config | zmiana SDD.yaml: backlog, redmine_url, redmine_project | panel
+2026-10-04 | spec | PRD: R-001..R-016 zatwierdzone (właściciel instalacji, „zatwierdzam wszystkie”); R-002, R-007, R-008, R-012, R-015, R-016 stoją na A niepotwierdzonych | [Biz] czat sesji 2026-10-04
+2026-10-04 | config | zmiana SDD.yaml: redmine_project | panel
+2026-10-04 | config | zmiana SDD.yaml: redmine_ac_field "Kryteria akceptacji" (pole wlasne Redmine, wymagane przy zmianie statusu) | Claude, na prosbe usera
+2026-10-04 | validate | raport 04-validation/validate-2026-10-04.md: 0 BLOCK, WARN: AC-007-1, AC-008-1, R-008/R-012/R-015/R-016 na A [Dok]/[AI], 10 pojęć spoza słownika; gotowość 69% (11/16) | PRD.md, GLOSSARY.md, ASSUMPTIONS.md, QUESTIONS.md, INDEX.md
+2026-10-04 | sdd:board sync | brak zmian z tablicy (brak nowych karteczek, odpowiedzi i edycji); 57/57 w plikach; wszystkie otwarte Q na tablicy | board.json
+2026-10-04 | sdd:board | p18, p19: treść zgodna z BR-006/A-007 i BR-007/D-013; 'updated' z przyszłości (12:00) -> 'created' na kartkach pasa Inwestycje i ROI | RULES.md, ASSUMPTIONS.md, DECISIONS.md
+2026-10-04 | interview | D-014 (koszt etapu ≥ 0), BR-010, Q-021 odpowiedziane, nowe Q-032; R-005 + AC-005-4/5, PRD §6; tablica h09 (Q-032) | [Biz] session-2026-10-04.md, Q-021
+2026-10-04 | interview | D-015 (data etapu uwzględniana w ROI; dziś błąd), Q-019 odpowiedziane; BR-006 uzupełniona; R-006 + AC-006-3, R-008 w PRD §6 | [Biz] session-2026-10-04.md, Q-019
+2026-10-04 | interview | D-016 (dofinansowanie = etap z ujemnym kosztem; zmienia D-014), BR-010 przeredagowana, Q-022 odpowiedziane; R-005 AC-005-5 zmienione, PRD §6 | [Biz] session-2026-10-04.md, Q-022
+2026-10-04 | interview | D-017 (wszystkie wydatki jako etapy inwestycji), Q-023 odpowiedziane; R-005 + AC-005-6, PRD §4 i §6 | [Biz] session-2026-10-04.md, Q-023
+2026-10-04 | interview | D-018 (termin zwrotu = karta mies. do ROI), Q-018 odpowiedziane; BR-006 źródło [Biz], A-007 uzupełnione; R-006 + AC-006-4, PRD §6 | [Biz] session-2026-10-04.md, Q-018
+2026-10-04 | interview | D-019 (zwrot za N mies. w tabeli per scenariusz i na dashboardzie), Q-031 odpowiedziane; BR-007; R-007 AC-007-3, R-008 + AC-008-3, PRD §6 | [Biz] session-2026-10-04.md, Q-031
+2026-10-04 | spec | PRD: R-017 Okresy rozliczeniowe i ceny RCE (zatwierdzone, właściciel instalacji); BR-005 -> R-017; Q-033 zaparkowane (brak RCE = 0 zł); tablica p31, p33 -> R-017, p35 -> R-003 | [Biz] czat sesji 2026-10-04; [App] src/main.py:1838-1900
+2026-10-04 | validate | przebieg 2: 0 BLOCK; WARN: AC-007-1, AC-008-1, R-008/R-012/R-015/R-016 na A [Dok]/[AI], 11 pojęć spoza słownika; gotowość 71% (12/17) | PRD.md, RULES.md, DECISIONS.md, QUESTIONS.md, GLOSSARY.md
+2026-10-04 | validate | AC-007-1, AC-008-1 doprecyzowane (zgoda właściciela); gotowość 76% (13/17), 0 BLOCK | PRD.md
+2026-10-04 | spec --agent | 03-spec/agent: constitution.md + 7 funkcji (rozliczenia, odczyty, inwestycje-roi, ev, dane, home-assistant, teksty) - spec/plan/tasks, 17 zadań T-01..T-17 z R-001..R-017 | PRD.md
+2026-10-04 | handover | próba push do Redmine (fv-manager): błąd 422 przy T-01 (projekt/typ/status puste) - nic nie założono; plik 04-validation/redmine-2026-10-04.json gotowy | Redmine API
+2026-10-04 | handover | Redmine fv-manager: 17 zadań #17..#33 (T-01..T-17) dla R-001..R-017, relacje 'poprzedza' z plan.md; TRACEABILITY.md: 52 AC | 03-spec/agent/*/tasks.md

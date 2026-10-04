@@ -1,0 +1,169 @@
+{
+  "tasks": [
+    {
+      "key": "T-01",
+      "subject": "[R-017] Okresy rozliczeniowe i ceny RCE",
+      "description": "Właściciel instalacji na /pv ustawia okresy rozliczeniowe (data startu, opcjonalnie data końca, model: net-metering albo net-billing) i wpisuje ceny RCE (data, cena, źródło); może je usuwać. Model rozliczeń miesiąca wynika z okresu rozliczeniowego, w który miesiąc wpada; bez okresu obowiązuje net-metering. Brak ceny RCE w miesiącu net-billingu - Q-033.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-017\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-017-1 | brak okresów rozliczeniowych | liczony jest miesiąc 2023.05 | miesiąc jest rozliczany w net-meteringu. |\n| AC-017-2 | okres net-billing od 2024-07-01 bez daty końca | liczone są 2024.06 i 2024.08 | 2024.06 jest w net-meteringu, a 2024.08 w net-billingu. |\n| AC-017-3 | ceny RCE 0,40 zł od 2024-07-01 i 0,30 zł od 2024-08-15 | liczony jest 2024.08 w net-billingu | energia oddana jest wyceniona po 0,30 zł (ostatnia cena z datą nie późniejszą niż koniec miesiąca). |\n| AC-017-4 | usunięta cena RCE 0,30 zł | ponownie liczony jest 2024.08 | energia oddana jest wyceniona po 0,40 zł. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [],
+      "acceptance": "**AC-017-1**\n**Given** brak okresów rozliczeniowych\n**When** liczony jest miesiąc 2023.05\n**Then** miesiąc jest rozliczany w net-meteringu.\n\n**AC-017-2**\n**Given** okres net-billing od 2024-07-01 bez daty końca\n**When** liczone są 2024.06 i 2024.08\n**Then** 2024.06 jest w net-meteringu, a 2024.08 w net-billingu.\n\n**AC-017-3**\n**Given** ceny RCE 0,40 zł od 2024-07-01 i 0,30 zł od 2024-08-15\n**When** liczony jest 2024.08 w net-billingu\n**Then** energia oddana jest wyceniona po 0,30 zł (ostatnia cena z datą nie późniejszą niż koniec miesiąca).\n\n**AC-017-4**\n**Given** usunięta cena RCE 0,30 zł\n**When** ponownie liczony jest 2024.08\n**Then** energia oddana jest wyceniona po 0,40 zł.",
+      "issue": 17
+    },
+    {
+      "key": "T-02",
+      "subject": "[R-002] Oszczędność PV miesiąca",
+      "description": "Dla każdego odczytu aplikacja liczy oszczędność PV miesiąca (kWh i zł) według modelu rozliczeń okresu rozliczeniowego: w net-meteringu z autokonsumpcji i puli net-meteringu (kumulowanej w cyklu rozliczeniowym), w net-billingu z autokonsumpcji i energii oddanej wycenionej po cenie RCE.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-002\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-002-1 | okres w net-meteringu, współczynnik 0,80, pula 0, produkcja 500, oddane 300, pobrane 200 kWh | liczona jest oszczędność | autokonsumpcja = 200 kWh, do puli wpada 240 kWh, z puli zużyte 200 kWh, na kolejny miesiąc przechodzi 40 kWh. |\n| AC-002-2 | miesiąc startu cyklu = kwiecień i pula 40 kWh z marca | liczony jest kwiecień | pula startuje od 0. |\n| AC-002-3 | okres w net-billingu, autokonsumpcja 200 kWh, cena zakupu 1,00 zł, oddane 300 kWh, RCE 0,40 zł | liczona jest oszczędność | oszczędność = 320 zł. |\n| AC-002-4 | net-billing i odczyt z ceną sprzedaży 0,50 zł | liczona jest oszczędność | energia oddana jest wyceniona po 0,50 zł zamiast po RCE. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-01"
+      ],
+      "acceptance": "**AC-002-1**\n**Given** okres w net-meteringu, współczynnik 0,80, pula 0, produkcja 500, oddane 300, pobrane 200 kWh\n**When** liczona jest oszczędność\n**Then** autokonsumpcja = 200 kWh, do puli wpada 240 kWh, z puli zużyte 200 kWh, na kolejny miesiąc przechodzi 40 kWh.\n\n**AC-002-2**\n**Given** miesiąc startu cyklu = kwiecień i pula 40 kWh z marca\n**When** liczony jest kwiecień\n**Then** pula startuje od 0.\n\n**AC-002-3**\n**Given** okres w net-billingu, autokonsumpcja 200 kWh, cena zakupu 1,00 zł, oddane 300 kWh, RCE 0,40 zł\n**When** liczona jest oszczędność\n**Then** oszczędność = 320 zł.\n\n**AC-002-4**\n**Given** net-billing i odczyt z ceną sprzedaży 0,50 zł\n**When** liczona jest oszczędność\n**Then** energia oddana jest wyceniona po 0,50 zł zamiast po RCE.",
+      "issue": 18
+    },
+    {
+      "key": "T-03",
+      "subject": "[R-003] Ustawienie miesiąca startu cyklu rozliczeniowego",
+      "description": "Właściciel instalacji ustawia miesiąc startu cyklu rozliczeniowego (domyślnie kwiecień); w tym miesiącu pula net-meteringu się zeruje. Stan docelowy - dziś kod zawsze przyjmuje kwiecień.\n\nZmiana - stan docelowy. Dziś cycle_start_month=4 na stałe (D-003).\n\n**Wymaganie:** R-003\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-003-1 | brak ustawienia | liczone są oszczędności | cykl rozliczeniowy startuje w kwietniu. |\n| AC-003-2 | właściciel ustawił czerwiec | liczony jest czerwiec | pula net-meteringu zeruje się w czerwcu, a nie w kwietniu. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-02"
+      ],
+      "acceptance": "**AC-003-1**\n**Given** brak ustawienia\n**When** liczone są oszczędności\n**Then** cykl rozliczeniowy startuje w kwietniu.\n\n**AC-003-2**\n**Given** właściciel ustawił czerwiec\n**When** liczony jest czerwiec\n**Then** pula net-meteringu zeruje się w czerwcu, a nie w kwietniu.",
+      "issue": 19
+    },
+    {
+      "key": "T-04",
+      "subject": "[R-001] Wpisanie odczytu miesiąca",
+      "description": "Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Dane EV z Tesla Fleet API poza tym R (Q-016).\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-001\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-001-1 | poprawne dane za 2026.09 (produkcja ≥ oddane, wszystkie wartości ≥ 0) | właściciel zapisuje odczyt | odczyt jest na liście odczytów. |\n| AC-001-2 | okres „2026-9” | właściciel zapisuje odczyt | odczyt nie zostaje zapisany, a formularz pokazuje błąd okresu. |\n| AC-001-3 | oddane 500 kWh i produkcja 400 kWh | właściciel zapisuje odczyt | odczyt nie zostaje zapisany, a formularz pokazuje błąd. |\n| AC-001-4 | skonfigurowane encje HA | właściciel wybiera miesiąc i klika „pobierz z HA” | pola produkcja, oddane i pobrane wypełniają się bez ręcznego wpisywania. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [],
+      "acceptance": "**AC-001-1**\n**Given** poprawne dane za 2026.09 (produkcja ≥ oddane, wszystkie wartości ≥ 0)\n**When** właściciel zapisuje odczyt\n**Then** odczyt jest na liście odczytów.\n\n**AC-001-2**\n**Given** okres „2026-9”\n**When** właściciel zapisuje odczyt\n**Then** odczyt nie zostaje zapisany, a formularz pokazuje błąd okresu.\n\n**AC-001-3**\n**Given** oddane 500 kWh i produkcja 400 kWh\n**When** właściciel zapisuje odczyt\n**Then** odczyt nie zostaje zapisany, a formularz pokazuje błąd.\n\n**AC-001-4**\n**Given** skonfigurowane encje HA\n**When** właściciel wybiera miesiąc i klika „pobierz z HA”\n**Then** pola produkcja, oddane i pobrane wypełniają się bez ręcznego wpisywania.",
+      "issue": 20
+    },
+    {
+      "key": "T-05",
+      "subject": "[R-004] Import odczytów z CSV - cały plik albo nic",
+      "description": "Właściciel instalacji importuje odczyty z pliku CSV (separator „;”, polskie nagłówki). Jeśli choć jeden wiersz jest błędny, nie zostaje zapisany żaden, a raport podaje numer wiersza i powód. Stan docelowy. Postępowanie z okresem, który już istnieje - Q-017.\n\nZmiana - stan docelowy. Dziś import pomija błędne wiersze (D-009). Istniejący okres - Q-017 otwarte, nie przesądzaj.\n\n**Wymaganie:** R-004\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-004-1 | plik z 10 poprawnymi wierszami | właściciel importuje plik | zapisanych zostaje 10 odczytów. |\n| AC-004-2 | plik, w którym wiersz 4 ma wartość ujemną | właściciel importuje plik | nie zostaje zapisany żaden wiersz, a raport pokazuje „wiersz 4” i powód. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-04"
+      ],
+      "acceptance": "**AC-004-1**\n**Given** plik z 10 poprawnymi wierszami\n**When** właściciel importuje plik\n**Then** zapisanych zostaje 10 odczytów.\n\n**AC-004-2**\n**Given** plik, w którym wiersz 4 ma wartość ujemną\n**When** właściciel importuje plik\n**Then** nie zostaje zapisany żaden wiersz, a raport pokazuje „wiersz 4” i powód.",
+      "issue": 21
+    },
+    {
+      "key": "T-06",
+      "subject": "[R-012] Lista i edycja odczytów",
+      "description": "Lista odczytów pokazuje dla każdego miesiąca produkcję, autokonsumpcję, oddane, pobrane, zużycie i oszczędność. Przy edycji odczytu właściciel instalacji widzi ROI przed i po zmianie.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-012\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-012-1 | 3 zapisane odczyty | właściciel otwiera /odczyty | każdy wiersz pokazuje produkcję, autokonsumpcję, oddane, pobrane, zużycie i oszczędność. |\n| AC-012-2 | zapisany odczyt | właściciel zmienia produkcję w formularzu edycji | przed zapisem widzi ROI przed i po zmianie. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-08"
+      ],
+      "acceptance": "**AC-012-1**\n**Given** 3 zapisane odczyty\n**When** właściciel otwiera /odczyty\n**Then** każdy wiersz pokazuje produkcję, autokonsumpcję, oddane, pobrane, zużycie i oszczędność.\n\n**AC-012-2**\n**Given** zapisany odczyt\n**When** właściciel zmienia produkcję w formularzu edycji\n**Then** przed zapisem widzi ROI przed i po zmianie.",
+      "issue": 22
+    },
+    {
+      "key": "T-07",
+      "subject": "[R-005] Etapy inwestycji",
+      "description": "Właściciel instalacji dodaje, edytuje i usuwa etapy inwestycji (koszt, data, moc). Łączna inwestycja = suma kosztów etapów. Etap liczy się od miesiąca swojej daty (D-015); koszt może być zerowy, dodatni albo ujemny - ujemny to dofinansowanie (D-016, zmienia D-014); dowolna data etapu - Q-032.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic). Q-032 (data spoza okresu odczytów) otwarte - bez walidacji daty.\n\n**Wymaganie:** R-005\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-005-1 | brak etapów | właściciel dodaje etap (koszt 30 000 zł, data 2022-06, moc 6 kWp) | etap jest na liście, a łączna inwestycja = 30 000 zł. |\n| AC-005-2 | dwa etapy (30 000 zł i 10 000 zł) | właściciel usuwa drugi | łączna inwestycja = 30 000 zł. |\n| AC-005-3 | etap 30 000 zł | właściciel zmienia koszt na 32 000 zł | łączna inwestycja = 32 000 zł. |\n| AC-005-4 | formularz etapu z kosztem 0 zł | właściciel zapisuje etap | etap jest na liście, a łączna inwestycja się nie zmienia. |\n| AC-005-5 | etapy 30 000 zł i −5 000 zł (dofinansowanie) | liczona jest łączna inwestycja | łączna inwestycja = 25 000 zł. |\n| AC-005-6 | etap serwisowy z kosztem 800 zł bez mocy | liczona jest prognoza | prognoza się nie zmienia, a łączna inwestycja rośnie o 800 zł. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [],
+      "acceptance": "**AC-005-1**\n**Given** brak etapów\n**When** właściciel dodaje etap (koszt 30 000 zł, data 2022-06, moc 6 kWp)\n**Then** etap jest na liście, a łączna inwestycja = 30 000 zł.\n\n**AC-005-2**\n**Given** dwa etapy (30 000 zł i 10 000 zł)\n**When** właściciel usuwa drugi\n**Then** łączna inwestycja = 30 000 zł.\n\n**AC-005-3**\n**Given** etap 30 000 zł\n**When** właściciel zmienia koszt na 32 000 zł\n**Then** łączna inwestycja = 32 000 zł.\n\n**AC-005-4**\n**Given** formularz etapu z kosztem 0 zł\n**When** właściciel zapisuje etap\n**Then** etap jest na liście, a łączna inwestycja się nie zmienia.\n\n**AC-005-5**\n**Given** etapy 30 000 zł i −5 000 zł (dofinansowanie)\n**When** liczona jest łączna inwestycja\n**Then** łączna inwestycja = 25 000 zł.\n\n**AC-005-6**\n**Given** etap serwisowy z kosztem 800 zł bez mocy\n**When** liczona jest prognoza\n**Then** prognoza się nie zmienia, a łączna inwestycja rośnie o 800 zł.",
+      "issue": 23
+    },
+    {
+      "key": "T-08",
+      "subject": "[R-006] Pozostało do zwrotu",
+      "description": "Aplikacja liczy, ile zostało do zwrotu inwestycji: łączna inwestycja − Σ oszczędności PV − Σ Oszczędność EV z FV. Oszczędność z ładowania publicznego nie wchodzi do ROI. Etap inwestycji liczy się od miesiąca swojej daty (D-015; dziś błąd - wszystkie etapy od początku). Termin zwrotu = karta „mies. do ROI”: pozostało do zwrotu / średnia miesięczna oszczędność z historii (D-018).\n\nBłąd - kod działa inaczej niż decyzja właściciela. AC-006-3 to błąd v3.2.x (D-015): etapy liczone od początku zamiast od swojej daty.\n\n**Wymaganie:** R-006\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-006-1 | inwestycja 40 000 zł, Σ oszczędności PV 15 000 zł, Σ Oszczędność EV z FV 3 000 zł, ładowanie publiczne z oszczędnością 2 000 zł | liczony jest ROI | pozostało do zwrotu = 22 000 zł. |\n| AC-006-2 | Σ oszczędności ≥ łączna inwestycja | liczony jest ROI | Zwrot inwestycji ma stan „zwrot osiągnięty”. |\n| AC-006-3 | etapy 30 000 zł (2022-06) i 10 000 zł (2025-03) | wykres /roi pokazuje 2024-12 | inwestycja = 30 000 zł; dla 2025-03 inwestycja = 40 000 zł. |\n| AC-006-4 | pozostało do zwrotu 22 000 zł i średnia miesięczna oszczędność 500 zł | właściciel otwiera /roi | karta „mies. do ROI” pokazuje 44 mies. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-02",
+        "T-07",
+        "T-12"
+      ],
+      "acceptance": "**AC-006-1**\n**Given** inwestycja 40 000 zł, Σ oszczędności PV 15 000 zł, Σ Oszczędność EV z FV 3 000 zł, ładowanie publiczne z oszczędnością 2 000 zł\n**When** liczony jest ROI\n**Then** pozostało do zwrotu = 22 000 zł.\n\n**AC-006-2**\n**Given** Σ oszczędności ≥ łączna inwestycja\n**When** liczony jest ROI\n**Then** Zwrot inwestycji ma stan „zwrot osiągnięty”.\n\n**AC-006-3**\n**Given** etapy 30 000 zł (2022-06) i 10 000 zł (2025-03)\n**When** wykres /roi pokazuje 2024-12\n**Then** inwestycja = 30 000 zł; dla 2025-03 inwestycja = 40 000 zł.\n\n**AC-006-4**\n**Given** pozostało do zwrotu 22 000 zł i średnia miesięczna oszczędność 500 zł\n**When** właściciel otwiera /roi\n**Then** karta „mies. do ROI” pokazuje 44 mies.",
+      "issue": 24
+    },
+    {
+      "key": "T-09",
+      "subject": "[R-007] Prognoza zwrotu",
+      "description": "Aplikacja prognozuje 36 miesięcy z degradacją paneli (ustawienie, domyślnie 0,6% rocznie) i scenariuszami wzrostu ceny prądu kupowanego z sieci 0/3/7/12% rocznie. Gdy zwrot przypada po 36 miesiącach, wykres kończy się na 36. miesiącu, a tabela scenariuszy podaje „zwrot za N mies.” dla każdego scenariusza (D-013, D-019; stan docelowy).\n\nZmiana - stan docelowy. AC-007-3: tabela scenariuszy pokazuje N > 36 (D-013, D-019); wykres zostaje 36 mies.\n\n**Wymaganie:** R-007\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-007-1 | degradacja 0,6% rocznie, instalacja 2022.06, bazowa produkcja czerwca 500 kWh | prognozowany jest czerwiec 2026 | prognozowana produkcja = 488,1 kWh (zaokrąglenie do 0,1 kWh). |\n| AC-007-2 | ustawienia bez wpisanej degradacji | właściciel otwiera ustawienia | pole degradacji pokazuje 0,6. |\n| AC-007-3 | zwrot przypada po 36 miesiącach | właściciel otwiera /roi | wykres kończy się na 36. miesiącu, a tabela scenariuszy pokazuje dla każdego scenariusza „zwrot za N mies.” z N > 36. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-08"
+      ],
+      "acceptance": "**AC-007-1**\n**Given** degradacja 0,6% rocznie, instalacja 2022.06, bazowa produkcja czerwca 500 kWh\n**When** prognozowany jest czerwiec 2026\n**Then** prognozowana produkcja = 488,1 kWh (zaokrąglenie do 0,1 kWh).\n\n**AC-007-2**\n**Given** ustawienia bez wpisanej degradacji\n**When** właściciel otwiera ustawienia\n**Then** pole degradacji pokazuje 0,6.\n\n**AC-007-3**\n**Given** zwrot przypada po 36 miesiącach\n**When** właściciel otwiera /roi\n**Then** wykres kończy się na 36. miesiącu, a tabela scenariuszy pokazuje dla każdego scenariusza „zwrot za N mies.” z N > 36.",
+      "issue": 25
+    },
+    {
+      "key": "T-10",
+      "subject": "[R-008] Ekran ROI i dashboard",
+      "description": "Ekran /roi pokazuje karty ROI, wykres skumulowanych oszczędności na tle inwestycji, tabelę wrażliwości (7 stałych cen, D-012) i prognozę (R-007). Dashboard pokazuje baner ROI i 12 ostatnich miesięcy.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-008\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-008-1 | co najmniej jeden odczyt i jeden etap inwestycji | właściciel otwiera /roi | widzi karty: łączna inwestycja, łączne oszczędności, pozostało do zwrotu i mies. do ROI, z wartościami wyliczonymi z danych testowych, oraz wykres skumulowanych oszczędności na tle inwestycji i tabelę wrażliwości z 7 cenami (0,50; 0,60; 0,70; 0,80; 0,90; 1,00; 1,20 zł/kWh). |\n| AC-008-2 | 15 odczytów | właściciel otwiera dashboard | widzi baner ROI i 12 ostatnich miesięcy. |\n| AC-008-3 | zwrot przypada po 48 miesiącach | właściciel otwiera dashboard | widzi „Do zwrotu inwestycji 48 mies.”. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-08",
+        "T-09"
+      ],
+      "acceptance": "**AC-008-1**\n**Given** co najmniej jeden odczyt i jeden etap inwestycji\n**When** właściciel otwiera /roi\n**Then** widzi karty: łączna inwestycja, łączne oszczędności, pozostało do zwrotu i mies. do ROI, z wartościami wyliczonymi z danych testowych, oraz wykres skumulowanych oszczędności na tle inwestycji i tabelę wrażliwości z 7 cenami (0,50; 0,60; 0,70; 0,80; 0,90; 1,00; 1,20 zł/kWh).\n\n**AC-008-2**\n**Given** 15 odczytów\n**When** właściciel otwiera dashboard\n**Then** widzi baner ROI i 12 ostatnich miesięcy.\n\n**AC-008-3**\n**Given** zwrot przypada po 48 miesiącach\n**When** właściciel otwiera dashboard\n**Then** widzi „Do zwrotu inwestycji 48 mies.”.",
+      "issue": 26
+    },
+    {
+      "key": "T-11",
+      "subject": "[R-009] Dodanie pojazdu",
+      "description": "Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-009\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-009-1 | formularz z nazwą, zużyciem 18 kWh/100 km, spalaniem odpowiednika 7 l/100 km, benzyną i przebiegiem startowym 12 000 km | właściciel dodaje pojazd | pojazd jest na liście /ev. |\n| AC-009-2 | formularz bez przebiegu startowego | właściciel dodaje pojazd | pojazd nie zostaje dodany. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [],
+      "acceptance": "**AC-009-1**\n**Given** formularz z nazwą, zużyciem 18 kWh/100 km, spalaniem odpowiednika 7 l/100 km, benzyną i przebiegiem startowym 12 000 km\n**When** właściciel dodaje pojazd\n**Then** pojazd jest na liście /ev.\n\n**AC-009-2**\n**Given** formularz bez przebiegu startowego\n**When** właściciel dodaje pojazd\n**Then** pojazd nie zostaje dodany.",
+      "issue": 27
+    },
+    {
+      "key": "T-12",
+      "subject": "[R-010] Oszczędności EV",
+      "description": "Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-010\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-010-1 | w miesiącu 1 000 km, spalanie odpowiednika 7 l/100 km, paliwo 6,00 zł/l, ładowanie domowe 180 kWh, cena prądu 1,00 zł/kWh | liczona jest oszczędność | Oszczędność EV z FV = 420 − 180 = 240 zł. |\n| AC-010-2 | w tym samym miesiącu także ładowanie publiczne | właściciel otwiera /ev | karty pokazują Oszczędność EV vs paliwo (domowe + publiczne), a do ROI (R-006) trafia tylko Oszczędność EV z FV. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-11"
+      ],
+      "acceptance": "**AC-010-1**\n**Given** w miesiącu 1 000 km, spalanie odpowiednika 7 l/100 km, paliwo 6,00 zł/l, ładowanie domowe 180 kWh, cena prądu 1,00 zł/kWh\n**When** liczona jest oszczędność\n**Then** Oszczędność EV z FV = 420 − 180 = 240 zł.\n\n**AC-010-2**\n**Given** w tym samym miesiącu także ładowanie publiczne\n**When** właściciel otwiera /ev\n**Then** karty pokazują Oszczędność EV vs paliwo (domowe + publiczne), a do ROI (R-006) trafia tylko Oszczędność EV z FV.",
+      "issue": 28
+    },
+    {
+      "key": "T-13",
+      "subject": "[R-011] Śledzenie cen paliwa",
+      "description": "Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma. Stan docelowy.\n\nZmiana - stan docelowy. Dziś brak wyboru i pozycji menu (D-007).\n\n**Wymaganie:** R-011\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-011-1 | brak pojazdów | właściciel dodaje pierwszy samochód | formularz pyta, czy śledzić ceny paliwa. |\n| AC-011-2 | śledzenie włączone | właściciel otwiera menu | pod EV jest pozycja „Ceny paliwa”, w której wpisuje datę, cenę, typ i źródło. |\n| AC-011-3 | śledzenie wyłączone | właściciel otwiera menu | pozycji „Ceny paliwa” nie ma. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-11"
+      ],
+      "acceptance": "**AC-011-1**\n**Given** brak pojazdów\n**When** właściciel dodaje pierwszy samochód\n**Then** formularz pyta, czy śledzić ceny paliwa.\n\n**AC-011-2**\n**Given** śledzenie włączone\n**When** właściciel otwiera menu\n**Then** pod EV jest pozycja „Ceny paliwa”, w której wpisuje datę, cenę, typ i źródło.\n\n**AC-011-3**\n**Given** śledzenie wyłączone\n**When** właściciel otwiera menu\n**Then** pozycji „Ceny paliwa” nie ma.",
+      "issue": 29
+    },
+    {
+      "key": "T-14",
+      "subject": "[R-013] Eksport i kopia danych",
+      "description": "Właściciel instalacji eksportuje odczyty do CSV, pobiera pełną kopię danych (JSON) i przywraca dane z kopii. Przywrócenie nadpisuje dane, ustawienia zostają.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-013\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-013-1 | 12 odczytów | właściciel eksportuje odczyty do CSV | plik ma 12 wierszy danych. |\n| AC-013-2 | dane w aplikacji | właściciel pobiera pełną kopię | dostaje plik JSON. |\n| AC-013-3 | kopia JSON z 5 odczytami, aplikacja z 12 odczytami i degradacja ustawiona na 0,8 | właściciel przywraca dane z kopii | aplikacja ma 5 odczytów, a degradacja nadal wynosi 0,8. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [],
+      "acceptance": "**AC-013-1**\n**Given** 12 odczytów\n**When** właściciel eksportuje odczyty do CSV\n**Then** plik ma 12 wierszy danych.\n\n**AC-013-2**\n**Given** dane w aplikacji\n**When** właściciel pobiera pełną kopię\n**Then** dostaje plik JSON.\n\n**AC-013-3**\n**Given** kopia JSON z 5 odczytami, aplikacja z 12 odczytami i degradacja ustawiona na 0,8\n**When** właściciel przywraca dane z kopii\n**Then** aplikacja ma 5 odczytów, a degradacja nadal wynosi 0,8.",
+      "issue": 30
+    },
+    {
+      "key": "T-15",
+      "subject": "[R-014] Wyczyść bazę",
+      "description": "„Wyczyść bazę” usuwa wszystkie dane (odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe, ceny RCE); ustawienia zostają. Tekst przed potwierdzeniem wymienia wszystko, co znika, i zaleca kopię. Stan docelowy - dziś kod usuwa tylko odczyty.\n\nZmiana - stan docelowy. Dziś usuwa tylko odczyty (D-010).\n\n**Wymaganie:** R-014\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-014-1 | odczyty, etapy inwestycji, pojazdy, ceny paliwa, okresy rozliczeniowe i ceny RCE | właściciel potwierdza „Wyczyść bazę” | wszystkie te dane znikają, a ustawienia zostają. |\n| AC-014-2 | ekran przed potwierdzeniem | właściciel go czyta | tekst wymienia wszystkie usuwane rodzaje danych i zaleca pobranie kopii (/backup/full). |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-14"
+      ],
+      "acceptance": "**AC-014-1**\n**Given** odczyty, etapy inwestycji, pojazdy, ceny paliwa, okresy rozliczeniowe i ceny RCE\n**When** właściciel potwierdza „Wyczyść bazę”\n**Then** wszystkie te dane znikają, a ustawienia zostają.\n\n**AC-014-2**\n**Given** ekran przed potwierdzeniem\n**When** właściciel go czyta\n**Then** tekst wymienia wszystkie usuwane rodzaje danych i zaleca pobranie kopii (/backup/full).",
+      "issue": 31
+    },
+    {
+      "key": "T-16",
+      "subject": "[R-015] Integracja z Home Assistant",
+      "description": "Właściciel instalacji wpisuje encje HA (produkcja PV, pobór z sieci, oddanie do sieci) i testuje połączenie. HA odczytuje podsumowanie ROI z /api/summary, liczone tak samo jak na /roi.\n\nWeryfikacja działania obecnego (testy regresji z kryteriów, poprawka różnic).\n\n**Wymaganie:** R-015\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-015-1 | wpisane encje produkcji, poboru i oddania | właściciel klika „Testuj połączenie” | widzi wynik testu (sukces albo błąd). |\n| AC-015-2 | dane ROI | HA odpytuje /api/summary | „pozostało do zwrotu” jest równe wartości na /roi. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-08"
+      ],
+      "acceptance": "**AC-015-1**\n**Given** wpisane encje produkcji, poboru i oddania\n**When** właściciel klika „Testuj połączenie”\n**Then** widzi wynik testu (sukces albo błąd).\n\n**AC-015-2**\n**Given** dane ROI\n**When** HA odpytuje /api/summary\n**Then** „pozostało do zwrotu” jest równe wartości na /roi.",
+      "issue": 32
+    },
+    {
+      "key": "T-17",
+      "subject": "[R-016] Poprawki tekstów",
+      "description": "Teksty metodologia.html, README i podtytuł tabeli wrażliwości na /roi zgodne z decyzjami: pula kumulowana w cyklu, RCE i ceny paliwa wpisywane ręcznie, daty net-billingu tylko w tekście, 7 stałych cen, CSV z separatorem „;” i polskimi nagłówkami.\n\nZmiana - stan docelowy. Teksty metodologia.html, README, podtytuł /roi.\n\n**Wymaganie:** R-016\n\n| Kryterium | Given | When | Then |\n|---|---|---|---|\n| AC-016-1 | metodologia.html | właściciel czyta opis cen RCE i cen paliwa | tekst mówi, że wpisuje się je ręcznie. |\n| AC-016-2 | metodologia.html i README | właściciel czyta opis puli | tekst mówi, że pula przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu. |\n| AC-016-3 | /roi i metodologia.html | właściciel czyta opis analizy wrażliwości | podtytuł na /roi pokazuje współczynnik z ustawień zamiast „×0.8”, a metodologia opisuje 7 stałych cen zamiast „wzrost o 20%”. |\n| AC-016-4 | README | właściciel czyta przykład CSV | przykład ma separator „;” i polskie nagłówki. |\n\n**Źródło:** 03-spec/PRD.md",
+      "after": [
+        "T-02",
+        "T-03",
+        "T-01"
+      ],
+      "acceptance": "**AC-016-1**\n**Given** metodologia.html\n**When** właściciel czyta opis cen RCE i cen paliwa\n**Then** tekst mówi, że wpisuje się je ręcznie.\n\n**AC-016-2**\n**Given** metodologia.html i README\n**When** właściciel czyta opis puli\n**Then** tekst mówi, że pula przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu.\n\n**AC-016-3**\n**Given** /roi i metodologia.html\n**When** właściciel czyta opis analizy wrażliwości\n**Then** podtytuł na /roi pokazuje współczynnik z ustawień zamiast „×0.8”, a metodologia opisuje 7 stałych cen zamiast „wzrost o 20%”.\n\n**AC-016-4**\n**Given** README\n**When** właściciel czyta przykład CSV\n**Then** przykład ma separator „;” i polskie nagłówki.",
+      "issue": 33
+    }
+  ]
+}

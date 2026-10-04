@@ -141,3 +141,65 @@ Zrodlo: [Biz] session-2026-10-04.md, Q-028 (odpowiedź dotyczyła Q-020)
 Wplyw: BR-007 (dopisek o zwrocie po 36 mies.), p19, kandydat K-8 w PRD §5a.
 Zamyka pytanie: Q-020
 Otwiera pytania: Q-031
+Doprecyzowana przez: D-019
+
+## D-014 | 2026-10-04 | Koszt etapu inwestycji: zero dozwolone, ujemny nie
+Pytanie: Q-021 - etapy z kosztem zerowym lub ujemnym.
+Decyzja: Koszt etapu inwestycji może wynosić 0 zł; koszt ujemny jest odrzucany (BR-010). Stan docelowy - dziś formularz przyjmuje też koszt ujemny.
+Powod: etap bez kosztu jest możliwy (np. dołożenie czegoś bez wydatku), ujemny koszt nie ma sensu (propozycja prowadzącego zatwierdzona przez właściciela, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-021
+Wplyw: BR-010; R-005 (AC-005-4, AC-005-5) - PRD §6.
+Zamyka pytanie: Q-021
+Otwiera pytania: Q-032
+Zmieniona przez: D-016
+
+## D-015 | 2026-10-04 | Data etapu inwestycji uwzględniana w ROI
+Pytanie: Q-019 - czy data etapu wpływa na ROI?
+Decyzja: Etap inwestycji wchodzi do inwestycji od miesiąca swojej daty. Wykres /roi pokazuje inwestycję schodkowo; „pozostało do zwrotu” w danym miesiącu uwzględnia tylko etapy z datą nie późniejszą niż ten miesiąc. Stan docelowy - dziś v3.2.4 sumuje wszystkie etapy od pierwszego odczytu (błąd).
+Powod: „data powinna byc uwzgledniana. jezeli nie jest - to blad” (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-019
+Wplyw: BR-006; R-006 (AC-006-3), R-008 (wykres) - PRD §6. Zadanie w backlogu jako błąd.
+Zamyka pytanie: Q-019
+Otwiera pytania: -
+
+## D-016 | 2026-10-04 | Dofinansowanie jako etap inwestycji z ujemnym kosztem
+Pytanie: Q-022 - jak w aplikacji uwzględnić dofinansowanie?
+Decyzja: Dofinansowanie wpisuje się jako etap inwestycji z ujemnym kosztem; zmniejsza łączną inwestycję. Koszt etapu może być zerowy, dodatni albo ujemny. Zmienia D-014 (zakaz kosztu ujemnego). Zgodne z działaniem v3.2.4.
+Powod: „dofinansowanie to obnizenie kosztów”; „dofinansowanie wpisalem jako dodatkowe zdarzenie ktore mialo wartosc ujemna”; „zmianiem decyzje. dofinansowanie to etap inwestycji z ujemnym budzetem.” (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-022
+Wplyw: BR-010 (nowe brzmienie); R-005 (AC-005-5), R-006 - PRD §6. Zmienia D-014.
+Zamyka pytanie: Q-022
+Otwiera pytania: -
+
+## D-017 | 2026-10-04 | Wszystkie wydatki na instalację jako etapy inwestycji
+Pytanie: Q-023 - wydatki po uruchomieniu instalacji.
+Decyzja: Każdy wydatek związany z instalacją, także po uruchomieniu (serwis, naprawy itp.), wpisuje się jako etap inwestycji. Aplikacja nie ma osobnej kategorii kosztów eksploatacji. Etap bez mocy nie zmienia prognozy. Zgodne z v3.2.4.
+Powod: „wszystko co dotyczy tego temau wpisuje jako inwestycja” (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-023; [App] src/services/forecast.py get_capacity_stages
+Wplyw: R-005 (AC-005-6) - PRD §6; PRD §4 (osobna kategoria kosztów poza zakresem).
+Zamyka pytanie: Q-023
+Otwiera pytania: -
+
+## D-018 | 2026-10-04 | Termin zwrotu = karta „mies. do ROI”
+Pytanie: Q-018 - która liczba miesięcy do zwrotu jest właściwa?
+Decyzja: Termin zwrotu dla właściciela to karta „mies. do ROI”: pozostało do zwrotu / średnia miesięczna oszczędność z historii (z Oszczędnością EV z FV). Tabela scenariuszy jest pomocnicza. Zgodne z v3.2.4.
+Powod: z tej karty właściciel korzysta przy sprawdzaniu terminu zwrotu (propozycja prowadzącego zatwierdzona przez właściciela, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-018
+Wplyw: BR-006 (część o miesiącach - źródło [Biz]); R-006 (AC-006-4) - PRD §6; rozjazd z D-013 (prognoza bez EV) - Q-031.
+Zamyka pytanie: Q-018
+Otwiera pytania: -
+
+## D-019 | 2026-10-04 | „Zwrot za N mies.” w tabeli scenariuszy i na dashboardzie
+Pytanie: Q-031 - gdzie podawać liczbę miesięcy, gdy zwrot przypada po 36 mies. (doprecyzowanie D-013)?
+Decyzja: Gdy zwrot przypada po 36 mies., tabela scenariuszy pokazuje „zwrot za N mies.” dla każdego scenariusza (prognoza liczona poza 36 mies.; wykres nadal kończy się na 36). Dashboard pokazuje „Do zwrotu inwestycji N mies.” także przy N > 36 (v3.2.5 już tak robi - dashboard.html:33-36).
+Powod: „w tabeli scenariuszy i na dahsboard” - tam właściciel szukał liczby, gdy perspektywa przekraczała 36 mies. (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-031; [App] templates/dashboard.html:33-36
+Wplyw: doprecyzowuje D-013; BR-007; R-007 (AC-007-3), R-008 (AC-008-3) - PRD §6.
+Zamyka pytanie: Q-031
+Otwiera pytania: -

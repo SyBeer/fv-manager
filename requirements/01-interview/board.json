@@ -35,9 +35,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-9",
+      "ref": "R-001",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:13:56+02:00"
     },
     {
       "id": "p03",
@@ -49,9 +49,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-9",
+      "ref": "R-001",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:13:56+02:00"
     },
     {
       "id": "p04",
@@ -77,9 +77,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-9",
+      "ref": "R-001",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:13:56+02:00"
     },
     {
       "id": "p06",
@@ -104,9 +104,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-10",
+      "ref": "R-012",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:23:50+02:00"
     },
     {
       "id": "p08",
@@ -118,9 +118,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-10",
+      "ref": "R-012",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:23:50+02:00"
     },
     {
       "id": "p09",
@@ -201,9 +201,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-11",
+      "ref": "R-002",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:13:56+02:00"
     },
     {
       "id": "p15",
@@ -228,10 +228,10 @@
       "source": "[Dok] README.md, investments",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "K-12",
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "R-005",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:18:50+02:00"
     },
     {
       "id": "p17",
@@ -242,37 +242,37 @@
       "source": "[Dok] README.md, /inwestycje/nowa",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "updated": "2026-10-03T23:58:25+02:00",
       "file": "02-domain/ENTITIES.md",
       "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p18",
       "type": "pol",
-      "text": "ROI: pozostało = inwestycja − Σ oszczędności FV − Σ oszczędności EV z FV; miesiące do zwrotu = pozostało / średnia",
+      "text": "Pozostało do zwrotu = inwestycja − Σ oszczędności FV − Σ Oszczędność EV z FV (A-007); liczba miesięcy do zwrotu - Q-018",
       "lane": "Inwestycje i ROI",
       "col": 5,
       "source": "[Dok] README.md, calc_roi",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "updated": "2026-10-04T11:39:49+02:00",
       "ref": "BR-006",
       "file": "02-domain/RULES.md",
-      "synced": "2026-10-04T09:25:02+02:00"
+      "synced": "2026-10-04T11:39:49+02:00"
     },
     {
       "id": "p19",
       "type": "pol",
-      "text": "Prognoza 36 mies. z degradacją paneli i scenariuszami wzrostu cen 0/3/7/12%",
+      "text": "Prognoza 36 mies. z degradacją paneli i scenariuszami wzrostu ceny prądu 0/3/7/12%; zwrot po 36 mies. podawany liczbą miesięcy (D-013)",
       "lane": "Inwestycje i ROI",
       "col": 7,
       "source": "[App] src/main.py:995-1008, services/forecast.py",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "updated": "2026-10-04T11:39:49+02:00",
       "ref": "BR-007",
       "file": "02-domain/RULES.md",
-      "synced": "2026-10-04T09:25:02+02:00"
+      "synced": "2026-10-04T11:39:49+02:00"
     },
     {
       "id": "p20",
@@ -297,10 +297,10 @@
       "source": "[Dok] README.md, ROI (/roi)",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "K-13",
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "R-008",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:18:50+02:00"
     },
     {
       "id": "p22",
@@ -311,10 +311,10 @@
       "source": "[Dok] README.md, Dashboard (/)",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "K-13",
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "R-008",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:18:50+02:00"
     },
     {
       "id": "p23",
@@ -326,9 +326,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-14",
+      "ref": "R-009",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:23:50+02:00"
     },
     {
       "id": "p24",
@@ -422,9 +422,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-14",
+      "ref": "R-010",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:23:50+02:00"
     },
     {
       "id": "p31",
@@ -433,12 +433,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 0,
       "source": "[Biz] D-004; [App] kod-v3.2.4-2026-09-27.md",
-      "file": "01-interview/DECISIONS.md",
+      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-04T09:01:55+02:00",
-      "ref": "D-004",
-      "synced": "2026-10-04T09:01:55+02:00"
+      "ref": "R-017",
+      "synced": "2026-10-04T15:11:06+02:00"
     },
     {
       "id": "p32",
@@ -460,12 +460,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 2,
       "source": "[Biz] D-004; [App] kod-v3.2.4-2026-09-27.md",
-      "file": "01-interview/DECISIONS.md",
+      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-04T09:01:55+02:00",
-      "ref": "D-004",
-      "synced": "2026-10-04T09:01:55+02:00"
+      "ref": "R-017",
+      "synced": "2026-10-04T15:11:06+02:00"
     },
     {
       "id": "p34",
@@ -477,9 +477,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-15",
+      "ref": "R-007",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:18:50+02:00"
     },
     {
       "id": "p35",
@@ -488,12 +488,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 4,
       "source": "[Biz] D-003",
-      "file": "02-domain/RULES.md",
+      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "BR-001",
-      "synced": "2026-10-04T09:01:55+02:00"
+      "ref": "R-003",
+      "synced": "2026-10-04T15:11:06+02:00"
     },
     {
       "id": "p36",
@@ -505,9 +505,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-4",
+      "ref": "R-004",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:13:56+02:00"
     },
     {
       "id": "p37",
@@ -533,9 +533,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-16",
+      "ref": "R-013",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:27:55+02:00"
     },
     {
       "id": "p39",
@@ -547,9 +547,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-16",
+      "ref": "R-013",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:27:55+02:00"
     },
     {
       "id": "p40",
@@ -561,9 +561,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-16",
+      "ref": "R-013",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:27:55+02:00"
     },
     {
       "id": "p41",
@@ -589,9 +589,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-17",
+      "ref": "R-015",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:27:55+02:00"
     },
     {
       "id": "p43",
@@ -603,9 +603,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-17",
+      "ref": "R-015",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:27:55+02:00"
     },
     {
       "id": "p44",
@@ -631,9 +631,9 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "K-17",
+      "ref": "R-015",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:27:55+02:00"
     },
     {
       "id": "h01",
@@ -660,8 +660,11 @@
       "file": "01-interview/QUESTIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00",
-      "synced": "2026-10-04T09:01:55+02:00"
+      "updated": "2026-10-04T13:11:31.163Z",
+      "synced": "2026-10-04T09:01:55+02:00",
+      "answeredAt": "2026-10-04T13:11:31.159Z",
+      "answer": "Nie wiem czy jest taka funkcjonalność w aplikacji",
+      "answeredBy": "właściciel instalacji"
     },
     {
       "id": "p46",
@@ -686,9 +689,9 @@
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
       "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "K-12",
+      "ref": "R-005",
       "file": "03-spec/PRD.md",
-      "synced": "2026-10-04T10:04:00+02:00"
+      "synced": "2026-10-04T10:18:50+02:00"
     },
     {
       "id": "p48",
@@ -717,89 +720,19 @@
       "synced": "2026-10-04T09:08:32+02:00"
     },
     {
-      "id": "h03",
+      "id": "h09",
       "type": "hot",
-      "text": "Na /roi są dwie liczby miesięcy do zwrotu: karta (średnia z historii, z oszczędnością EV z FV) i scenariusze 0/3/7/12% (prognoza bez EV, stałe 0,85 i 40% autokonsumpcji). Kiedy ostatnio sprawdzałeś termin zwrotu: na którą liczbę patrzyłeś?",
-      "lane": "Inwestycje i ROI",
-      "col": 7,
-      "source": "[App] src/services/forecast.py:150-160, src/main.py /roi",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-018",
-      "synced": "2026-10-04T09:01:55+02:00"
-    },
-    {
-      "id": "h04",
-      "type": "hot",
-      "text": "Kod liczy całą sumę etapów od pierwszego odczytu, bez względu na datę etapu. Jakie etapy dokładałeś po uruchomieniu instalacji i jak wtedy sprawdzałeś, kiedy się zwrócą?",
+      "text": "Jakie daty wpisywałeś przy etapach inwestycji i czy zdarzyło się wpisać datę spoza okresu, za który masz odczyty?",
       "lane": "Inwestycje i ROI",
       "col": 1,
-      "source": "[App] src/services/calculations.py calc_roi; templates/roi.html:65",
+      "ref": "Q-032",
+      "source": "luka: odpowiedź na Q-021 (D-014)",
       "file": "01-interview/QUESTIONS.md",
       "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-019",
-      "synced": "2026-10-04T09:01:55+02:00"
-    },
-    {
-      "id": "h06",
-      "type": "hot",
-      "text": "Formularz etapu przyjmuje dowolną datę i koszt ujemny lub zerowy. Czy wpisywałeś kiedyś etap z takim kosztem i co nim oznaczałeś?",
-      "lane": "Inwestycje i ROI",
-      "col": 0,
-      "source": "[App] src/main.py create_investment",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-021",
-      "synced": "2026-10-04T09:01:55+02:00"
-    },
-    {
-      "id": "h07",
-      "type": "hot",
-      "text": "Czy instalacja była dofinansowana albo rozliczona w podatku? Jeśli tak: jak to wpisałeś w Inwestycjach?",
-      "lane": "Inwestycje i ROI",
-      "col": 2,
-      "source": "luka: brak w README.md, BUSINESS.md, kod-v3.2.4-2026-09-27.md",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-022",
-      "synced": "2026-10-04T09:01:55+02:00"
-    },
-    {
-      "id": "h08",
-      "type": "hot",
-      "text": "Jakie wydatki na instalację poniosłeś po jej uruchomieniu (poza nowymi etapami) i gdzie je zapisałeś?",
-      "lane": "Inwestycje i ROI",
-      "col": 5,
-      "source": "luka: ROI liczy tylko koszty etapów (README.md, calc_roi)",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-023",
-      "synced": "2026-10-04T09:01:55+02:00"
-    },
-    {
-      "id": "qq031",
-      "type": "hot",
-      "text": "Gdy ostatnio oglądałeś tabelę scenariuszy na /roi, jak czytałeś liczbę miesięcy do zwrotu - osobno dla każdego scenariusza wzrostu cen czy jedną dla wszystkich?",
-      "lane": "Inwestycje i ROI",
-      "col": 7,
-      "ref": "Q-031",
-      "source": "01-interview/QUESTIONS.md",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T08:06:10.470Z",
-      "updated": "2026-10-04T08:06:10.470Z",
-      "synced": "2026-10-04T08:06:10.470Z"
+      "created": "2026-10-04T11:51:41+02:00",
+      "updated": "2026-10-04T11:51:41+02:00",
+      "synced": "2026-10-04T11:51:41+02:00"
     }
   ],
-  "updated": "2026-10-04T08:06:10.473Z"
+  "updated": "2026-10-04T13:11:31.164Z"
 }
