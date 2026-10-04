@@ -70,3 +70,4 @@
 2026-10-04 | domain | GLOSSARY: 11 nowych haseł zatwierdzonych (Odczyt miesiąca, Autokonsumpcja, Etap inwestycji, Dofinansowanie, Łączna inwestycja, Pozostało do zwrotu, Oszczędność PV miesiąca, Zwrot inwestycji, Degradacja paneli, Przebieg startowy, Ładowanie publiczne) - zatwierdził właściciel instalacji | [Biz] czat sesji 2026-10-04
 2026-10-04 | spec --agent | constitution.md zregenerowane (słownik 20 haseł) | GLOSSARY.md
 2026-10-04 | validate | przebieg 5: 0 BLOCK, 0 WARN, gotowość 100% (18/18); nowy odcisk w raporcie i TRACEABILITY | GLOSSARY.md
+2026-10-04 | build | v3.3.0: R-001..R-018 zrealizowane (Redmine #17..#34 -> Code review), 189 testów; decyzje budowy B-01..B-23 w 04-validation/build-2026-10-04.md; TRACEABILITY: kolumna Test wypełniona | PRD.md, 03-spec/agent
