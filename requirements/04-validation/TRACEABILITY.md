@@ -1,8 +1,8 @@
 # Śledzenie wymagań - R → AC → zadanie → test
 
-Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#33.
+Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
 Kolumnę „Test” wypełnia dev: nazwa testu = AC-xxx-n (np. `test_AC_006_3_...`).
-Odcisk wymagan: sha256:fc586ba06cdd73abf533b9d0eed22647bb2b6fea8a2424843b0f5083af258e51
+Odcisk wymagan: sha256:cab14272559d4f2574b958d7df9f38ae8049d4c50a0af12604b8ea3c47de6c63
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|
@@ -28,6 +28,7 @@ Odcisk wymagan: sha256:fc586ba06cdd73abf533b9d0eed22647bb2b6fea8a2424843b0f5083a
 | R-006 | AC-006-2 | [#24](http://192.168.1.4:3001/issues/24) (T-08) | |
 | R-006 | AC-006-3 | [#24](http://192.168.1.4:3001/issues/24) (T-08) | |
 | R-006 | AC-006-4 | [#24](http://192.168.1.4:3001/issues/24) (T-08) | |
+| R-006 | AC-006-5 | [#24](http://192.168.1.4:3001/issues/24) (T-08) | |
 | R-007 | AC-007-1 | [#25](http://192.168.1.4:3001/issues/25) (T-09) | |
 | R-007 | AC-007-2 | [#25](http://192.168.1.4:3001/issues/25) (T-09) | |
 | R-007 | AC-007-3 | [#25](http://192.168.1.4:3001/issues/25) (T-09) | |
@@ -58,6 +59,9 @@ Odcisk wymagan: sha256:fc586ba06cdd73abf533b9d0eed22647bb2b6fea8a2424843b0f5083a
 | R-017 | AC-017-2 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | |
 | R-017 | AC-017-3 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | |
 | R-017 | AC-017-4 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | |
+| R-018 | AC-018-1 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | |
+| R-018 | AC-018-2 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | |
+| R-018 | AC-018-3 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | |
 
 ## Zasada dla dev
 Zmiana wymagania po przekazaniu = zmiana `03-spec/PRD.md` (przez właściciela) i ponowny handover (/sdd:spec --agent, /sdd:handover) - nigdy zadanie „z boku” w Redmine.

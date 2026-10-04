@@ -51,3 +51,10 @@
 2026-10-04 | spec --agent | 03-spec/agent: constitution.md + 7 funkcji (rozliczenia, odczyty, inwestycje-roi, ev, dane, home-assistant, teksty) - spec/plan/tasks, 17 zadań T-01..T-17 z R-001..R-017 | PRD.md
 2026-10-04 | handover | próba push do Redmine (fv-manager): błąd 422 przy T-01 (projekt/typ/status puste) - nic nie założono; plik 04-validation/redmine-2026-10-04.json gotowy | Redmine API
 2026-10-04 | handover | Redmine fv-manager: 17 zadań #17..#33 (T-01..T-17) dla R-001..R-017, relacje 'poprzedza' z plan.md; TRACEABILITY.md: 52 AC | 03-spec/agent/*/tasks.md
+2026-10-04 | sdd:board sync | brak zmian z tablicy od commita 8098422; wszystkie karteczki w plikach; otwarte Q-016, Q-017, Q-032 na tablicy | board.json
+2026-10-04 | sdd:board | p46, p47, p48, p49: 'created'/'updated' 12:00 (wpisane przed czasem) -> 2026-10-04T08:59:48 (commit d3c9041, najpóźniejszy możliwy moment powstania); panel pokazywał je jako zmienione po sync | git log board.json
+2026-10-04 | sdd:board sync | odpowiedź z tablicy h02 (Q-017, właściciel instalacji): 'nie wiem' -> Q-017 zaparkowane (nie blokuje go-live; import jak w v3.2.5); h02 synced | board.json, session-2026-10-04.md
+2026-10-04 | validate | odświeżenie po zaparkowaniu Q-017: R bez zmian, 0 BLOCK, gotowość 76%; nowy odcisk w raporcie i TRACEABILITY | QUESTIONS.md
+2026-10-04 | sdd:board sync | odpowiedzi z tablicy h01 (Q-016), h09 (Q-032) -> D-020 (wycofanie Tesla Fleet API) + R-018, D-021 (data etapu sprzed odczytów) + AC-006-5; BR-006; PRD §4, §6; 0 otwartych Q | [Biz] board.json h01, h09
+2026-10-04 | spec --agent | regeneracja: R-018 -> nowa funkcja tesla-wycofanie (T-18); inwestycje-roi i odczyty zaktualizowane (D-020, D-021) | PRD.md
+2026-10-04 | handover | Redmine fv-manager: nowe #34 (T-18, R-018), zaktualizowane #17..#33; TRACEABILITY.md: 56 AC; nowy odcisk w TRACEABILITY i raporcie validate | 03-spec/agent/*/tasks.md

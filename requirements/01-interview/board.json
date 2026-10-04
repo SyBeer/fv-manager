@@ -636,37 +636,6 @@
       "synced": "2026-10-04T10:27:55+02:00"
     },
     {
-      "id": "h01",
-      "type": "hot",
-      "text": "Kod v3.2.4 nie ma w formularzu pobierania danych z Tesla Fleet API, a README je opisuje (zostały tylko pola w bazie). Kiedy ostatnio pobierałeś kWh ładowania z Tesli i jak to zrobiłeś?",
-      "lane": "Miesięczny odczyt",
-      "col": 1,
-      "ref": "Q-016",
-      "source": "[App] src/utils/db.py vs [Dok] README.md, Tesla Fleet API",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00",
-      "synced": "2026-10-04T09:01:55+02:00"
-    },
-    {
-      "id": "h02",
-      "type": "hot",
-      "text": "Po kodzie: import CSV pomija wiersze z okresem, który już istnieje. Co zrobiłeś ostatnio, gdy chciałeś poprawić już zaimportowany miesiąc?",
-      "lane": "Import, eksport, kopia",
-      "col": 0,
-      "ref": "Q-017",
-      "source": "[Dok] README.md, Format CSV (INSERT OR IGNORE)",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T13:11:31.163Z",
-      "synced": "2026-10-04T09:01:55+02:00",
-      "answeredAt": "2026-10-04T13:11:31.159Z",
-      "answer": "Nie wiem czy jest taka funkcjonalność w aplikacji",
-      "answeredBy": "właściciel instalacji"
-    },
-    {
       "id": "p46",
       "type": "act",
       "text": "Właściciel instalacji",
@@ -674,8 +643,8 @@
       "col": 0,
       "source": "[App] src/main.py /inwestycje",
       "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "created": "2026-10-04T08:59:48+02:00",
+      "updated": "2026-10-04T08:59:48+02:00",
       "file": "02-domain/ACTORS.md",
       "synced": "2026-10-04T09:08:32+02:00"
     },
@@ -687,8 +656,8 @@
       "col": 3,
       "source": "[App] src/main.py /inwestycje/{id}/edytuj, /inwestycje/{id}/usun",
       "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "created": "2026-10-04T08:59:48+02:00",
+      "updated": "2026-10-04T08:59:48+02:00",
       "ref": "R-005",
       "file": "03-spec/PRD.md",
       "synced": "2026-10-04T10:18:50+02:00"
@@ -701,8 +670,8 @@
       "col": 4,
       "source": "[App] src/main.py update_investment, delete_investment",
       "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "created": "2026-10-04T08:59:48+02:00",
+      "updated": "2026-10-04T08:59:48+02:00",
       "file": "02-domain/ENTITIES.md",
       "synced": "2026-10-04T09:08:32+02:00"
     },
@@ -714,25 +683,11 @@
       "col": 6,
       "source": "[App] src/services/calculations.py calc_roi, roi_achieved",
       "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
+      "created": "2026-10-04T08:59:48+02:00",
+      "updated": "2026-10-04T08:59:48+02:00",
       "file": "02-domain/ENTITIES.md",
       "synced": "2026-10-04T09:08:32+02:00"
-    },
-    {
-      "id": "h09",
-      "type": "hot",
-      "text": "Jakie daty wpisywałeś przy etapach inwestycji i czy zdarzyło się wpisać datę spoza okresu, za który masz odczyty?",
-      "lane": "Inwestycje i ROI",
-      "col": 1,
-      "ref": "Q-032",
-      "source": "luka: odpowiedź na Q-021 (D-014)",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T11:51:41+02:00",
-      "updated": "2026-10-04T11:51:41+02:00",
-      "synced": "2026-10-04T11:51:41+02:00"
     }
   ],
-  "updated": "2026-10-04T13:11:31.164Z"
+  "updated": "2026-10-04T14:38:07.421Z"
 }

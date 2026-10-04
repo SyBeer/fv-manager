@@ -2,7 +2,7 @@
 
 # Constitution - FV Manager
 
-Niezmienne zasady dla agenta budującego. Źródło prawdy: `03-spec/PRD.md` (R-001..R-017, wszystkie zatwierdzone).
+Niezmienne zasady dla agenta budującego. Źródło prawdy: `03-spec/PRD.md` (R-001..R-018, wszystkie zatwierdzone).
 
 ## Aktor
 Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, pojazdy, ceny paliwa i RCE, ustawia okresy rozliczeniowe, importuje/eksportuje dane, sprawdza ROI i oszczędności (02-domain/ACTORS.md).
@@ -26,6 +26,7 @@ Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, po
 - Uwierzytelnianie ponad istniejący opcjonalny Basic Auth (FV_AUTH_PASSWORD), dopóki tryb standalone nie jest wystawiony poza sieć domową (A-002, niepotwierdzone).
 - Automatyczne pobieranie cen RCE i cen paliwa - wpisywane ręcznie (D-004, D-006).
 - Wariant procentowy w analizie wrażliwości - 7 stałych cen (D-012).
+- Integracja z Tesla Fleet API - wycofana, API nie działało dobrze (D-020).
 - Osobna kategoria kosztów eksploatacji - wszystkie wydatki na instalację to etapy inwestycji (D-017).
 
 ## Reguły biznesowe (globalne)
@@ -36,7 +37,7 @@ Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, po
 | BR-003 | Jeżeli okres ma format inny niż RRRR.MM, któraś wartość jest ujemna albo energia oddana jest większa niż produkcja, to odczyt nie zostaje zapisany, a formularz pokazuje błąd. | [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów | A-004 | R-001 | robocze |
 | BR-004 | Jeżeli okres jest rozliczany w net-meteringu, to oszczędność miesiąca = autokonsumpcja + część puli (oddane × współczynnik, domyślnie 0,80) zużyta na pobór. | [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering | A-005 | R-002 | robocze |
 | BR-005 | Jeżeli okres jest rozliczany w net-billingu, to oszczędność miesiąca = autokonsumpcja × cena zakupu + oddane × cena RCE; cena sprzedaży wpisana w odczycie nadpisuje RCE. | [App] kod-v3.2.4-2026-09-27.md, calculations.py:94-159; [Biz] D-004 | A-006 | R-002, R-017 | robocze |
-| BR-006 | Pozostało do zwrotu = suma etapów inwestycji − Σ oszczędności FV − Σ „Oszczędność EV z FV”; miesiące do zwrotu = pozostało / średnia miesięczna oszczędność. Etap inwestycji liczy się od miesiąca swojej daty (D-015, docelowo; dziś wszystkie etapy od początku). | [Dok] README.md, calc_roi; [Biz] D-008; [Biz] D-015; [Biz] D-018 (miesiące do zwrotu) | A-007 | R-006, R-008 | robocze |
+| BR-006 | Pozostało do zwrotu = suma etapów inwestycji − Σ oszczędności FV − Σ „Oszczędność EV z FV”; miesiące do zwrotu = pozostało / średnia miesięczna oszczędność. Etap inwestycji liczy się od miesiąca swojej daty (D-015, docelowo; dziś wszystkie etapy od początku). Etap z datą sprzed pierwszego odczytu liczy się od pierwszego miesiąca z odczytem (D-021). | [Dok] README.md, calc_roi; [Biz] D-008; [Biz] D-015; [Biz] D-018 (miesiące do zwrotu); [Biz] D-021 | A-007 | R-006, R-008 | robocze |
 | BR-007 | Prognoza obejmuje 36 miesięcy, z degradacją paneli (domyślnie 0,6) i scenariuszami wzrostu cen 0/3/7/12%. Jeżeli zwrot przypada później niż 36 mies., to tabela scenariuszy podaje „zwrot za N mies.” dla każdego scenariusza, a dashboard liczbę miesięcy do zwrotu (D-013, D-019; docelowo - dziś tabela nie podaje). | [App] src/main.py:995-1008, services/forecast.py; [Biz] D-013; [Biz] D-019 | A-008 | R-007, R-008 | robocze |
 | BR-008 | Jeżeli przy dodawaniu pojazdu brak przebiegu startowego, to pojazd nie zostaje dodany. | [App] src/main.py:1573 | A-009 | R-009 | robocze |
 | BR-009 | (techniczna) Jeżeli dane pobierane są z Home Assistant, to najpierw ze Statistics API, a gdy ich brak - z History API (ok. 10 dni wstecz); wartości w Wh są zamieniane na kWh. | [Dok] README.md, Home Assistant | A-010 | R-001, R-015 | robocze |

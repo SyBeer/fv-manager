@@ -22,12 +22,13 @@ Właściciel instalacji - zob. 02-domain/ACTORS.md.
 - Uwierzytelnianie ponad istniejący opcjonalny Basic Auth (FV_AUTH_PASSWORD), dopóki tryb standalone nie jest wystawiony poza sieć domową (A-002, niepotwierdzone).
 - Automatyczne pobieranie cen RCE i cen paliwa - wpisywane ręcznie (D-004, D-006).
 - Wariant procentowy w analizie wrażliwości - 7 stałych cen (D-012).
+- Integracja z Tesla Fleet API - wycofana, API nie działało dobrze (D-020).
 - Osobna kategoria kosztów eksploatacji - wszystkie wydatki na instalację to etapy inwestycji (D-017).
 
 ## 5. Wymagania
 
 ### R-001 Wpisanie odczytu miesiąca
-Opis:              Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Dane EV z Tesla Fleet API poza tym R (Q-016).
+Opis:              Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Integracja z Tesla Fleet API wycofana (D-020, R-018).
 Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030
 Zalozenia:         A-004, A-010
 Reguly:            BR-003, BR-009
@@ -79,7 +80,7 @@ Kryteria akceptacji:
 - AC-004-2: Given plik, w którym wiersz 4 ma wartość ujemną, When właściciel importuje plik, Then nie zostaje zapisany żaden wiersz, a raport pokazuje „wiersz 4” i powód.
 
 ### R-005 Etapy inwestycji
-Opis:              Właściciel instalacji dodaje, edytuje i usuwa etapy inwestycji (koszt, data, moc). Łączna inwestycja = suma kosztów etapów. Etap liczy się od miesiąca swojej daty (D-015); koszt może być zerowy, dodatni albo ujemny - ujemny to dofinansowanie (D-016, zmienia D-014); dowolna data etapu - Q-032.
+Opis:              Właściciel instalacji dodaje, edytuje i usuwa etapy inwestycji (koszt, data, moc). Łączna inwestycja = suma kosztów etapów. Etap liczy się od miesiąca swojej daty (D-015); koszt może być zerowy, dodatni albo ujemny - ujemny to dofinansowanie (D-016, zmienia D-014); data etapu dowolna, także sprzed pierwszego odczytu (D-021).
 Zrodlo:            [Dok] README.md, investments; [App] src/main.py /inwestycje/{id}/edytuj, /inwestycje/{id}/usun
 Zalozenia:         -
 Reguly:            BR-010
@@ -95,7 +96,7 @@ Kryteria akceptacji:
 - AC-005-6: Given etap serwisowy z kosztem 800 zł bez mocy, When liczona jest prognoza, Then prognoza się nie zmienia, a łączna inwestycja rośnie o 800 zł.
 
 ### R-006 Pozostało do zwrotu
-Opis:              Aplikacja liczy, ile zostało do zwrotu inwestycji: łączna inwestycja − Σ oszczędności PV − Σ Oszczędność EV z FV. Oszczędność z ładowania publicznego nie wchodzi do ROI. Etap inwestycji liczy się od miesiąca swojej daty (D-015; dziś błąd - wszystkie etapy od początku). Termin zwrotu = karta „mies. do ROI”: pozostało do zwrotu / średnia miesięczna oszczędność z historii (D-018).
+Opis:              Aplikacja liczy, ile zostało do zwrotu inwestycji: łączna inwestycja − Σ oszczędności PV − Σ Oszczędność EV z FV. Oszczędność z ładowania publicznego nie wchodzi do ROI. Etap inwestycji liczy się od miesiąca swojej daty (D-015; dziś błąd - wszystkie etapy od początku). Etap sprzed pierwszego odczytu liczy się od pierwszego miesiąca z odczytem (D-021). Termin zwrotu = karta „mies. do ROI”: pozostało do zwrotu / średnia miesięczna oszczędność z historii (D-018).
 Zrodlo:            [Biz] session-2026-10-04.md, Q-027; [Biz] board.json, qq006 (D-008); [Dok] README.md, calc_roi
 Zalozenia:         A-007
 Reguly:            BR-006, BR-010
@@ -107,6 +108,7 @@ Kryteria akceptacji:
 - AC-006-2: Given Σ oszczędności ≥ łączna inwestycja, When liczony jest ROI, Then Zwrot inwestycji ma stan „zwrot osiągnięty”.
 - AC-006-3: Given etapy 30 000 zł (2022-06) i 10 000 zł (2025-03), When wykres /roi pokazuje 2024-12, Then inwestycja = 30 000 zł; dla 2025-03 inwestycja = 40 000 zł.
 - AC-006-4: Given pozostało do zwrotu 22 000 zł i średnia miesięczna oszczędność 500 zł, When właściciel otwiera /roi, Then karta „mies. do ROI” pokazuje 44 mies.
+- AC-006-5: Given etap z datą 2021-09 i pierwszy odczyt za 2021.10, When wykres /roi pokazuje 2021.10, Then inwestycja obejmuje ten etap.
 
 ### R-007 Prognoza zwrotu
 Opis:              Aplikacja prognozuje 36 miesięcy z degradacją paneli (ustawienie, domyślnie 0,6% rocznie) i scenariuszami wzrostu ceny prądu kupowanego z sieci 0/3/7/12% rocznie. Gdy zwrot przypada po 36 miesiącach, wykres kończy się na 36. miesiącu, a tabela scenariuszy podaje „zwrot za N mies.” dla każdego scenariusza (D-013, D-019; stan docelowy).
@@ -248,6 +250,19 @@ Kryteria akceptacji:
 - AC-017-3: Given ceny RCE 0,40 zł od 2024-07-01 i 0,30 zł od 2024-08-15, When liczony jest 2024.08 w net-billingu, Then energia oddana jest wyceniona po 0,30 zł (ostatnia cena z datą nie późniejszą niż koniec miesiąca).
 - AC-017-4: Given usunięta cena RCE 0,30 zł, When ponownie liczony jest 2024.08, Then energia oddana jest wyceniona po 0,40 zł.
 
+### R-018 Wycofanie integracji z Tesla Fleet API
+Opis:              Integracja z Tesla Fleet API zostaje wycofana: pozostałości (kolumny tesla_* w bazie, wzmianki w ev.html, opis w README) są usuwane, a CHANGELOG aplikacji opisuje wycofanie i powód. Dane właściciela zostają nienaruszone.
+Zrodlo:            [Biz] board.json, h01 (D-020); [App] src/utils/db.py:200, templates/ev.html; [Dok] README.md, Tesla Fleet API
+Zalozenia:         -
+Reguly:            -
+Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Wlasciciel:        właściciel instalacji
+
+Kryteria akceptacji:
+- AC-018-1: Given kod aplikacji, When ktoś szuka „tesla” w src/ i templates/, Then nie ma odwołań poza migracją usuwającą kolumny.
+- AC-018-2: Given README i CHANGELOG, When właściciel czyta opis integracji, Then nie ma w nim Tesla Fleet API, a CHANGELOG opisuje wycofanie i jego powód.
+- AC-018-3: Given baza z wypełnionymi polami Tesli, When aplikacja się uruchamia, Then odczyty, pojazdy i pozostałe dane właściciela zostają nienaruszone.
+
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
 - K-1 Ustawienie miesiąca startu cyklu rozliczeniowego (domyślnie kwiecień) - D-003, BR-001 → R-003.
@@ -281,6 +296,7 @@ wypelniana automatycznie)
 - 2026-10-04: D-018 (BR-006) -> R-006: dodane AC-006-4 (karta „mies. do ROI”). Przejrzane i zatwierdzone przez właściciela instalacji w tej samej sesji.
 - 2026-10-04: D-019 (BR-007, doprecyzowuje D-013) -> R-007: AC-007-3 zmienione (tabela per scenariusz); R-008: dodane AC-008-3 (dashboard N > 36). Przejrzane i zatwierdzone przez właściciela instalacji w tej samej sesji.
 - 2026-10-04: walidacja -> R-007 AC-007-1 (tolerancja), R-008 AC-008-1 (konkretne karty) doprecyzowane; zatwierdzone przez właściciela instalacji.
+- 2026-10-04: D-020 -> nowe R-018, R-001 (opis), §4; D-021 (BR-006) -> R-005 (opis), R-006 dodane AC-006-5. Zatwierdzone przez właściciela instalacji (odpowiedzi z tablicy h01, h09).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

@@ -203,3 +203,23 @@ Zrodlo: [Biz] session-2026-10-04.md, Q-031; [App] templates/dashboard.html:33-36
 Wplyw: doprecyzowuje D-013; BR-007; R-007 (AC-007-3), R-008 (AC-008-3) - PRD §6.
 Zamyka pytanie: Q-031
 Otwiera pytania: -
+
+## D-020 | 2026-10-04 | Wycofanie integracji z Tesla Fleet API
+Pytanie: Q-016 - pobieranie kWh ładowania z Tesla Fleet API (README opisuje, kod v3.2.4 ma tylko pola w bazie).
+Decyzja: Integracja z Tesla Fleet API zostaje wycofana. Pozostałości usuwa się z kodu (kolumny tesla_* w bazie, wzmianki w ev.html), z README, a wycofanie z powodem opisuje się w CHANGELOG aplikacji. Dane właściciela zostają nienaruszone.
+Powod: „To nie działa dobrze. (...) API tesli nie działało za dobrze” (właściciel instalacji, tablica h01, 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, h01 (2026-10-04); [App] src/utils/db.py:200, templates/ev.html; [Dok] README.md
+Wplyw: nowe R-018; R-001 (opis); PRD §4. „wychowanie” w odpowiedzi odczytane jako „wycofanie”.
+Zamyka pytanie: Q-016
+Otwiera pytania: -
+
+## D-021 | 2026-10-04 | Data etapu może poprzedzać pierwszy odczyt
+Pytanie: Q-032 - daty etapów spoza okresu odczytów.
+Decyzja: Data etapu inwestycji może być wcześniejsza niż pierwszy odczyt (instalacja powstaje przed uruchomieniem licznika). Aplikacja nie sprawdza daty etapu względem odczytów. Etap sprzed pierwszego odczytu liczy się od pierwszego miesiąca z odczytem. Miesiące z odpowiedzi (wrzesień/październik) to tylko przykład.
+Powod: „inwestycja w FV była we wrześniu a odczyty zaczęły pojawiać się w październiku po uruchomieniu licznika. Daty trakuuj jako przykład.” (właściciel instalacji, tablica h09, 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, h09 (2026-10-04)
+Wplyw: BR-006; R-005 (opis), R-006 (AC-006-5) - PRD §6.
+Zamyka pytanie: Q-032
+Otwiera pytania: -
