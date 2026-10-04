@@ -19,7 +19,6 @@
 <div class="card" style="margin-bottom:1rem; border-left:3px solid var(--c-red); color:var(--c-red-light); font-size:.85rem;">
   <i class="ph-bold ph-warning-circle"></i>
   {% if err == 'przebieg_required' %}Pole „Stan licznika przy starcie" jest wymagane (liczba ≥ 0).
-  {% elif err == 'przebieg_gt_min' %}Stan początkowy licznika jest większy niż najmniejszy zapisany odczyt ({{ request.query_params.get('min') }} km). Zmniejsz wartość lub popraw odczyty.
   {% else %}Błąd walidacji formularza.{% endif %}
 </div>
 {% endif %}

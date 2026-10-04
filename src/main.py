@@ -327,12 +327,12 @@ def _inject_odometer_km(ev_monthly: list[dict], vehicles: list[dict] | None = No
         if e.get("km") is None and e.get("odometer_km") is not None:
             entries = by_vehicle[e["vehicle_id"]]
             idx = next((i for i, x in enumerate(entries) if x["period"] == e["period"]), None)
-            if idx is not None and idx > 0:
-                prev_odometer = entries[idx - 1].get("odometer_km")
-                if prev_odometer is not None:
-                    e["km"] = max(0.0, e["odometer_km"] - prev_odometer)
-            elif idx == 0:
-                # Pierwszy miesiąc pojazdu — kotwica do przebieg_km zamiast estymaty z kWh.
+            earlier_odo = [x.get("odometer_km") for x in entries[:idx or 0] if x.get("odometer_km") is not None]
+            if idx is not None and idx > 0 and entries[idx - 1].get("odometer_km") is not None:
+                e["km"] = max(0.0, e["odometer_km"] - entries[idx - 1]["odometer_km"])
+            elif idx is not None and not earlier_odo:
+                # Pierwszy stan licznika pojazdu (także po usunięciu niższych stanów, D-027) —
+                # kotwica do przebieg_km zamiast estymaty z kWh.
                 anchor = baseline.get(e["vehicle_id"])
                 if anchor is not None:
                     e["km"] = max(0.0, e["odometer_km"] - anchor)
@@ -1670,14 +1670,34 @@ async def update_vehicle(request: Request, vid: int):
             przebieg_km = current  # puste pole → zachowaj obecną wartość, nie nadpisuj NULL-em
         if przebieg_km < 0:
             return RedirectResponse(f"{rp}/ev?err=przebieg_required", status_code=303)
-        # Stan początkowy nie może być wyższy niż najmniejszy zapisany odczyt licznika.
+        # Zmiana przebiegu startowego przy zapisanych stanach licznika (D-027, BR-012):
+        # najpierw ostrzeżenie i wybór - przesunąć stany o różnicę albo usunąć niższe.
         cur = await db.execute(
-            "SELECT MIN(odometer_km) AS m FROM ev_monthly WHERE vehicle_id=? AND odometer_km IS NOT NULL", (vid,)
+            "SELECT COUNT(*) AS n FROM ev_monthly WHERE vehicle_id=? AND odometer_km IS NOT NULL", (vid,)
         )
-        mrow = await cur.fetchone()
-        min_odo = mrow["m"] if mrow else None
-        if min_odo is not None and przebieg_km > min_odo:
-            return RedirectResponse(f"{rp}/ev?err=przebieg_gt_min&min={min_odo:.0f}", status_code=303)
+        n_odo = (await cur.fetchone())["n"]
+        delta = przebieg_km - current if current is not None else 0.0
+        shift = form.get("odometer_shift")
+        if abs(delta) > 1e-9 and n_odo:
+            if shift not in ("shift", "keep"):
+                cur = await db.execute(
+                    "SELECT COUNT(*) AS n FROM ev_monthly WHERE vehicle_id=? AND odometer_km < ?", (vid, przebieg_km)
+                )
+                n_lower = (await cur.fetchone())["n"]
+                fields = {k: v for k, v in form.items() if k not in ("csrf_token", "odometer_shift")}
+                return _t(request, "vehicle_odometer_confirm.html", {
+                    "vid": vid, "name": name, "old": current, "new": przebieg_km, "delta": delta,
+                    "n_odo": n_odo, "n_lower": n_lower, "fields": fields, "csrf_token": _csrf_generate(),
+                })
+            if shift == "shift":
+                await db.execute(
+                    "UPDATE ev_monthly SET odometer_km = odometer_km + ? WHERE vehicle_id=? AND odometer_km IS NOT NULL",
+                    (delta, vid),
+                )
+            else:
+                await db.execute(
+                    "UPDATE ev_monthly SET odometer_km = NULL WHERE vehicle_id=? AND odometer_km < ?", (vid, przebieg_km)
+                )
         await db.execute(
             "UPDATE vehicles SET name=?, efficiency_kwh_per_100km=?, fuel_consumption_l_per_100km=?, fuel_type=?, notes=?, date_from=?, date_to=?, przebieg_km=? WHERE id=?",
             (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,

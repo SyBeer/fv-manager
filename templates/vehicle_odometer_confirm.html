@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Zmiana przebiegu startowego — FV Manager{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1rem;"><i class="ph-bold ph-gauge"></i> Zmiana przebiegu startowego</h1>
+<div class="card" style="border-left:3px solid var(--c-yellow); max-width:640px;">
+  <p style="margin-bottom:.75rem;">
+    <strong>{{ name }}</strong>: przebieg startowy {{ old|fmtn(0) }} km → <strong>{{ new|fmtn(0) }} km</strong>
+    (różnica {{ '%+.0f'|format(delta) }} km).
+  </p>
+  <p style="color:var(--text-2); font-size:.9rem; margin-bottom:1rem;">
+    Pojazd ma {{ n_odo }} zapisanych stanów licznika. Zmiana przeliczy kilometry i oszczędności tego pojazdu.
+    Czy przesunąć wszystkie zapisane stany licznika o różnicę?
+  </p>
+  <form method="post" action="{{ rp }}/ev/pojazdy/{{ vid }}/edytuj">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    {% for k, v in fields.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">
+    {% endfor %}
+    <div style="display:flex; flex-direction:column; gap:.75rem;">
+      <button type="submit" name="odometer_shift" value="shift" class="btn btn-primary" style="justify-content:flex-start;">
+        <i class="ph-bold ph-arrows-down-up"></i>&nbsp;Tak — przesuń stany licznika o {{ '%+.0f'|format(delta) }} km (kilometry miesięcy bez zmian)
+      </button>
+      <button type="submit" name="odometer_shift" value="keep" class="btn btn-ghost" style="justify-content:flex-start;">
+        <i class="ph-bold ph-scissors"></i>&nbsp;Nie — zmień tylko przebieg startowy{% if n_lower %}; {{ n_lower }} stan(y) licznika niższe niż {{ new|fmtn(0) }} km zostaną usunięte (dane ładowania zostają){% endif %}
+      </button>
+      <a href="{{ rp }}/ev" class="btn btn-ghost" style="justify-content:flex-start;"><i class="ph-bold ph-x"></i>&nbsp;Anuluj</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
