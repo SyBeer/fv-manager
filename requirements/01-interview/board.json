@@ -19,10 +19,11 @@
       "lane": "Miesięczny odczyt",
       "col": 0,
       "source": "[App] kod-v3.2.4-2026-09-27.md, main.py /odczyty/nowy",
-      "file": "02-domain/ACTORS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "file": "02-domain/ACTORS.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p02",
@@ -31,10 +32,12 @@
       "lane": "Miesięczny odczyt",
       "col": 1,
       "source": "[App] kod-v3.2.4-2026-09-27.md, main.py:645",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-9",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p03",
@@ -43,10 +46,12 @@
       "lane": "Miesięczny odczyt",
       "col": 2,
       "source": "[App] templates/reading_form.html:266-280",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-9",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p04",
@@ -55,10 +60,12 @@
       "lane": "Miesięczny odczyt",
       "col": 3,
       "source": "[App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "BR-003",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p05",
@@ -67,10 +74,12 @@
       "lane": "Miesięczny odczyt",
       "col": 4,
       "source": "[App] kod-v3.2.4-2026-09-27.md, main.py:690-720",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-9",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p06",
@@ -79,10 +88,11 @@
       "lane": "Miesięczny odczyt",
       "col": 5,
       "source": "[App] kod-v3.2.4-2026-09-27.md, main.py:715",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p07",
@@ -91,10 +101,12 @@
       "lane": "Miesięczny odczyt",
       "col": 6,
       "source": "[Dok] README.md, Odczyty (/odczyty)",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-10",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p08",
@@ -103,10 +115,12 @@
       "lane": "Miesięczny odczyt",
       "col": 7,
       "source": "[Dok] README.md, /api/roi-preview",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-10",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p09",
@@ -115,10 +129,11 @@
       "lane": "Miesięczny odczyt",
       "col": 8,
       "source": "[Dok] README.md, /odczyty/{id}/usun",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p10",
@@ -127,10 +142,12 @@
       "lane": "Rozliczenie miesiąca",
       "col": 0,
       "source": "[App] kod-v3.2.4-2026-09-27.md, Net-billing i RCE; D-004",
-      "file": "02-domain/RULES.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-004",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p11",
@@ -139,10 +156,12 @@
       "lane": "Rozliczenie miesiąca",
       "col": 1,
       "source": "[App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "BR-004",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p12",
@@ -155,7 +174,8 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "BR-001"
+      "ref": "BR-001",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p13",
@@ -164,10 +184,12 @@
       "lane": "Rozliczenie miesiąca",
       "col": 3,
       "source": "[App] kod-v3.2.4-2026-09-27.md, calculations.py:94-159",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "BR-005",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p14",
@@ -176,10 +198,12 @@
       "lane": "Rozliczenie miesiąca",
       "col": 4,
       "source": "[App] kod-v3.2.4-2026-09-27.md, enrich_readings_sequence",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-11",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p15",
@@ -188,10 +212,12 @@
       "lane": "Rozliczenie miesiąca",
       "col": 5,
       "source": "[Biz] D-008; [Dok] README.md, _ev_enrich",
-      "file": "02-domain/RULES.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-008",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p16",
@@ -200,10 +226,12 @@
       "lane": "Inwestycje i ROI",
       "col": 1,
       "source": "[Dok] README.md, investments",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "ref": "K-12",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p17",
@@ -212,10 +240,11 @@
       "lane": "Inwestycje i ROI",
       "col": 2,
       "source": "[Dok] README.md, /inwestycje/nowa",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p18",
@@ -224,10 +253,12 @@
       "lane": "Inwestycje i ROI",
       "col": 5,
       "source": "[Dok] README.md, calc_roi",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "ref": "BR-006",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p19",
@@ -236,10 +267,12 @@
       "lane": "Inwestycje i ROI",
       "col": 7,
       "source": "[App] src/main.py:995-1008, services/forecast.py",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "ref": "BR-007",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p20",
@@ -248,10 +281,12 @@
       "lane": "Inwestycje i ROI",
       "col": 8,
       "source": "[Biz] D-012",
-      "file": "02-domain/RULES.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-012",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p21",
@@ -260,10 +295,12 @@
       "lane": "Inwestycje i ROI",
       "col": 9,
       "source": "[Dok] README.md, ROI (/roi)",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "ref": "K-13",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p22",
@@ -272,10 +309,12 @@
       "lane": "Inwestycje i ROI",
       "col": 10,
       "source": "[Dok] README.md, Dashboard (/)",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "ref": "K-13",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p23",
@@ -284,10 +323,12 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 0,
       "source": "[App] src/main.py:1562",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-14",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p24",
@@ -296,10 +337,12 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 1,
       "source": "[App] src/main.py:1573",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "BR-008",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p25",
@@ -308,10 +351,11 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 2,
       "source": "[App] src/main.py:1562",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p26",
@@ -320,10 +364,12 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 3,
       "source": "[Biz] D-007",
-      "file": "03-spec/PRD.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-007",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p27",
@@ -332,10 +378,12 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 4,
       "source": "[Biz] D-006; [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa",
-      "file": "03-spec/PRD.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-006",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p28",
@@ -344,10 +392,11 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 5,
       "source": "[App] kod-v3.2.4-2026-09-27.md, main.py:1698",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p29",
@@ -356,10 +405,12 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 6,
       "source": "[Biz] D-008; [Dok] README.md, Ładowanie domowe vs publiczne",
-      "file": "02-domain/RULES.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-008",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p30",
@@ -368,10 +419,12 @@
       "lane": "Pojazdy EV i paliwo",
       "col": 7,
       "source": "[Dok] README.md, EV (/ev)",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-14",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p31",
@@ -380,10 +433,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 0,
       "source": "[Biz] D-004; [App] kod-v3.2.4-2026-09-27.md",
-      "file": "03-spec/PRD.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-004",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p32",
@@ -392,10 +447,11 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 1,
       "source": "[App] kod-v3.2.4-2026-09-27.md, main.py:1824",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p33",
@@ -404,10 +460,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 2,
       "source": "[Biz] D-004; [App] kod-v3.2.4-2026-09-27.md",
-      "file": "03-spec/PRD.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-004",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p34",
@@ -416,10 +474,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 3,
       "source": "[App] src/main.py:1888",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-15",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p35",
@@ -428,11 +488,12 @@
       "lane": "Ustawienia rozliczeń (/pv)",
       "col": 4,
       "source": "[Biz] D-003",
-      "file": "03-spec/PRD.md",
+      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "BR-001"
+      "ref": "BR-001",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p36",
@@ -441,10 +502,12 @@
       "lane": "Import, eksport, kopia",
       "col": 0,
       "source": "[App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-4",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p37",
@@ -457,7 +520,8 @@
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
       "updated": "2026-10-03T23:58:25+02:00",
-      "ref": "BR-002"
+      "ref": "BR-002",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p38",
@@ -466,10 +530,12 @@
       "lane": "Import, eksport, kopia",
       "col": 2,
       "source": "[Dok] README.md, /odczyty/export.csv",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-16",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p39",
@@ -478,10 +544,12 @@
       "lane": "Import, eksport, kopia",
       "col": 3,
       "source": "[App] kod-v3.2.4-2026-09-27.md, Czyszczenie bazy",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-16",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p40",
@@ -490,10 +558,12 @@
       "lane": "Import, eksport, kopia",
       "col": 4,
       "source": "[App] src/main.py:1161",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-16",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p41",
@@ -502,10 +572,12 @@
       "lane": "Import, eksport, kopia",
       "col": 5,
       "source": "[Biz] D-010; [App] kod-v3.2.4-2026-09-27.md",
-      "file": "03-spec/PRD.md",
+      "file": "01-interview/DECISIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-04T09:01:55+02:00",
+      "ref": "D-010",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p42",
@@ -514,10 +586,12 @@
       "lane": "Integracja Home Assistant",
       "col": 0,
       "source": "[Dok] README.md, Home Assistant",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-17",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p43",
@@ -526,10 +600,12 @@
       "lane": "Integracja Home Assistant",
       "col": 1,
       "source": "[Dok] README.md, /api/ha-test",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-17",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p44",
@@ -538,10 +614,12 @@
       "lane": "Integracja Home Assistant",
       "col": 2,
       "source": "[Dok] README.md, Home Assistant",
-      "file": "02-domain/RULES.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "BR-009",
+      "file": "02-domain/RULES.md",
+      "synced": "2026-10-04T09:25:02+02:00"
     },
     {
       "id": "p45",
@@ -550,10 +628,12 @@
       "lane": "Integracja Home Assistant",
       "col": 3,
       "source": "[Dok] README.md, API JSON",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "ref": "K-17",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "h01",
@@ -566,7 +646,8 @@
       "file": "01-interview/QUESTIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "h02",
@@ -579,7 +660,8 @@
       "file": "01-interview/QUESTIONS.md",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-03T23:58:25+02:00"
+      "updated": "2026-10-03T23:58:25+02:00",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "p46",
@@ -588,10 +670,11 @@
       "lane": "Inwestycje i ROI",
       "col": 0,
       "source": "[App] src/main.py /inwestycje",
-      "file": "02-domain/ACTORS.md",
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "file": "02-domain/ACTORS.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p47",
@@ -600,10 +683,12 @@
       "lane": "Inwestycje i ROI",
       "col": 3,
       "source": "[App] src/main.py /inwestycje/{id}/edytuj, /inwestycje/{id}/usun",
-      "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "ref": "K-12",
+      "file": "03-spec/PRD.md",
+      "synced": "2026-10-04T10:04:00+02:00"
     },
     {
       "id": "p48",
@@ -612,10 +697,11 @@
       "lane": "Inwestycje i ROI",
       "col": 4,
       "source": "[App] src/main.py update_investment, delete_investment",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "p49",
@@ -624,10 +710,11 @@
       "lane": "Inwestycje i ROI",
       "col": 6,
       "source": "[App] src/services/calculations.py calc_roi, roi_achieved",
-      "file": "02-domain/ENTITIES.md",
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00"
+      "updated": "2026-10-04T12:00:00+02:00",
+      "file": "02-domain/ENTITIES.md",
+      "synced": "2026-10-04T09:08:32+02:00"
     },
     {
       "id": "h03",
@@ -640,7 +727,8 @@
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
       "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-018"
+      "ref": "Q-018",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "h04",
@@ -653,20 +741,8 @@
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
       "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-019"
-    },
-    {
-      "id": "h05",
-      "type": "hot",
-      "text": "Prognoza sięga 36 miesięcy; gdy zwrot jest dalej, scenariusz nie podaje liczby. Co widziałeś w tabeli scenariuszy, gdy ostatnio na nią patrzyłeś?",
-      "lane": "Inwestycje i ROI",
-      "col": 7,
-      "source": "[App] src/main.py FORECAST_HORIZON=36; src/services/forecast.py breakeven_scenarios",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T12:00:00+02:00",
-      "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-020"
+      "ref": "Q-019",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "h06",
@@ -679,7 +755,8 @@
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
       "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-021"
+      "ref": "Q-021",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "h07",
@@ -692,7 +769,8 @@
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
       "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-022"
+      "ref": "Q-022",
+      "synced": "2026-10-04T09:01:55+02:00"
     },
     {
       "id": "h08",
@@ -705,8 +783,23 @@
       "by": "agent",
       "created": "2026-10-04T12:00:00+02:00",
       "updated": "2026-10-04T12:00:00+02:00",
-      "ref": "Q-023"
+      "ref": "Q-023",
+      "synced": "2026-10-04T09:01:55+02:00"
+    },
+    {
+      "id": "qq031",
+      "type": "hot",
+      "text": "Gdy ostatnio oglądałeś tabelę scenariuszy na /roi, jak czytałeś liczbę miesięcy do zwrotu - osobno dla każdego scenariusza wzrostu cen czy jedną dla wszystkich?",
+      "lane": "Inwestycje i ROI",
+      "col": 7,
+      "ref": "Q-031",
+      "source": "01-interview/QUESTIONS.md",
+      "file": "01-interview/QUESTIONS.md",
+      "by": "agent",
+      "created": "2026-10-04T08:06:10.470Z",
+      "updated": "2026-10-04T08:06:10.470Z",
+      "synced": "2026-10-04T08:06:10.470Z"
     }
   ],
-  "updated": "2026-10-04T10:00:00.000Z"
+  "updated": "2026-10-04T08:06:10.473Z"
 }

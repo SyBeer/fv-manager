@@ -131,3 +131,13 @@ Zrodlo: [Biz] board.json, qq004; czat sesji 2026-10-03; [App] kod-v3.2.4-2026-09
 Wplyw: Kandydaci: poprawka metodologia.html, podtytuł /roi.
 Zamyka pytanie: Q-004
 Otwiera pytania: -
+
+## D-013 | 2026-10-04 | Zwrot po horyzoncie prognozy podawany liczbą miesięcy
+Pytanie: Q-020 - co pokazuje prognoza, gdy zwrot przypada po 36 miesiącach?
+Decyzja: Wykres prognozy obejmuje 36 miesięcy. Gdy zwrot przypada później, aplikacja podaje słownie liczbę miesięcy do zwrotu (np. „zwrot za 53 mies.”). Stan docelowy - dziś v3.2.4 w takim przypadku nie podaje liczby miesięcy.
+Powod: wykres na dalszy okres niewiele mówi, ale liczba miesięcy do zwrotu jest potrzebna (propozycja prowadzącego zatwierdzona przez właściciela, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-028 (odpowiedź dotyczyła Q-020)
+Wplyw: BR-007 (dopisek o zwrocie po 36 mies.), p19, kandydat K-8 w PRD §5a.
+Zamyka pytanie: Q-020
+Otwiera pytania: Q-031
