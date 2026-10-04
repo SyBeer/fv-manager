@@ -89,3 +89,4 @@
 2026-10-04 | validate | przebieg 9: 0 BLOCK, 0 WARN, gotowość 100% (19/19), 66 AC, brak otwartych Q; TRACEABILITY: AC-010-4 | PRD.md
 2026-10-04 | handover | Redmine #28 [R-010] zaktualizowane (AC-010-4, D-029); status bez zmian | 03-spec/agent
 2026-10-04 | build | v3.4.0: R-009 (#27), R-010 (#28), R-019 (#111), testy AC-001-5 (#20), AC-011-4 (#29); przegląd architektów przed i po budowie, decyzje B-24..B-37; TRACEABILITY: kolumna Test dla 9 nowych AC; 210 testów | PRD.md, 03-spec/agent
+2026-10-04 | build | v3.4.0 sprawdzona przez właściciela instalacji w HA po aktualizacji: „zgadza się wszystko” | build-2026-10-04.md

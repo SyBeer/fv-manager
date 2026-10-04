@@ -852,21 +852,7 @@
       "created": "2026-10-04T19:18:25+02:00",
       "updated": "2026-10-04T19:18:25+02:00",
       "synced": "2026-10-04T19:18:25+02:00"
-    },
-    {
-      "id": "qq044",
-      "type": "hot",
-      "text": "Miesiące przed pierwszą wpisaną ceną paliwa: dziś karty /ev biorą najnowszą cenę, a ROI najstarszą. Za jaki pierwszy miesiąc wpisywałeś dane EV i od kiedy masz w aplikacji pierwszą cenę paliwa?",
-      "lane": "Pojazdy EV i paliwo",
-      "col": 7,
-      "source": "01-interview/QUESTIONS.md",
-      "ref": "Q-044",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T19:18:25+02:00",
-      "updated": "2026-10-04T19:18:25+02:00",
-      "synced": "2026-10-04T22:14:58+02:00"
     }
   ],
-  "updated": "2026-10-04T22:14:58+02:00"
+  "updated": "2026-10-04T20:53:58.076Z"
 }
