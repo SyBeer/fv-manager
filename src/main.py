@@ -2086,8 +2086,13 @@ async def ha_test():
         "entity": ha_solar,
         "last_period_start": period_label,
         "production_kwh": round(delta, 2),
-        "message": f"OK — {period_label}: {round(delta, 2)} kWh",
+        "message": _ha_test_message(period_label, delta),
     })
+
+
+def _ha_test_message(period_label: str, kwh: float) -> str:
+    """Komunikat testu połączenia; ekran ustawień dopisuje „(okres: RRRR-MM)” (AC-015-1)."""
+    return f"OK — {period_label}: {round(kwh, 2)} kWh"
 
 
 @app.get("/api/ha-grid-fetch")
