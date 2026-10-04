@@ -58,3 +58,4 @@
 2026-10-04 | sdd:board sync | odpowiedzi z tablicy h01 (Q-016), h09 (Q-032) -> D-020 (wycofanie Tesla Fleet API) + R-018, D-021 (data etapu sprzed odczytów) + AC-006-5; BR-006; PRD §4, §6; 0 otwartych Q | [Biz] board.json h01, h09
 2026-10-04 | spec --agent | regeneracja: R-018 -> nowa funkcja tesla-wycofanie (T-18); inwestycje-roi i odczyty zaktualizowane (D-020, D-021) | PRD.md
 2026-10-04 | handover | Redmine fv-manager: nowe #34 (T-18, R-018), zaktualizowane #17..#33; TRACEABILITY.md: 56 AC; nowy odcisk w TRACEABILITY i raporcie validate | 03-spec/agent/*/tasks.md
+2026-10-04 | validate | raport: linia gotowości w formacie czytanym przez panel (78%); usunięta prognoza '94%' z zaleceń, którą panel brał za wynik | progress.js:262
