@@ -91,3 +91,4 @@
 2026-10-04 | build | v3.4.0: R-009 (#27), R-010 (#28), R-019 (#111), testy AC-001-5 (#20), AC-011-4 (#29); przegląd architektów przed i po budowie, decyzje B-24..B-37; TRACEABILITY: kolumna Test dla 9 nowych AC; 210 testów | PRD.md, 03-spec/agent
 2026-10-04 | build | v3.4.0 sprawdzona przez właściciela instalacji w HA po aktualizacji: „zgadza się wszystko” | build-2026-10-04.md
 2026-10-04 | handover | Redmine: uzupełnione obowiązkowe pole „Link do środowiska UAT” w 16 zadaniach (#17-#23, #25-#29, #31, #32, #34, #111); statusy bez zmian | prośba właściciela instalacji
+2026-10-04 | handover | SDD.yaml: redmine_uat_link (link do środowiska UAT wpisywany przez /sdd:handover w każde zadanie; sdd-kit cfdb94e, AC-RM21) | prośba właściciela instalacji
