@@ -285,6 +285,18 @@ def _vehicles_for_period(vehicles: list[dict], period: str) -> list[dict]:
     return result
 
 
+def _fuel_price_for_month(prices: list[dict], fuel_type: str | None, period: str) -> float | None:
+    """Cena paliwa dla miesiąca (D-023, D-029): rodzaj paliwa pojazdu, ostatnia cena wpisana
+    do końca miesiąca; miesiące przed pierwszą ceną - wg pierwszej ceny. Brak ceny tego rodzaju - None."""
+    own = sorted((p for p in prices if p["fuel_type"] == (fuel_type or "PB95")), key=lambda p: p["date"])
+    if not own:
+        return None
+    y, m = (int(x) for x in period.split("."))
+    period_end = f"{y}-{m:02d}-{calendar.monthrange(y, m)[1]:02d}"
+    obj = next((p for p in reversed(own) if p["date"] <= period_end), own[0])
+    return obj["price_per_liter"]
+
+
 async def _get_ev_monthly_all(db: aiosqlite.Connection) -> list[dict]:
     cur = await db.execute("SELECT * FROM ev_monthly ORDER BY period, vehicle_id")
     rows = await cur.fetchall()
@@ -336,7 +348,6 @@ def _agg_vehicles_ev(
     default_price: float,
 ) -> list[dict]:
     """Aggregate total km, kWh, savings per vehicle from ev_monthly entries."""
-    prices_desc = sorted(all_fuel_prices, key=lambda p: p["date"], reverse=True)
     vmap = {v["id"]: v for v in vehicles}
     agg: dict[int, dict] = {}
 
@@ -365,15 +376,9 @@ def _agg_vehicles_ev(
         s["public_cost"] += pub_cost
         s["kwh"] += home_kwh
 
-        year, month_str = e["period"].split(".")
-        period_end = f"{year}-{month_str.zfill(2)}-28"
-        fuel_obj = next(
-            (p for p in prices_desc if p["fuel_type"] == v["fuel_type"] and p["date"] <= period_end),
-            next((p for p in prices_desc if p["fuel_type"] == v["fuel_type"]), None),
-        )
-        if not fuel_obj:
+        fuel_price = _fuel_price_for_month(all_fuel_prices, v["fuel_type"], e["period"])
+        if fuel_price is None:
             continue
-        fuel_price = fuel_obj["price_per_liter"]
 
         # Domowe ładowanie — wchodzi do opłacalności FV oraz vs paliwo.
         if home_kwh:
@@ -431,17 +436,7 @@ def _ev_enrich(
     """
     if not fuel_prices:
         return readings
-    prices_desc = sorted(fuel_prices, key=lambda p: p["date"], reverse=True)
     default_price = _default_price()
-
-    def _fuel_price_for(period: str) -> float | None:
-        year_s, month_s = period.split(".")
-        y, m = int(year_s), int(month_s)
-        # Fix #2: ostatni dzień miesiąca zamiast hardkodowanego 28
-        last_day = calendar.monthrange(y, m)[1]
-        period_end = f"{year_s}-{month_s.zfill(2)}-{last_day}"
-        obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
-        return obj["price_per_liter"] if obj else None
 
     # Multi-vehicle path
     if vehicles and ev_monthly:
@@ -455,20 +450,17 @@ def _ev_enrich(
             if not entries:
                 result.append(r)
                 continue
-            fuel_price = _fuel_price_for(r["period"])
-            if fuel_price is None:
-                result.append(r)
-                continue
             price_kwh = r.get("price_per_kwh") or default_price
-            savings = sum(
-                calc_ev_savings(e["kwh"], price_kwh,
-                                vmap[e["vehicle_id"]]["efficiency_kwh_per_100km"],
-                                vmap[e["vehicle_id"]]["fuel_consumption_l_per_100km"],
-                                fuel_price,
-                                km_driven=e.get("km"))["ev_net_savings"]
-                for e in entries if e["vehicle_id"] in vmap
-            )
-            result.append({**r, "ev_savings_pln": savings})
+            savings = None
+            for e in entries:
+                v = vmap.get(e["vehicle_id"])
+                fuel_price = _fuel_price_for_month(fuel_prices, v["fuel_type"], r["period"]) if v else None
+                if fuel_price is None:
+                    continue
+                savings = (savings or 0.0) + calc_ev_savings(
+                    e["kwh"], price_kwh, v["efficiency_kwh_per_100km"], v["fuel_consumption_l_per_100km"],
+                    fuel_price, km_driven=e.get("km"))["ev_net_savings"]
+            result.append(r if savings is None else {**r, "ev_savings_pln": savings})
         return result
 
     # Single-vehicle fallback
@@ -482,7 +474,7 @@ def _ev_enrich(
         if not ev_kwh:
             result.append(r)
             continue
-        fuel_price = _fuel_price_for(r["period"])
+        fuel_price = _fuel_price_for_month(fuel_prices, ev_settings.get("fuel_type"), r["period"])
         if fuel_price is None:
             result.append(r)
             continue
@@ -1349,7 +1341,6 @@ async def ev_page(request: Request):
     for e in ev_monthly_all:
         by_period.setdefault(e["period"], []).append(e)
 
-    prices_desc = sorted(all_fuel_prices, key=lambda p: p["date"], reverse=True)
     default_price = _default_price()
 
     monthly_ev = []
@@ -1365,10 +1356,6 @@ async def ev_page(request: Request):
         if not entries:
             continue
 
-        year, month = r["period"].split(".")
-        period_end = f"{year}-{month.zfill(2)}-28"
-        fuel_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
-        fuel_price = fuel_obj["price_per_liter"] if fuel_obj else (latest_fuel["price_per_liter"] if latest_fuel else 6.5)
         price_kwh = r.get("price_per_kwh") or default_price
 
         period_total_kwh = 0.0
@@ -1381,6 +1368,9 @@ async def ev_page(request: Request):
             v = vmap.get(e["vehicle_id"]) if e["vehicle_id"] else None
             eff = v["efficiency_kwh_per_100km"] if v else settings.get("efficiency_kwh_per_100km", 16)
             fuel_cons = v["fuel_consumption_l_per_100km"] if v else settings.get("fuel_consumption_l_per_100km", 10)
+            fuel_price = _fuel_price_for_month(all_fuel_prices, v["fuel_type"] if v else settings.get("fuel_type"), r["period"])
+            if fuel_price is None:
+                continue
             s = calc_ev_savings(e["kwh"], price_kwh, eff, fuel_cons, fuel_price, km_driven=e.get("km"))
             period_total_kwh += e["kwh"]
             period_savings += s["ev_net_savings"]
@@ -1394,6 +1384,8 @@ async def ev_page(request: Request):
                 **s,
             })
 
+        if not vehicle_rows:
+            continue  # brak ceny paliwa rodzaju pojazdu - miesiąc bez oszczędności, jak w ROI
         active_vids = [v["id"] for v in _vehicles_for_period(vehicles, r["period"])]
         monthly_ev.append({
             "period": r["period"],
@@ -1464,18 +1456,11 @@ async def vehicle_detail(request: Request, vehicle_id: int):
     finally:
         await db.close()
 
-    prices_desc = sorted(
-        [p for p in all_fuel_prices if p["fuel_type"] == vehicle["fuel_type"]],
-        key=lambda p: p["date"], reverse=True,
-    )
     default_price = _default_price()
 
     monthly = []
     for idx_e, e in enumerate(entries):
-        year, month_str = e["period"].split(".")
-        period_end = f"{year}-{month_str.zfill(2)}-28"
-        fuel_obj = next((p for p in prices_desc if p["date"] <= period_end), prices_desc[-1] if prices_desc else None)
-        fuel_price = fuel_obj["price_per_liter"] if fuel_obj else None
+        fuel_price = _fuel_price_for_month(all_fuel_prices, vehicle["fuel_type"], e["period"])
         price_kwh = price_map.get(e["period"]) or default_price
         km = e.get("km")
         km_actual = km is not None
