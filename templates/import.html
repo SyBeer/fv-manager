@@ -232,10 +232,11 @@
   <div class="card" style="border-color:var(--c-red);">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:.75rem; color:var(--c-red-light);"><i class="ph-bold ph-warning"></i> Niebezpieczna strefa</h2>
     <p style="color:var(--text-2); font-size:.9rem; margin-bottom:1.5rem;">
-      Usuwa wszystkie odczyty, inwestycje i ceny paliw. Operacja jest <strong style="color:var(--c-red-light);">nieodwracalna</strong>.
-      Przed czyszczeniem warto wyeksportować dane do CSV.
+      Usuwa <strong>wszystkie dane</strong>: odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe i ceny RCE.
+      Ustawienia aplikacji (współczynniki, konfiguracja HA) zostają. Operacja jest <strong style="color:var(--c-red-light);">nieodwracalna</strong>.
+      Przed czyszczeniem pobierz pełną kopię: <a href="{{ rp }}/backup/full">/backup/full</a> (przycisk „Pobierz backup JSON” wyżej).
     </p>
-    <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Spowoduje to usunięcie WSZYSTKICH danych. Czy na pewno chcesz kontynuować?')">
+    <form method="post" action="{{ rp }}/admin/clear-db" onsubmit="return confirm('UWAGA: Zostaną usunięte odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe i ceny RCE. Ustawienia zostają. Czy na pewno - masz pobraną kopię?')">
       <button type="submit" class="btn btn-red"><i class="ph-bold ph-trash"></i> Wyczyść całą bazę danych</button>
     </form>
   </div>

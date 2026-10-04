@@ -1225,7 +1225,7 @@ async def clear_db(request: Request):
 async def backup_full():
     """Pełny backup wszystkich danych jako JSON — do pobrania."""
     import json
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     db = await get_db()
     try:
@@ -1236,7 +1236,7 @@ async def backup_full():
 
         data = {
             "version": 2,
-            "exported_at": datetime.utcnow().isoformat(),
+            "exported_at": datetime.now(timezone.utc).isoformat(),
             "readings":        await fetch("SELECT * FROM readings ORDER BY year, month"),
             "investments":     await fetch("SELECT * FROM investments ORDER BY date"),
             "app_settings":    await fetch("SELECT * FROM app_settings"),
@@ -1249,12 +1249,17 @@ async def backup_full():
     finally:
         await db.close()
 
-    filename = f"fv-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M')}.json"
+    filename = f"fv-backup-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M')}.json"
     return StreamingResponse(
         iter([json.dumps(data, ensure_ascii=False, indent=2)]),
         media_type="application/json",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# Kolejność: tabele nadrzędne przed zależnymi (ev_monthly -> vehicles).
+RESTORE_TABLES = ["investments", "readings", "fuel_prices", "vehicles", "ev_monthly",
+                  "billing_periods", "rce_prices"]
 
 
 @app.post("/restore")
@@ -1279,73 +1284,24 @@ async def restore_backup(request: Request, file: UploadFile = File(...)):
 
     db = await get_db()
     try:
-        for table in ["ev_monthly", "readings", "investments", "fuel_prices",
-                      "vehicles", "billing_periods", "rce_prices"]:
+        for table in RESTORE_TABLES[::-1]:
             await db.execute(f"DELETE FROM {table}")
 
         restored = 0
-
-        for inv in data.get("investments", []):
-            await db.execute(
-                "INSERT OR REPLACE INTO investments (id, date, description, cost_pln, power_kwp, notes) VALUES (?,?,?,?,?,?)",
-                (inv.get("id"), inv["date"], inv["description"], inv["cost_pln"],
-                 inv.get("power_kwp"), inv.get("notes")),
-            )
-            restored += 1
-
-        for r in data.get("readings", []):
-            await db.execute(
-                """INSERT OR REPLACE INTO readings
-                   (id, period, year, month, days, production_kwh, sent_to_grid_kwh,
-                    taken_from_grid_kwh, ev_kwh, price_per_kwh, sale_price_kwh,
-                    invoice_number, invoice_gross, notes)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (r.get("id"), r["period"], r["year"], r["month"], r.get("days"),
-                 r["production_kwh"], r["sent_to_grid_kwh"], r["taken_from_grid_kwh"],
-                 r.get("ev_kwh"), r.get("price_per_kwh"), r.get("sale_price_kwh"),
-                 r.get("invoice_number"), r.get("invoice_gross"), r.get("notes")),
-            )
-            restored += 1
-
-        for fp in data.get("fuel_prices", []):
-            await db.execute(
-                "INSERT OR REPLACE INTO fuel_prices (id, date, price_per_liter, fuel_type, source) VALUES (?,?,?,?,?)",
-                (fp.get("id"), fp["date"], fp["price_per_liter"],
-                 fp.get("fuel_type", "PB95"), fp.get("source")),
-            )
-            restored += 1
-
-        for v in data.get("vehicles", []):
-            await db.execute(
-                """INSERT OR REPLACE INTO vehicles
-                   (id, name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type, notes)
-                   VALUES (?,?,?,?,?,?)""",
-                (v.get("id"), v["name"], v["efficiency_kwh_per_100km"],
-                 v["fuel_consumption_l_per_100km"], v.get("fuel_type", "PB95"), v.get("notes")),
-            )
-            restored += 1
-
-        for em in data.get("ev_monthly", []):
-            await db.execute(
-                "INSERT OR REPLACE INTO ev_monthly (id, period, vehicle_id, kwh) VALUES (?,?,?,?)",
-                (em.get("id"), em["period"], em["vehicle_id"], em["kwh"]),
-            )
-            restored += 1
-
-        for bp in data.get("billing_periods", []):
-            await db.execute(
-                "INSERT OR REPLACE INTO billing_periods (id, start_date, end_date, model, description) VALUES (?,?,?,?,?)",
-                (bp.get("id"), bp["start_date"], bp.get("end_date"),
-                 bp["model"], bp.get("description")),
-            )
-            restored += 1
-
-        for rce in data.get("rce_prices", []):
-            await db.execute(
-                "INSERT OR REPLACE INTO rce_prices (id, date, price_per_kwh, source) VALUES (?,?,?,?)",
-                (rce.get("id"), rce["date"], rce["price_per_kwh"], rce.get("source")),
-            )
-            restored += 1
+        # Każda tabela odtwarzana ze wszystkich kolumn obecnych i w kopii, i w bazie -
+        # wcześniej część pól (stan licznika pojazdu, km i ładowanie publiczne EV) ginęła.
+        for table in RESTORE_TABLES:
+            cur = await db.execute(f"PRAGMA table_info({table})")
+            columns = {row["name"] for row in await cur.fetchall()}
+            for row in data.get(table, []):
+                cols = [c for c in row if c in columns]
+                if not cols:
+                    continue
+                await db.execute(
+                    f"INSERT OR REPLACE INTO {table} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                    [row[c] for c in cols],
+                )
+                restored += 1
 
         await db.commit()
     except Exception as e:
