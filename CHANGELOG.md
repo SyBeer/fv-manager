@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.4.0] — 2026-10-04
+
+Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-009, R-010, R-019; zadania Redmine #27, #28, #111, testy #20, #29). Przed budową i po niej przegląd architektów; decyzje budowy B-24..B-37: `requirements/04-validation/build-2026-10-04.md`.
+
+### Dodano
+- **Pojazd nieaktywny** — przycisk na /ev (np. po sprzedaży auta); formularz odczytu nowego miesiąca nie ma pól tego pojazdu, edycja starych odczytów je pokazuje, a jego dane dalej liczą się do oszczędności i ROI (R-019). Migracja: kolumna `vehicles.is_active` (istniejące pojazdy aktywne)
+- **Zmiana przebiegu startowego z wyborem** — gdy są zapisane stany licznika, aplikacja pyta: przesunąć je o różnicę (km bez zmian) albo zmienić tylko start (stany licznika niższe niż nowa wartość są usuwane, dane ładowania zostają). Zastępuje dotychczasową blokadę (R-009)
+
+### Zmieniono
+- **Jedna reguła ceny paliwa** dla ROI, kart /ev i strony pojazdu: cena paliwa pojazdu, ostatnia wpisana do końca miesiąca; miesiące sprzed pierwszej ceny wg pierwszej ceny. Dotąd karty /ev brały cenę do 28. dnia i dla miesięcy sprzed pierwszej ceny — najnowszą, a ROI — cenę dowolnego paliwa. **Oszczędności EV (karty /ev, ROI) mogą się zmienić** (R-010)
+- Brak ceny paliwa rodzaju pojazdu: miesiąc bez oszczędności EV (dotąd karty /ev brały zastępczo 6,50 zł/l)
+- Strona „Ceny paliwa” opisuje regułę ceny
+
+### Poprawiono
+- Odczyt z samym stanem licznika albo km (bez kWh) zapisuje wpis EV
+- Edycja miesiąca na /ev nie usuwa wpisu z samym stanem licznika i nie zapisuje km wyliczonych z licznika jako ręcznych
+- Wpis bez ładowania domowego nie daje oszczędności EV (ROI i tabela /ev zgodne z podsumowaniem pojazdu)
+- Km miesiąca: pierwszy zapisany stan licznika liczy się od przebiegu startowego
+- Przyciski pojazdu na /ev w jednym wierszu
+
+### Testy
+- `test_r010_cena_paliwa.py`, `test_r009_przebieg_startowy.py`, `test_r019_pojazd_nieaktywny.py`; AC-001-5, AC-011-4 — razem 210 testów
+
 ## [3.3.1] — 2026-10-04
 
 ### Poprawiono

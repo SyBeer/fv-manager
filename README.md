@@ -1,4 +1,4 @@
-# FV Manager v3.3.1
+# FV Manager v3.4.0
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant.
@@ -109,6 +109,7 @@ fuel_type                     TEXT DEFAULT 'PB95'
 notes                         TEXT
 date_from, date_to            TEXT                        -- okres używania
 przebieg_km                   REAL                        -- stan licznika przy dodaniu (wymagany)
+is_active                     INTEGER DEFAULT 1           -- 0 = nieaktywny: bez pól EV w nowym odczycie, dane dalej w oszczędnościach
 ```
 
 ### `ev_monthly` — zużycie EV per pojazd per miesiąc
@@ -240,6 +241,10 @@ Dwie ścieżki (kolejność priorytetu):
 1. **Multi-vehicle** (preferred): dla każdego odczytu sumuje `calc_ev_savings` per pojazd z `ev_monthly` — tylko ładowanie **domowe** (`kwh`/`km`); pola `public_*` są pomijane, bo nie należą do opłacalności FV
 2. **Legacy fallback**: jeśli brak pojazdów — używa `readings.ev_kwh` + `ev_settings`
 
+**Cena paliwa dla miesiąca** (`_fuel_price_for_month`, jedna reguła dla ROI, kart /ev i strony pojazdu): cena rodzaju paliwa pojazdu, ostatnia wpisana do końca miesiąca; miesiące sprzed pierwszej ceny liczą się wg pierwszej ceny. Brak ceny tego rodzaju = miesiąc bez oszczędności EV. Wpis bez ładowania domowego (np. sam stan licznika) nie daje Oszczędności EV z FV.
+
+**Km miesiąca** (`_inject_odometer_km`): km wpisane ręcznie; gdy brak — stan licznika minus poprzedni stan (pierwszy zapisany stan licznika liczy się od przebiegu startowego); bez obu — szacunek z kWh.
+
 ---
 
 ## Endpointy
@@ -265,7 +270,8 @@ Dwie ścieżki (kolejność priorytetu):
 | `/ev/settings` | POST | Zapisz konfigurację EV i Home Assistant |
 | `/ev/pojazdy/nowy` | POST | Dodaj pojazd |
 | `/ev/pojazdy/{id}` | GET | Szczegóły pojazdu — historia, km, koszty, oszczędności |
-| `/ev/pojazdy/{id}/edytuj` | POST | Edytuj pojazd |
+| `/ev/pojazdy/{id}/edytuj` | POST | Edytuj pojazd; zmiana przebiegu startowego przy zapisanych stanach licznika pokazuje potwierdzenie: przesunąć stany o różnicę albo zmienić tylko start (niższe stany licznika usuwane) |
+| `/ev/pojazdy/{id}/aktywnosc` | POST | Pojazd aktywny / nieaktywny |
 | `/ev/pojazdy/{id}/usun` | POST | Usuń pojazd + jego ev_monthly |
 | `/ev/fuel-price` | POST | Dodaj cenę paliwa |
 | `/ev/fuel-price/{id}/usun` | POST | Usuń cenę paliwa |
@@ -345,7 +351,7 @@ Szablon do pobrania: `GET /import/template.csv`
 ### EV (`/ev`)
 - Summary cards: łączne oszczędności EV PLN, łączne km, litry zaoszczędzone, ostatnia cena paliwa
 - Tabela miesięczna: kWh, km (est.), koszt paliwa (gdyby), koszt prądu, oszczędność netto, litry
-- Zarządzanie pojazdami (CRUD inline)
+- Zarządzanie pojazdami (CRUD inline), przycisk aktywny/nieaktywny (znaczek „nieaktywny”)
 - Przełącznik śledzenia cen paliwa; ceny paliwa na osobnej stronie `/ev/ceny-paliwa` (pozycja menu pod EV)
 
 ---
