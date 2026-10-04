@@ -44,3 +44,14 @@ def query(client):
         con.close()
         return rows
     return _q
+
+
+@pytest.fixture
+def post_form(client):
+    """POST formularza z poprawnym tokenem CSRF (bez podążania za przekierowaniem)."""
+    import main
+
+    def _post(url: str, data: dict | None = None):
+        return client.post(url, data={**(data or {}), "csrf_token": main._csrf_generate()},
+                           follow_redirects=False)
+    return _post
