@@ -5,7 +5,7 @@
 ## Kolejność
 1. R-017 Okresy rozliczeniowe i ceny RCE - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: -
 2. R-002 Oszczędność PV miesiąca - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-017 (T-01)
-3. R-003 Ustawienie miesiąca startu cyklu rozliczeniowego - zmiana (stan docelowy); zależy od: R-002 (T-02)
+3. R-003 Ustawienie miesiąca startu cyklu rozliczeniowego - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-002 (T-02)
 
 ## Encje do odczytu (02-domain/ENTITIES.md)
 ## Okres rozliczeniowy

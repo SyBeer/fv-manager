@@ -274,3 +274,13 @@ Zrodlo: [Biz] board.json, qq042
 Wplyw: BR-011 (nowa); R-001 (stan licznika w odczycie), R-010 (km do obliczeń), BR-008 - PRD §6.
 Zamyka pytanie: Q-042
 Otwiera pytania: -
+
+## D-027 | 2026-10-04 | Zmiana przebiegu startowego pojazdu
+Pytanie: propozycja R-009 w /sdd:spec - reguła z kodu (A-014, BR-012): przebieg startowy nie może być wyższy niż najniższy zapisany stan licznika.
+Decyzja: Właściciel może zmienić przebieg startowy pojazdu także przy zapisanych stanach licznika. Przed zapisem aplikacja pyta, czy wszystkie zapisane stany licznika przesunąć o różnicę (nowa − stara wartość). Tak: każdy stan licznika zmienia się o różnicę; km miesięcy i oszczędności bez zmian. Nie: zmienia się tylko przebieg startowy, stany licznika niższe niż nowa wartość są usuwane (tylko stan licznika - kWh ładowania i ładowanie publiczne z tego miesiąca zostają); km i oszczędności liczą się od nowych wartości. Zastępuje blokadę z kodu.
+Powod: właściciel chce mieć możliwość zmiany przebiegu startowego zamiast blokady, z ostrzeżeniem o przeliczeniu (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, D-027
+Wplyw: BR-012 (nowe brzmienie); A-014 obalone; R-009 (AC-009-3, AC-009-4); R-010, R-001 (km i oszczędności przez BR-011) - PRD §6.
+Zamyka pytanie: -
+Otwiera pytania: -

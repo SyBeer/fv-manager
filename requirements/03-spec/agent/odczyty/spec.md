@@ -4,9 +4,9 @@
 
 ### R-001 Wpisanie odczytu miesiąca
 Opis:              Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Integracja z Tesla Fleet API wycofana (D-020, R-018).
-Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030
+Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030; [Biz] board.json, qq042 (D-026)
 Zalozenia:         A-004, A-010
-Reguly:            BR-003, BR-009
+Reguly:            BR-003, BR-009, BR-011
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
@@ -15,6 +15,7 @@ Kryteria akceptacji:
 - AC-001-2: Given okres „2026-9”, When właściciel zapisuje odczyt, Then odczyt nie zostaje zapisany, a formularz pokazuje błąd okresu.
 - AC-001-3: Given oddane 500 kWh i produkcja 400 kWh, When właściciel zapisuje odczyt, Then odczyt nie zostaje zapisany, a formularz pokazuje błąd.
 - AC-001-4: Given skonfigurowane encje HA, When właściciel wybiera miesiąc i klika „pobierz z HA”, Then pola produkcja, oddane i pobrane wypełniają się bez ręcznego wpisywania.
+- AC-001-5: Given pojazd z przebiegiem startowym 12 000 km, When właściciel wpisuje stan licznika 13 000 za pierwszy miesiąc i 14 200 za kolejny, Then km miesięcy wynoszą 1 000 i 1 200 (BR-011).
 
 ### R-004 Import odczytów z CSV - cały plik albo nic
 Opis:              Właściciel instalacji importuje odczyty z pliku CSV (separator „;”, polskie nagłówki). Jeśli choć jeden wiersz jest błędny, nie zostaje zapisany żaden, a raport podaje numer wiersza i powód. Stan docelowy. Postępowanie z okresem, który już istnieje - Q-017.

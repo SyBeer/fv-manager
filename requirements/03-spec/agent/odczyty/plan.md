@@ -4,7 +4,7 @@
 
 ## Kolejność
 1. R-001 Wpisanie odczytu miesiąca - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: -
-2. R-004 Import odczytów z CSV - cały plik albo nic - zmiana (stan docelowy); zależy od: R-001 (T-04)
+2. R-004 Import odczytów z CSV - cały plik albo nic - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-001 (T-04)
 3. R-012 Lista i edycja odczytów - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-006 (T-08)
 
 ## Encje do odczytu (02-domain/ENTITIES.md)

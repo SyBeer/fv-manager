@@ -4,8 +4,8 @@
 
 ## Kolejność
 1. R-005 Etapy inwestycji - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: -
-2. R-006 Pozostało do zwrotu - błąd (stan docelowy - kod działa inaczej niż decyzja); zależy od: R-002 (T-02), R-005 (T-07), R-010 (T-12)
-3. R-007 Prognoza zwrotu - zmiana (stan docelowy); zależy od: R-006 (T-08)
+2. R-006 Pozostało do zwrotu - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-002 (T-02), R-005 (T-07), R-010 (T-12)
+3. R-007 Prognoza zwrotu - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-006 (T-08)
 4. R-008 Ekran ROI i dashboard - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-006 (T-08), R-007 (T-09)
 
 ## Encje do odczytu (02-domain/ENTITIES.md)

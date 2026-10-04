@@ -3,7 +3,7 @@
 # Plan - Poprawki tekstów
 
 ## Kolejność
-1. R-016 Poprawki tekstów - zmiana (stan docelowy); zależy od: R-002 (T-02), R-003 (T-03), R-017 (T-01)
+1. R-016 Poprawki tekstów - weryfikacja (działanie obecne - testy regresji z AC, poprawka różnic); zależy od: R-002 (T-02), R-003 (T-03), R-017 (T-01)
 
 ## Encje do odczytu (02-domain/ENTITIES.md)
 -

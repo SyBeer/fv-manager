@@ -29,9 +29,9 @@ Właściciel instalacji - zob. 02-domain/ACTORS.md.
 
 ### R-001 Wpisanie odczytu miesiąca
 Opis:              Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Integracja z Tesla Fleet API wycofana (D-020, R-018).
-Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030
+Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030; [Biz] board.json, qq042 (D-026)
 Zalozenia:         A-004, A-010
-Reguly:            BR-003, BR-009
+Reguly:            BR-003, BR-009, BR-011
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
@@ -40,6 +40,7 @@ Kryteria akceptacji:
 - AC-001-2: Given okres „2026-9”, When właściciel zapisuje odczyt, Then odczyt nie zostaje zapisany, a formularz pokazuje błąd okresu.
 - AC-001-3: Given oddane 500 kWh i produkcja 400 kWh, When właściciel zapisuje odczyt, Then odczyt nie zostaje zapisany, a formularz pokazuje błąd.
 - AC-001-4: Given skonfigurowane encje HA, When właściciel wybiera miesiąc i klika „pobierz z HA”, Then pola produkcja, oddane i pobrane wypełniają się bez ręcznego wpisywania.
+- AC-001-5: Given pojazd z przebiegiem startowym 12 000 km, When właściciel wpisuje stan licznika 13 000 za pierwszy miesiąc i 14 200 za kolejny, Then km miesięcy wynoszą 1 000 i 1 200 (BR-011).
 
 ### R-002 Oszczędność PV miesiąca
 Opis:              Dla każdego odczytu aplikacja liczy oszczędność PV miesiąca (kWh i zł) według modelu rozliczeń okresu rozliczeniowego: w net-meteringu z autokonsumpcji i puli net-meteringu (kumulowanej w cyklu rozliczeniowym), w net-billingu z autokonsumpcji i energii oddanej wycenionej po cenie RCE.
@@ -137,16 +138,18 @@ Kryteria akceptacji:
 - AC-008-3: Given zwrot przypada po 48 miesiącach, When właściciel otwiera dashboard, Then widzi „Do zwrotu inwestycji 48 mies.”.
 
 ### R-009 Dodanie pojazdu
-Opis:              Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany.
-Zrodlo:            [App] src/main.py:1562, 1573; [Biz] session-2026-10-04.md, Q-029
+Opis:              Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany. Przebieg startowy można później zmienić: aplikacja pyta, czy przesunąć zapisane stany licznika o różnicę (D-027).
+Zrodlo:            [App] src/main.py:1562, 1573; [Biz] session-2026-10-04.md, Q-029, D-027
 Zalozenia:         A-009
-Reguly:            BR-008
+Reguly:            BR-008, BR-012
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-009-1: Given formularz z nazwą, zużyciem 18 kWh/100 km, spalaniem odpowiednika 7 l/100 km, benzyną i przebiegiem startowym 12 000 km, When właściciel dodaje pojazd, Then pojazd jest na liście /ev.
 - AC-009-2: Given formularz bez przebiegu startowego, When właściciel dodaje pojazd, Then pojazd nie zostaje dodany.
+- AC-009-3: Given pojazd z przebiegiem startowym 12 000 km i stanami licznika 13 000 (2026.01) i 14 200 (2026.02), When właściciel zmienia przebieg startowy na 12 500 km i wybiera przesunięcie stanów licznika („Tak”), Then stany licznika wynoszą 13 500 i 14 700, a km za te miesiące nadal 1 000 i 1 200.
+- AC-009-4: Given te same dane, When właściciel zmienia przebieg startowy na 13 500 km i wybiera „Nie”, Then stan licznika 13 000 za 2026.01 zostaje usunięty (kWh ładowania z 2026.01 zostają), a km za 2026.02 = 14 200 − 13 500 = 700.
 
 ### R-010 Oszczędności EV
 Opis:              Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.
@@ -267,7 +270,7 @@ Kryteria akceptacji:
 - AC-018-3: Given baza z wypełnionymi polami Tesli, When aplikacja się uruchamia, Then odczyty, pojazdy i pozostałe dane właściciela zostają nienaruszone.
 
 ### R-019 Pojazd nieaktywny
-Opis:              Właściciel instalacji oznacza pojazd jako nieaktywny (np. po sprzedaży albo wymianie auta). Dane pojazdu nieaktywnego dalej wchodzą do oszczędności EV i ROI. Co zmienia się w formularzu odczytu i na /ev - Q-045.
+Opis:              Właściciel instalacji oznacza pojazd jako nieaktywny (np. po sprzedaży albo wymianie auta). Dane pojazdu nieaktywnego dalej wchodzą do oszczędności EV i ROI. Zachowanie formularza odczytu i listy pojazdów dla pojazdu nieaktywnego - kryterium dopisywane po Q-045 (nie blokuje).
 Zrodlo:            [Biz] board.json, qq041 (D-025)
 Zalozenia:         -
 Reguly:            -
@@ -276,7 +279,6 @@ Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-019-1: Given pojazd z odczytami EV za 2025.01-2025.12, When właściciel oznacza go jako nieaktywny, Then Oszczędność EV z FV z tych miesięcy dalej wchodzi do ROI (R-006), a karty /ev dalej liczą jego oszczędność.
-- AC-019-2: (do uzupełnienia po Q-045) zachowanie formularza odczytu i listy pojazdów dla pojazdu nieaktywnego.
 
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
@@ -298,6 +300,9 @@ Z /sdd:board sync 2026-10-04 (as-built, bez potwierdzenia [Biz] - numer R po zgo
 - K-15 Ustawienie degradacji paneli (% rocznie, domyślnie 0,6) - BR-007, A-008; tablica: p34; źródło: [App] src/main.py:1888 → R-007.
 - K-16 Eksport odczytów do CSV; pobranie i przywrócenie pełnej kopii JSON (przywrócenie nadpisuje dane, ustawienia zostają) - D-010; tablica: p38, p39, p40; źródło: [Dok] README.md, /odczyty/export.csv; [App] src/main.py:1161 → R-013.
 - K-17 Integracja HA: encje (produkcja PV, pobór, oddanie), test połączenia, sensor podsumowania ROI (/api/summary) - BR-009, A-002; tablica: p42, p43, p45; źródło: [Dok] README.md, Home Assistant, /api/ha-test, API JSON → R-015.
+Z /sdd:board sync 2026-10-04, proces „Pojazdy EV i paliwo” (as-built, bez potwierdzenia [Biz]):
+- K-18 Edycja i usuwanie pojazdu (okres posiadania od-do, notatki) - D-025, D-027; tablica: p50; źródło: [App] src/main.py:1651, 1664 → R-009 albo R-019.
+- K-19 Poprawianie i usuwanie ceny paliwa, ekran „Ceny paliwa” (/ev/ceny-paliwa) - D-023, D-024; tablica: p57, p58; źródło: [App] src/main.py:1778, 1798, 1847 → R-011.
 
 ## 6. Do przegladu
 (lista R/AC dotknietych zmiana zalozen, decyzji albo zakwestionowaniem elementu modelu,
@@ -315,6 +320,7 @@ wypelniana automatycznie)
 - 2026-10-04: A-013 potwierdzone -> R-015: AC-015-1 doprecyzowane (format wyniku testu), AC-015-2 zostaje jako regresja. Zatwierdzone przez właściciela instalacji.
 - 2026-10-04: D-022 (zmienia D-005) -> R-016: bez A-001, dodane AC-016-5. Zatwierdzone przez właściciela instalacji.
 - 2026-10-04: D-023 -> R-010: dodane AC-010-3 (jedna reguła ceny paliwa dla /ev i ROI); R-006, R-008: liczby ROI mogą się zmienić. D-024 -> R-011: dodane AC-011-4. D-025 -> nowe R-019 (robocze, czeka na Q-045); R-010 obejmuje pojazdy nieaktywne. D-026 (BR-011) -> R-001, R-010 (Reguly: BR-011). BR-012 (A-014 niepotwierdzone) -> R-009. Zgoda właściciela instalacji („tak”, sync tablicy); kod v3.3.1 nie spełnia AC-010-3, AC-019-1.
+- 2026-10-04: D-027 (BR-012 nowe brzmienie, A-014 obalone) -> R-009: opis, dodane AC-009-3, AC-009-4; R-010, R-001: km i oszczędności przeliczane po zmianie przebiegu startowego. D-026 (BR-011) -> R-001: dodane AC-001-5. R-019: AC-019-2 (zaślepka) usunięte, kryterium formularza po Q-045. Zatwierdzone przez właściciela instalacji (/sdd:spec, „tak”); kod v3.3.1 nie spełnia AC-009-3, AC-009-4, AC-019-1.
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)
