@@ -49,22 +49,36 @@ stateDiagram-v2
 ```
 
 ## Pojazd
-Pola: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy (wymagany)
-Stany: dodany
-Przejscia: [*] -> dodany (Właściciel instalacji, tylko z przebiegiem startowym)
-Zrodlo: [App] src/main.py create_vehicle (/ev/pojazdy/nowy)
+Pola: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy (wymagany), okres posiadania (od-do), notatki
+Stany: dodany, nieaktywny
+Przejscia: [*] -> dodany (Właściciel instalacji, tylko z przebiegiem startowym); dodany -> nieaktywny (Właściciel instalacji, D-025; dane dalej w oszczędnościach); znaczenie stanu dla formularza odczytu - Q-045
+Zrodlo: [App] src/main.py create_vehicle (/ev/pojazdy/nowy), update_vehicle; [Biz] D-025
 Zakwestionowane:
 
 ```mermaid
 stateDiagram-v2
   [*] --> dodany
+  dodany --> nieaktywny
+```
+
+## Śledzenie cen paliwa
+Pola: włączone (tak/nie)
+Stany: ustawione
+Przejscia: [*] -> ustawione (Właściciel instalacji, przy pierwszym samochodzie, D-007); ustawione -> ustawione (włącz/wyłącz w każdej chwili, D-024)
+Zrodlo: [Biz] D-007, D-024; [App] src/main.py:1618, 1813
+Zakwestionowane:
+
+```mermaid
+stateDiagram-v2
+  [*] --> ustawione
+  ustawione --> ustawione
 ```
 
 ## Cena paliwa
 Pola: data, cena, typ paliwa, źródło
 Stany: zapisana
 Przejscia: [*] -> zapisana (Właściciel instalacji, wpis ręczny, D-006)
-Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa; [Biz] D-006
+Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa; [Biz] D-006; obowiązuje od daty wpisu do następnego wpisu (D-023)
 Zakwestionowane:
 
 ```mermaid

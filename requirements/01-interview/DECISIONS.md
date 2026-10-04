@@ -234,3 +234,43 @@ Zrodlo: [Biz] session-2026-10-04.md, Q-037
 Wplyw: R-016 (opis, Zalozenia, AC-016-5) - PRD §6; A-001 bez wymagań zależnych; zmienia D-005.
 Zamyka pytanie: Q-037
 Otwiera pytania: -
+
+## D-023 | 2026-10-04 | Jedna reguła ceny paliwa dla miesiąca
+Pytanie: Q-038 - karty /ev i ROI biorą inną cenę paliwa dla tego samego miesiąca; Q-039 - brak ceny paliwa.
+Decyzja: Cena paliwa obowiązuje od daty wpisu do następnego wpisu. Miesiąc liczy się wg ostatniej ceny wpisanej do końca tego miesiąca (przy dwóch wpisach w miesiącu - późniejszy); miesiąc bez wpisu - poprzednia cena. Cena dotyczy rodzaju paliwa pojazdu. Ta sama reguła na kartach /ev i w ROI.
+Powod: właściciel zakładał, że wpisana w miesiącu cena liczy cały miesiąc, a do nowego wpisu obowiązuje stara; dwie reguły w kodzie dają różne liczby (właściciel instalacji, tablica 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq038, qq039
+Wplyw: R-010 (nowe AC-010-3); R-006, R-008 (liczby ROI); zmienia zachowanie as-built src/main.py:369-372 i 437-443 - PRD §6.
+Zamyka pytanie: Q-038, Q-039
+Otwiera pytania: Q-044
+
+## D-024 | 2026-10-04 | Śledzenie cen paliwa zmieniane w każdej chwili
+Pytanie: Q-040 - zmiana decyzji o śledzeniu cen paliwa po dodaniu pierwszego samochodu.
+Decyzja: Właściciel może włączyć albo wyłączyć śledzenie cen paliwa w każdej chwili, nie tylko przy pierwszym samochodzie. Potwierdza decyzje budowy B-15..B-17; B-18 (wyłączenie nie usuwa cen) pozostaje decyzją budowy.
+Powod: „to jest sporadyczne działanie” - zmiana rzadka, ale się zdarza (właściciel instalacji, tablica 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq040
+Wplyw: R-011 (nowe AC-011-4) - PRD §6; uzupełnia D-007.
+Zamyka pytanie: Q-040
+Otwiera pytania: -
+
+## D-025 | 2026-10-04 | Pojazd nieaktywny
+Pytanie: Q-041 - co dzieje się z danymi auta po zmianie, sprzedaży albo wymianie.
+Decyzja: Pojazd można oznaczyć jako nieaktywny. Dane pojazdu nieaktywnego dalej wchodzą do oszczędności (EV z FV, EV vs paliwo, ROI).
+Powod: właściciel zostawiał dane auta; trzeba je wyłączyć jako nieaktywne, ale oszczędności mają się dalej liczyć (właściciel instalacji, tablica 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq041
+Wplyw: nowe R-019 (robocze); R-010 (oszczędności także z pojazdów nieaktywnych); ENTITIES.md Pojazd: stan nieaktywny - PRD §6.
+Zamyka pytanie: Q-041
+Otwiera pytania: Q-045
+
+## D-026 | 2026-10-04 | Kilometry miesiąca ze stanu licznika
+Pytanie: Q-042 - jak właściciel wpisuje przejechane km.
+Decyzja: Właściciel wpisuje stan licznika. Km miesiąca = stan licznika - poprzedni stan (poprzedni miesiąc, a w pierwszym miesiącu przebieg startowy). Potwierdza zachowanie as-built (_inject_odometer_km) jako BR-011.
+Powod: „stan licznika - tak jest łatwiej” (właściciel instalacji, tablica 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq042
+Wplyw: BR-011 (nowa); R-001 (stan licznika w odczycie), R-010 (km do obliczeń), BR-008 - PRD §6.
+Zamyka pytanie: Q-042
+Otwiera pytania: -

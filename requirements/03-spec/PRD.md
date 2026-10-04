@@ -150,19 +150,20 @@ Kryteria akceptacji:
 
 ### R-010 Oszczędności EV
 Opis:              Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.
-Zrodlo:            [App] src/services/calculations.py:275, calc_ev_savings; [Dok] README.md, EV (/ev); [Biz] board.json, qq006 (D-008)
+Zrodlo:            [App] src/services/calculations.py:275, calc_ev_savings; [Dok] README.md, EV (/ev); [Biz] board.json, qq006 (D-008); [Biz] board.json, qq038, qq039 (D-023)
 Zalozenia:         -
-Reguly:            -
+Reguly:            BR-011
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-010-1: Given w miesiącu 1 000 km, spalanie odpowiednika 7 l/100 km, paliwo 6,00 zł/l, ładowanie domowe 180 kWh, cena prądu 1,00 zł/kWh, When liczona jest oszczędność, Then Oszczędność EV z FV = 420 − 180 = 240 zł.
 - AC-010-2: Given w tym samym miesiącu także ładowanie publiczne, When właściciel otwiera /ev, Then karty pokazują Oszczędność EV vs paliwo (domowe + publiczne), a do ROI (R-006) trafia tylko Oszczędność EV z FV.
+- AC-010-3: Given pojazd na PB95 i ceny PB95 6,00 zł (2026-03-10) i 6,50 zł (2026-05-20) oraz cena ON 7,00 zł (2026-04-05), When liczona jest oszczędność za 2026.03, 2026.04 i 2026.05, Then marzec i kwiecień liczą się po 6,00 zł, maj po 6,50 zł - tak samo na kartach /ev i w ROI (D-023).
 
 ### R-011 Śledzenie cen paliwa
 Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma. Stan docelowy.
-Zrodlo:            [Biz] board.json, nmuspw64n (D-007); [Biz] board.json, qq005 (D-006)
+Zrodlo:            [Biz] board.json, nmuspw64n (D-007); [Biz] board.json, qq005 (D-006); [Biz] board.json, qq040 (D-024)
 Zalozenia:         -
 Reguly:            -
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
@@ -172,6 +173,7 @@ Kryteria akceptacji:
 - AC-011-1: Given brak pojazdów, When właściciel dodaje pierwszy samochód, Then formularz pyta, czy śledzić ceny paliwa.
 - AC-011-2: Given śledzenie włączone, When właściciel otwiera menu, Then pod EV jest pozycja „Ceny paliwa”, w której wpisuje datę, cenę, typ i źródło.
 - AC-011-3: Given śledzenie wyłączone, When właściciel otwiera menu, Then pozycji „Ceny paliwa” nie ma.
+- AC-011-4: Given dodany samochód i śledzenie wyłączone, When właściciel włącza śledzenie na /ev, Then w menu pod EV pojawia się „Ceny paliwa”; wyłączenie ją ukrywa (D-024).
 
 ### R-012 Lista i edycja odczytów
 Opis:              Lista odczytów pokazuje dla każdego miesiąca produkcję, autokonsumpcję, oddane, pobrane, zużycie i oszczędność. Przy edycji odczytu właściciel instalacji widzi ROI przed i po zmianie.
@@ -264,6 +266,18 @@ Kryteria akceptacji:
 - AC-018-2: Given README i CHANGELOG, When właściciel czyta opis integracji, Then nie ma w nim Tesla Fleet API, a CHANGELOG opisuje wycofanie i jego powód.
 - AC-018-3: Given baza z wypełnionymi polami Tesli, When aplikacja się uruchamia, Then odczyty, pojazdy i pozostałe dane właściciela zostają nienaruszone.
 
+### R-019 Pojazd nieaktywny
+Opis:              Właściciel instalacji oznacza pojazd jako nieaktywny (np. po sprzedaży albo wymianie auta). Dane pojazdu nieaktywnego dalej wchodzą do oszczędności EV i ROI. Co zmienia się w formularzu odczytu i na /ev - Q-045.
+Zrodlo:            [Biz] board.json, qq041 (D-025)
+Zalozenia:         -
+Reguly:            -
+Status:            robocze
+Wlasciciel:        właściciel instalacji
+
+Kryteria akceptacji:
+- AC-019-1: Given pojazd z odczytami EV za 2025.01-2025.12, When właściciel oznacza go jako nieaktywny, Then Oszczędność EV z FV z tych miesięcy dalej wchodzi do ROI (R-006), a karty /ev dalej liczą jego oszczędność.
+- AC-019-2: (do uzupełnienia po Q-045) zachowanie formularza odczytu i listy pojazdów dla pojazdu nieaktywnego.
+
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
 - K-1 Ustawienie miesiąca startu cyklu rozliczeniowego (domyślnie kwiecień) - D-003, BR-001 → R-003.
@@ -300,6 +314,7 @@ wypelniana automatycznie)
 - 2026-10-04: D-020 -> nowe R-018, R-001 (opis), §4; D-021 (BR-006) -> R-005 (opis), R-006 dodane AC-006-5. Zatwierdzone przez właściciela instalacji (odpowiedzi z tablicy h01, h09).
 - 2026-10-04: A-013 potwierdzone -> R-015: AC-015-1 doprecyzowane (format wyniku testu), AC-015-2 zostaje jako regresja. Zatwierdzone przez właściciela instalacji.
 - 2026-10-04: D-022 (zmienia D-005) -> R-016: bez A-001, dodane AC-016-5. Zatwierdzone przez właściciela instalacji.
+- 2026-10-04: D-023 -> R-010: dodane AC-010-3 (jedna reguła ceny paliwa dla /ev i ROI); R-006, R-008: liczby ROI mogą się zmienić. D-024 -> R-011: dodane AC-011-4. D-025 -> nowe R-019 (robocze, czeka na Q-045); R-010 obejmuje pojazdy nieaktywne. D-026 (BR-011) -> R-001, R-010 (Reguly: BR-011). BR-012 (A-014 niepotwierdzone) -> R-009. Zgoda właściciela instalacji („tak”, sync tablicy); kod v3.3.1 nie spełnia AC-010-3, AC-019-1.
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)
