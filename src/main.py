@@ -52,7 +52,7 @@ from fastapi.templating import Jinja2Templates
 from utils.db import init_db, get_db, DB_PATH
 from services.calculations import (
     calc_monthly, calc_monthly_netbilling, calc_roi, roi_sensitivity,
-    calc_ev_savings, enrich_readings_sequence,
+    calc_ev_savings, enrich_readings_sequence, investment_as_of, roi_chart_series,
     _get_billing_model, _get_rce_price,
 )
 from services.forecast import forecast_months, breakeven_scenarios, breakeven_confidence_interval
@@ -493,6 +493,12 @@ def _validate_reading(
     return None
 
 
+def _investment_now(investments: list[dict]) -> float:
+    """Łączna inwestycja na dziś: etapy z datą nie późniejszą niż bieżący miesiąc (D-015)."""
+    from datetime import date
+    return investment_as_of(investments, date.today().strftime("%Y.%m"))
+
+
 async def _roi_state(db: aiosqlite.Connection) -> tuple[dict | None, list[dict], list[dict]]:
     """ROI z pełnym kompletem parametrów (net-billing, RCE, współczynnik puli, EV) — jak na /roi.
 
@@ -509,7 +515,7 @@ async def _roi_state(db: aiosqlite.Connection) -> tuple[dict | None, list[dict],
 
     ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
-    total = sum(i["cost_pln"] for i in investments)
+    total = _investment_now(investments)
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
     roi = calc_roi(readings, total, _default_price(), nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
     return roi, readings, investments
@@ -534,7 +540,7 @@ async def dashboard(request: Request):
 
     ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
-    total_investment = sum(i["cost_pln"] for i in investments)
+    total_investment = _investment_now(investments)
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
     roi = calc_roi(readings, total_investment, default_price, nm_ratio, billing_periods, rce_prices) if readings and total_investment > 0 else None
@@ -894,7 +900,7 @@ async def investments_list(request: Request):
         roi, _, investments = await _roi_state(db)
     finally:
         await db.close()
-    total = sum(i["cost_pln"] for i in investments)
+    total = _investment_now(investments)
     return _t(request, "investments.html", {"investments": investments, "total": total, "roi": roi})
 
 
@@ -984,27 +990,15 @@ async def roi_page(request: Request):
 
     ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
     readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
-    total = sum(i["cost_pln"] for i in investments)
+    total = _investment_now(investments)
     default_price = _default_price()
     nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
 
     roi = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
     sensitivity = roi_sensitivity(readings, total, [0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20], nm_ratio, billing_periods, rce_prices) if readings and total > 0 else []
 
-    # Monthly savings for chart — FV + EV stacked
-    monthly_savings = []
-    cumulative_fv = 0.0
-    cumulative_ev = 0.0
-    enriched_seq = enrich_readings_sequence(readings, nm_ratio, default_price, billing_periods, rce_prices)
-    for r in enriched_seq:
-        cumulative_fv += r.get("savings_pln") or 0
-        cumulative_ev += r.get("ev_savings_pln") or 0
-        monthly_savings.append({
-            "period": r["period"],
-            "cumulative": round(cumulative_fv + cumulative_ev, 2),
-            "cumulative_fv": round(cumulative_fv, 2),
-            "cumulative_ev": round(cumulative_ev, 2),
-        })
+    # Wykres: skumulowane oszczędności (PV + EV z FV) i inwestycja schodkowo wg dat etapów (D-015, D-021)
+    monthly_savings = roi_chart_series(readings, investments, nm_ratio, default_price, billing_periods, rce_prices)
 
     # Forecast i break-even
     degradation_rate = ev_settings.get("panel_degradation_rate") or 0.006
@@ -2082,7 +2076,7 @@ async def roi_preview(data: dict):
         default_price = _default_price()
         ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
         readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
-        total = sum(i["cost_pln"] for i in investments)
+        total = _investment_now(investments)
         roi_before = calc_roi(readings, total, default_price, nm_ratio, billing_periods, rce_prices) if readings and total > 0 else {}
 
         # Apply hypothetical edit

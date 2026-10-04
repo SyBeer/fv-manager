@@ -58,11 +58,11 @@ const labels = {{ monthly_savings | map(attribute='period') | list | tojson }};
 const savingsTotal = {{ monthly_savings | map(attribute='cumulative') | list | tojson }};
 const savingsFV = {{ monthly_savings | map(attribute='cumulative_fv') | list | tojson }};
 const savingsEV = {{ monthly_savings | map(attribute='cumulative_ev') | list | tojson }};
-const investment = {{ total_investment }};
+const investmentSeries = {{ monthly_savings | map(attribute='investment') | list | tojson }};
 const hasEV = {{ 'true' if has_ev else 'false' }};
 const datasets = [
   { label: 'Skumulowane oszczędności łącznie [zł]', data: savingsTotal, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.08)', fill: true, tension: .3, pointRadius: 2 },
-  { label: 'Koszt inwestycji [zł]', data: labels.map(() => investment), borderColor: '#f59e0b', borderDash: [6,3], pointRadius: 0 },
+  { label: 'Koszt inwestycji [zł]', data: investmentSeries, borderColor: '#f59e0b', borderDash: [6,3], pointRadius: 0, stepped: true },
 ];
 if (hasEV) {
   datasets.splice(1, 0,

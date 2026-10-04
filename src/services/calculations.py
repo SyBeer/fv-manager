@@ -272,6 +272,45 @@ def calc_roi(
     }
 
 
+def investment_as_of(investments: list[dict], period: str) -> float:
+    """Łączna inwestycja w miesiącu `period` (RRRR.MM).
+
+    Etap liczy się od miesiąca swojej daty (D-015); etap z datą sprzed pierwszego
+    odczytu jest więc ujęty już w pierwszym miesiącu z odczytem (D-021).
+    Ujemny koszt to dofinansowanie (D-016).
+    """
+    ym = period.replace(".", "-")
+    return round(sum(i["cost_pln"] or 0 for i in investments if (i.get("date") or "")[:7] <= ym), 2)
+
+
+def roi_chart_series(
+    readings: list[dict],
+    investments: list[dict],
+    net_metering_ratio: float = 0.80,
+    default_price: float = 0.75,
+    billing_periods: list[dict] | None = None,
+    rce_prices: list[dict] | None = None,
+    cycle_start_month: int = 4,
+) -> list[dict]:
+    """Punkty wykresu /roi: skumulowane oszczędności (PV + EV z FV) i inwestycja w danym miesiącu."""
+    series = []
+    cumulative_fv = 0.0
+    cumulative_ev = 0.0
+    enriched = enrich_readings_sequence(readings, net_metering_ratio, default_price,
+                                        billing_periods, rce_prices, cycle_start_month)
+    for r in enriched:
+        cumulative_fv += r.get("savings_pln") or 0
+        cumulative_ev += r.get("ev_savings_pln") or 0
+        series.append({
+            "period": r["period"],
+            "cumulative": round(cumulative_fv + cumulative_ev, 2),
+            "cumulative_fv": round(cumulative_fv, 2),
+            "cumulative_ev": round(cumulative_ev, 2),
+            "investment": investment_as_of(investments, r["period"]),
+        })
+    return series
+
+
 def calc_ev_savings(
     ev_kwh: float,
     price_per_kwh: float,
