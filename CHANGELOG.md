@@ -1,5 +1,31 @@
 # Changelog
 
+## [3.3.0] — 2026-10-04
+
+Wydanie zbudowane wg wymagań `requirements/03-spec/PRD.md` (R-001..R-018, zadania Redmine #17..#34). Decyzje podjęte w trakcie budowy: `requirements/04-validation/build-2026-10-04.md`.
+
+### Dodano
+- **Miesiąc startu cyklu rozliczeniowego** w ustawieniach PV (domyślnie kwiecień) — w tym miesiącu zeruje się pula net-meteringu; używany we wszystkich obliczeniach (R-003)
+- **Import CSV „cały plik albo nic”** — błąd w dowolnym wierszu = nic nie zapisane, raport: numer wiersza (1 = nagłówek) i powód; przecinek dziesiętny (R-004)
+- **Tabela scenariuszy podaje „zwrot za N mies.”** także po 36 miesiącach (prognoza do 360 mies.; wykres nadal 36 mies.) (R-007)
+- **Śledzenie cen paliwa wybierane przy pierwszym samochodzie** — osobna strona „Ceny paliwa” w menu pod EV tylko przy włączonym śledzeniu; przełącznik na /ev; istniejące instalacje mają śledzenie włączone (R-011)
+
+### Zmieniono
+- **Etap inwestycji liczony od miesiąca swojej daty** — wykres /roi pokazuje inwestycję schodkowo; etap sprzed pierwszego odczytu wchodzi od pierwszego miesiąca; dofinansowanie = etap z ujemnym kosztem; „pozostało do zwrotu” liczy etapy do bieżącego miesiąca (R-006)
+- Etykiety kart /roi: „Łączne oszczędności”, „Mies. do ROI” (R-008)
+- „Wyczyść bazę”: tekst wymienia wszystkie usuwane dane i zaleca pobranie kopii (R-014)
+- Metodologia i README zgodne z decyzjami: pula w cyklu, RCE i ceny paliwa wpisywane ręcznie, bez dat ustawowych net-billingu, 7 cen w analizie wrażliwości, podtytuł z faktycznym współczynnikiem puli, format CSV ze średnikiem (R-016)
+
+### Usunięto
+- **Integracja z Tesla Fleet API wycofana** — API Tesli nie działało dobrze; kolumny `tesla_*` są usuwane z bazy przy starcie (dane właściciela zostają), z README zniknął opis integracji i tras `/api/tesla-*` (R-018, D-020)
+
+### Poprawiono
+- **Import CSV i przywracanie kopii zwracały 403** — middleware CSRF nie odczytywał tokenu z formularzy `multipart/form-data`
+- **Przywracanie kopii gubiło dane** — stan licznika i daty pojazdów oraz km, stan licznika i ładowanie publiczne w danych EV; teraz odtwarzane są wszystkie kolumny z kopii (R-013)
+
+### Testy
+- 189 testów, w tym testy z kryteriami akceptacji AC-xxx-n dla R-001..R-018 (`tests/test_r0*.py`)
+
 ## [3.2.5] — 2026-10-04
 
 ### Poprawiono
