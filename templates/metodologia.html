@@ -47,24 +47,25 @@
         <div style="background:var(--badge-blue-bg); border-radius:8px; padding:.85rem;">
           <div style="color:var(--c-blue-2); font-weight:600; font-size:.85rem; margin-bottom:.4rem;">
             Net-metering
-            <span style="font-size:.75rem; font-weight:400; opacity:.7;">(instalacje przed VII 2022)</span>
           </div>
           <p style="color:var(--text); font-size:.88rem; margin:0;">
-            Za każdy oddany kWh dostajesz z powrotem <strong>0,80 kWh</strong> do pobrania kiedy chcesz (w cyklu rocznym). Pula kumuluje się miesiąc po miesiącu i zeruje raz w roku.
+            Za każdy oddany kWh dostajesz z powrotem część energii do pobrania później — tyle, ile wynosi <strong>współczynnik puli</strong> z ustawień (domyślnie 0,80 kWh). Niewykorzystana pula przechodzi na kolejny miesiąc i zeruje się w miesiącu startu cyklu rozliczeniowego (ustawienie na stronie PV, domyślnie kwiecień).
           </p>
         </div>
 
         <div style="background:var(--badge-green-bg); border-radius:8px; padding:.85rem;">
           <div style="color:var(--badge-green-text); font-weight:600; font-size:.85rem; margin-bottom:.4rem;">
             Net-billing
-            <span style="font-size:.75rem; font-weight:400; opacity:.7;">(instalacje od VII 2022)</span>
           </div>
           <p style="color:var(--text); font-size:.88rem; margin:0;">
-            Oddany prąd jest <strong>sprzedawany</strong> po aktualnej cenie rynkowej (RCE), a kupujesz po taryfie sprzedawcy. Dwa różne przeliczniki — aplikacja śledzi je osobno.
+            Oddany prąd jest <strong>sprzedawany</strong> po cenie rynkowej (RCE), a kupujesz po taryfie sprzedawcy. Ceny RCE wpisujesz ręcznie na stronie PV; cena sprzedaży wpisana w odczycie ma pierwszeństwo.
           </p>
         </div>
 
       </div>
+      <p style="color:var(--text-2); font-size:.82rem; margin:.75rem 0 0;">
+        Który model obowiązuje w danym miesiącu, wynika z okresów rozliczeniowych ustawionych na stronie PV — daty zależą od Twojej umowy z operatorem.
+      </p>
     </div>
   </div>
 
@@ -167,7 +168,7 @@
       <div style="background:var(--bg); border-radius:8px; padding:.85rem; text-align:center;">
         <div style="color:var(--text-3); font-size:.75rem; text-transform:uppercase; letter-spacing:.05em;">Analiza wrażliwości</div>
         <div style="color:var(--text); font-size:.88rem; margin-top:.35rem;">
-          Możesz sprawdzić jak zmiana ceny prądu (np. wzrost o 20%) skróciłaby lub wydłużyła czas zwrotu.
+          Tabela na stronie ROI pokazuje czas zwrotu przy 7 stałych cenach prądu (0,50–1,20 zł/kWh) — jak zmieniłby się zwrot przy innej cenie.
         </div>
       </div>
     </div>
@@ -188,14 +189,14 @@
           <li>Ładowanie domowe auta (kWh) i przejechane km</li>
           <li>Ładowanie publiczne auta (kWh, km, koszt) — opcjonalnie</li>
           <li>Cena prądu z faktury (opcjonalnie)</li>
+          <li>Ceny RCE (net-billing) — wpisujesz ręcznie na stronie PV</li>
+          <li>Ceny paliwa — wpisujesz ręcznie (jeśli je śledzisz)</li>
         </ul>
       </div>
       <div style="font-size:.88rem; color:var(--text);">
-        <div style="color:var(--c-green); font-weight:600; margin-bottom:.35rem;">Aplikacja pobiera automatycznie</div>
+        <div style="color:var(--c-green); font-weight:600; margin-bottom:.35rem;">Aplikacja pobiera sama</div>
         <ul style="margin:0; padding-left:1.25rem; line-height:1.8; color:var(--text-2);">
-          <li>Aktualne ceny RCE (net-billing)</li>
-          <li>Dane z Home Assistant (opcjonalnie)</li>
-          <li>Historię cen paliwa</li>
+          <li>Produkcję, pobór i oddanie z Home Assistant (opcjonalnie, przycisk w formularzu odczytu)</li>
         </ul>
       </div>
     </div>

@@ -1071,6 +1071,7 @@ async def roi_page(request: Request):
         "confidence": confidence,
         "has_enough_data": has_enough_data,
         "scenario_horizon": SCENARIO_HORIZON,
+        "nm_ratio": nm_ratio,
     })
 
 

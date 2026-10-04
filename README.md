@@ -1,7 +1,7 @@
 # FV Manager v3.2.5
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
-Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant i Tesla Fleet API.
+Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant.
 Dostępna jako standalone FastAPI app oraz jako HA Add-on (ingress panel w sidebarze).
 
 ---
@@ -27,7 +27,7 @@ Dostępna jako standalone FastAPI app oraz jako HA Add-on (ingress panel w sideb
 | Baza danych | SQLite (`data/fv.db` lokalnie, `/data/fv.db` w HA) |
 | Deployment | Standalone (uvicorn) lub HA Add-on (Docker, ingress) |
 | Testy | pytest |
-| Import danych | CSV (upload) lub API (HA, Tesla) |
+| Import danych | CSV (upload) lub API Home Assistant |
 
 ---
 
@@ -102,11 +102,13 @@ notes                TEXT
 
 ```sql
 id                            INTEGER PRIMARY KEY AUTOINCREMENT
-name                          TEXT NOT NULL               -- "Tesla Model Y"
+name                          TEXT NOT NULL               -- np. "Model Y"
 efficiency_kwh_per_100km      REAL DEFAULT 16.0
 fuel_consumption_l_per_100km  REAL DEFAULT 10.0           -- odpowiednik benzynowy
 fuel_type                     TEXT DEFAULT 'PB95'
 notes                         TEXT
+date_from, date_to            TEXT                        -- okres używania
+przebieg_km                   REAL                        -- stan licznika przy dodaniu (wymagany)
 ```
 
 ### `ev_monthly` — zużycie EV per pojazd per miesiąc
@@ -140,9 +142,10 @@ ha_entity                      TEXT       -- legacy EV entity
 ha_solar_entity                TEXT       -- sensor produkcji PV
 ha_grid_consumed_entity        TEXT       -- sensor poboru z sieci
 ha_grid_returned_entity        TEXT       -- sensor oddania do sieci
-tesla_access_token             TEXT
-tesla_site_id                  TEXT
-tesla_api_base                 TEXT       -- np. "https://fleet-api.prd.eu.vn.cloud.tesla.com"
+net_metering_ratio             REAL DEFAULT 0.80   -- współczynnik puli net-meteringu
+panel_degradation_rate         REAL DEFAULT 0.006  -- degradacja paneli / rok
+cycle_start_month              INTEGER DEFAULT 4   -- miesiąc startu cyklu rozliczeniowego (zerowanie puli)
+fuel_tracking                  INTEGER             -- śledzenie cen paliwa (wybór przy pierwszym aucie)
 ```
 
 ### `fuel_prices` — historia cen paliw
@@ -170,11 +173,18 @@ taken_from_grid  = 100 kWh   (licznik forward 1.8.0)
 
 auto_consumption  = production - sent_to_grid     = 200 kWh  (zużyte wprost z PV)
 total_consumed    = auto_consumption + taken       = 300 kWh  (łączne zużycie domu)
-net_metering_pool = sent_to_grid × 0.80           = 240 kWh  (80% zwrotu — stary net-metering)
-savings_kwh       = auto_consumption + min(pool, taken_from_grid)
+net_metering_pool = sent_to_grid × 0.80           = 240 kWh  (współczynnik puli z ustawień, domyślnie 0.80)
+available         = carry_over_in + pool           (pula z poprzednich miesięcy cyklu + bieżąca)
+savings_kwh       = auto_consumption + min(available, taken_from_grid)
                   = 200 + min(240, 100)            = 300 kWh
+carry_over_out    = available - min(available, taken) = 140 kWh
 savings_pln       = savings_kwh × price_per_kwh   = 225 zł   (jeśli cena znana)
 ```
+
+**Pula net-meteringu** (`enrich_readings_sequence`): niewykorzystana pula przechodzi na kolejny miesiąc
+i zeruje się w miesiącu startu cyklu rozliczeniowego (ustawienie `cycle_start_month` na stronie PV, domyślnie kwiecień)
+oraz przy zmianie modelu rozliczeń. W miesiącach net-billingu oddana energia jest wyceniana po cenie RCE
+(wpisywanej ręcznie na stronie PV; cena sprzedaży z odczytu ma pierwszeństwo).
 
 Zwraca: `auto_consumption`, `total_consumed`, `net_metering_pool`, `savings_kwh`, `savings_pln`, `production_value_pln`
 
@@ -184,6 +194,7 @@ Zwraca: `auto_consumption`, `total_consumed`, `net_metering_pool`, `savings_kwh`
 total_fv_savings    = Σ savings_pln (wszystkie miesiące)
 total_ev_savings    = Σ ev_savings_pln (multi-vehicle lub legacy)
 total_savings       = total_fv_savings + total_ev_savings
+total_investment    = Σ etapów inwestycji z datą <= bieżący miesiąc (dofinansowanie = etap ujemny)
 remaining           = total_investment - total_savings
 avg_monthly         = total_savings / months_count          ← historyczna średnia
 months_to_roi       = remaining / avg_monthly               ← ekstrapolacja liniowa
@@ -221,7 +232,7 @@ total_savings  = savings_home + savings_public                 ← "Oszczędnoś
 
 ### Analiza wrażliwości (`roi_sensitivity`)
 
-Oblicza break-even dla cen kWh: 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.10, 1.20 zł.
+Oblicza break-even dla 7 stałych cen kWh: 0.50, 0.60, 0.70, 0.80, 0.90, 1.00, 1.20 zł.
 
 ### Wzbogacenie odczytów o EV (`_ev_enrich`)
 
@@ -247,9 +258,11 @@ Dwie ścieżki (kolejność priorytetu):
 | `/inwestycje/nowa` | POST | Dodaj inwestycję |
 | `/inwestycje/{id}/edytuj` | GET/POST | Edycja inwestycji |
 | `/inwestycje/{id}/usun` | POST | Usuń inwestycję |
-| `/roi` | GET | ROI: wykres skumulowany, sensitivity table |
-| `/ev` | GET | EV savings, pojazdy, ceny paliw, konfiguracja HA/Tesla |
-| `/ev/settings` | POST | Zapisz konfigurację HA/Tesla |
+| `/roi` | GET | ROI: wykres skumulowany (inwestycja schodkowo wg dat etapów), tabela wrażliwości, scenariusze |
+| `/ev` | GET | EV savings, pojazdy |
+| `/ev/ceny-paliwa` | GET | Ceny paliwa (gdy śledzenie włączone) |
+| `/ev/fuel-tracking` | POST | Włącz/wyłącz śledzenie cen paliwa |
+| `/ev/settings` | POST | Zapisz konfigurację EV i Home Assistant |
 | `/ev/pojazdy/nowy` | POST | Dodaj pojazd |
 | `/ev/pojazdy/{id}` | GET | Szczegóły pojazdu — historia, km, koszty, oszczędności |
 | `/ev/pojazdy/{id}/edytuj` | POST | Edytuj pojazd |
@@ -267,11 +280,9 @@ Dwie ścieżki (kolejność priorytetu):
 | `/api/ha-test` | GET | Test połączenia HA + ostatnia produkcja |
 | `/api/ha-solar-fetch?period=YYYY.MM` | GET | Pobierz produkcję PV z HA za miesiąc |
 | `/api/ha-grid-fetch?period=YYYY.MM&direction=consumed\|returned` | GET | Pobierz dane sieci z HA |
-| `/api/tesla-sites` | GET | Lista energy sites z Tesla Fleet API |
-| `/api/tesla-charging-fetch?period=YYYY-MM` | GET | Pobierz kWh ładowania z Tesla za miesiąc |
 | `/import/template.csv` | GET | Pobierz szablon CSV do importu |
-| `/import/csv` | POST | Import z pliku CSV (INSERT OR IGNORE) |
-| `/admin/clear-db` | POST | Usuń wszystkie odczyty (danger zone) |
+| `/import/csv` | POST | Import z pliku CSV — cały plik albo nic, raport błędnych wierszy |
+| `/admin/clear-db` | POST | Usuń wszystkie dane, ustawienia zostają (danger zone) |
 
 ---
 
@@ -287,20 +298,10 @@ URL bazowy: `http://supervisor/core`.
 2. Fallback: `GET /api/history/period` (History API — tylko ostatnie ~10 dni)
 3. Obsługuje konwersję Wh → kWh (gdy unit_class = `energy`)
 
-Encje do skonfigurowania w `/ev` → sekcja Home Assistant:
+Encje do skonfigurowania w Ustawieniach (`/import`) → sekcja Home Assistant (w HA: panel Energy):
 - `ha_solar_entity` — sensor produkcji PV (np. `sensor.solaredge_energy_today`)
 - `ha_grid_consumed_entity` — sensor poboru z sieci (forward, 1.8.0)
 - `ha_grid_returned_entity` — sensor oddania do sieci (reverse, 2.8.0)
-
-### Tesla Fleet API
-
-Endpoint: `/api/1/energy_sites/{site_id}/telemetry_history?kind=charge`
-Timezone: `Europe/Warsaw`
-
-Konfiguracja w `/ev` → sekcja Tesla:
-- `tesla_access_token` — token z developer.tesla.com
-- `tesla_site_id` — wykrywany automatycznie przez `/api/tesla-sites`
-- `tesla_api_base` — region-specific, np. `https://fleet-api.prd.eu.vn.cloud.tesla.com`
 
 ---
 
@@ -308,16 +309,18 @@ Konfiguracja w `/ev` → sekcja Tesla:
 
 ### Format CSV
 
+Separator **średnik (`;`)**, kodowanie UTF-8, polskie nagłówki (jak w eksporcie z `/odczyty`):
+
 ```
-period,production_kwh,sent_to_grid_kwh,taken_from_grid_kwh,price_per_kwh,ev_kwh,notes
-2024.01,350.5,200.0,80.0,0.75,,
-2024.02,280.0,150.0,120.5,0.78,45.2,z fakturą
+Okres;Rok;Miesiąc;Dni;Produkcja [kWh];Oddane [kWh];Pobrane [kWh];Cena kWh [zł];EV [kWh];Nr faktury;Faktura brutto [zł];Notatki
+2024.01;2024;1;31;350,5;200;80;0,75;;;;
+2024.02;2024;2;29;280;150;120,5;0,78;45,2;FV/02/2024;210,40;z fakturą
 ```
 
-- `period`: format `YYYY.MM` (wymagane)
-- `production_kwh`, `sent_to_grid_kwh`, `taken_from_grid_kwh`: wymagane
-- `price_per_kwh`, `ev_kwh`, `notes`: opcjonalne
-- Duplikaty pomijane (`INSERT OR IGNORE` po `period`)
+- `Okres`: format `RRRR.MM` (wymagane); `Produkcja`, `Oddane`, `Pobrane`: wymagane, liczby ≥ 0, oddane ≤ produkcja
+- liczby z przecinkiem albo kropką dziesiętną
+- **cały plik albo nic**: jeśli którykolwiek wiersz ma błąd, nie zostaje zapisany żaden; raport podaje numer wiersza (1 = nagłówek) i powód
+- okres, który już istnieje w aplikacji, jest pomijany (poprawka miesiąca — edycja odczytu)
 
 Szablon do pobrania: `GET /import/template.csv`
 
@@ -343,9 +346,7 @@ Szablon do pobrania: `GET /import/template.csv`
 - Summary cards: łączne oszczędności EV PLN, łączne km, litry zaoszczędzone, ostatnia cena paliwa
 - Tabela miesięczna: kWh, km (est.), koszt paliwa (gdyby), koszt prądu, oszczędność netto, litry
 - Zarządzanie pojazdami (CRUD inline)
-- Historia cen paliw (CRUD inline)
-- Konfiguracja HA (3 entity inputs + przycisk test połączenia)
-- Konfiguracja Tesla (token + autodiscovery site ID)
+- Przełącznik śledzenia cen paliwa; ceny paliwa na osobnej stronie `/ev/ceny-paliwa` (pozycja menu pod EV)
 
 ---
 
