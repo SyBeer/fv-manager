@@ -112,7 +112,7 @@
       <div>
         <label style="font-size:.8rem; color:var(--text-2);">Model</label>
         <select name="model" required>
-          <option value="net_metering">net-metering (pula 80%)</option>
+          <option value="net_metering">net-metering (pula {{ ((settings.net_metering_ratio or 0.8) * 100) | round | int }}%)</option>
           <option value="net_billing">net-billing (sprzedaż RCE)</option>
         </select>
       </div>

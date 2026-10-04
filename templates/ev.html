@@ -280,8 +280,8 @@
       {% if not vehicles %}
       <fieldset style="border:1px solid var(--border); border-radius:6px; padding:.6rem .8rem;">
         <legend style="font-size:.8rem; color:var(--text-2); padding:0 .3rem;">Czy chcesz śledzić ceny paliwa?</legend>
-        <label style="font-size:.85rem; margin-right:1rem;"><input type="radio" name="fuel_tracking" value="1" required> Tak — pozycja „Ceny paliwa” w menu EV</label>
-        <label style="font-size:.85rem;"><input type="radio" name="fuel_tracking" value="0"> Nie</label>
+        <label style="font-size:.85rem; margin-right:1rem; display:inline-flex; align-items:center; gap:.4rem;"><input type="radio" name="fuel_tracking" value="1" required style="width:auto; margin:0;"> Tak — pozycja „Ceny paliwa” w menu EV</label>
+        <label style="font-size:.85rem; display:inline-flex; align-items:center; gap:.4rem;"><input type="radio" name="fuel_tracking" value="0" style="width:auto; margin:0;"> Nie</label>
         <small style="display:block; color:var(--text-3); margin-top:.3rem;">Ceny paliwa są potrzebne do policzenia oszczędności EV w porównaniu z autem spalinowym. Wybór możesz później zmienić na tej stronie.</small>
       </fieldset>
       {% endif %}
@@ -333,7 +333,7 @@
 
 {% if vehicles %}
 <form method="post" action="{{ rp }}/ev/fuel-tracking" style="margin-top:1rem; font-size:.85rem; color:var(--text-2);">
-  <label><input type="checkbox" name="fuel_tracking" value="1" {% if fuel_tracking %}checked{% endif %} onchange="this.form.submit()"> Śledzę ceny paliwa (pozycja „Ceny paliwa” w menu EV)</label>
+  <label style="display:inline-flex; align-items:center; gap:.5rem; cursor:pointer;"><input type="checkbox" name="fuel_tracking" value="1" {% if fuel_tracking %}checked{% endif %} onchange="this.form.submit()" style="width:auto; margin:0;"> Śledzę ceny paliwa (pozycja „Ceny paliwa” w menu EV)</label>
 </form>
 {% endif %}
 
