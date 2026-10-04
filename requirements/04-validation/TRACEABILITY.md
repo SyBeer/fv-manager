@@ -2,7 +2,7 @@
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
 Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Przebieg 6 (2026-10-04): dopisane AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4, AC-019-1..AC-019-3 - bez testów, zadania wymagają ponownego handoveru.
-Odcisk wymagan: sha256:e50c8b00663062f09b60c92cfc2f6102115dbcccf89e604c9b4ef431d9effca1
+Odcisk wymagan: sha256:4226614f5212cb987c52bdf2b2fce2e7ffbadad0bfa0ab427de124aa1f5ad6f6
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|

@@ -79,3 +79,7 @@
 2026-10-04 | board sync | odpowiedź Q-045 z tablicy -> D-028 (pojazd nieaktywny bez pól EV w formularzu nowego miesiąca); R-019 AC-019-2, AC-019-3, zatwierdzone; ENTITIES Pojazd; PRD §6; tablica p60 | [Biz] board.json qq045
 2026-10-04 | spec --agent | 03-spec/agent zregenerowane z 19 R zatwierdzonych; nowa funkcja pojazd-nieaktywny (T-19 R-019, Z) | PRD.md
 2026-10-04 | validate | przebieg 7: 0 BLOCK, 1 WARN (W9: Pojazd nieaktywny, Stan licznika), gotowość 100% (19/19); TRACEABILITY: AC-019-2, AC-019-3, T-19 | PRD.md
+2026-10-04 | domain | GLOSSARY: nowe hasła robocze Pojazd, Pojazd nieaktywny, Stan licznika, Śledzenie cen paliwa (test spójności: pojęcia z RULES/ENTITIES/PRD bez hasła) | D-007, D-024..D-028
+2026-10-04 | domain | zatwierdzone hasła: Pojazd, Pojazd nieaktywny, Stan licznika, Śledzenie cen paliwa; Przebieg startowy - definicja uzupełniona o zmianę wartości (D-027) | właściciel instalacji
+2026-10-04 | spec --agent | constitution.md zregenerowane (słownik 24 hasła) | GLOSSARY.md
+2026-10-04 | validate | przebieg 8: 0 BLOCK, 0 WARN, gotowość 100% (19/19); nowy odcisk w raporcie i TRACEABILITY | GLOSSARY.md
