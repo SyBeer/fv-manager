@@ -829,16 +829,16 @@
     {
       "id": "p60",
       "type": "cmd",
-      "text": "Oznacz pojazd jako nieaktywny - jego dane dalej liczą się do oszczędności (docelowo)",
+      "text": "Oznacz pojazd jako nieaktywny - dane dalej liczą się do oszczędności, w formularzu nowego miesiąca brak jego pól EV (docelowo)",
       "lane": "Pojazdy EV i paliwo",
       "col": 18,
-      "source": "[Biz] D-025",
+      "source": "[Biz] D-025, D-028",
       "ref": "R-019",
       "file": "03-spec/PRD.md",
       "by": "agent",
       "created": "2026-10-04T19:18:25+02:00",
-      "updated": "2026-10-04T19:18:25+02:00",
-      "synced": "2026-10-04T19:18:25+02:00"
+      "updated": "2026-10-04T21:49:41+02:00",
+      "synced": "2026-10-04T21:49:41+02:00"
     },
     {
       "id": "p61",
@@ -866,21 +866,7 @@
       "created": "2026-10-04T19:18:25+02:00",
       "updated": "2026-10-04T19:18:25+02:00",
       "synced": "2026-10-04T19:18:25+02:00"
-    },
-    {
-      "id": "qq045",
-      "type": "hot",
-      "text": "Pojazd nieaktywny (D-025): pojazd ma dziś pole „okres posiadania do”. Gdy ostatnio wpisywałeś odczyt miesiąca, przy których autach wpisywałeś dane EV, a przy których pola zostawały puste?",
-      "lane": "Miesięczny odczyt",
-      "col": 4,
-      "source": "01-interview/QUESTIONS.md",
-      "ref": "Q-045",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-04T19:18:25+02:00",
-      "updated": "2026-10-04T19:18:25+02:00",
-      "synced": "2026-10-04T19:18:25+02:00"
     }
   ],
-  "updated": "2026-10-04T21:36:14+02:00"
+  "updated": "2026-10-04T19:53:32.803Z"
 }

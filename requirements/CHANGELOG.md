@@ -76,3 +76,6 @@
 2026-10-04 | spec | D-027 (zmiana przebiegu startowego z wyborem przesunięcia stanów licznika); A-014 obalone; BR-012 nowe brzmienie; PRD: R-001 AC-001-5, R-009 AC-009-3/AC-009-4, R-019 bez zaślepki AC-019-2, §5a K-18/K-19, §6; tablica p51 | [Biz] session-2026-10-04.md
 2026-10-04 | spec --agent | 03-spec/agent zregenerowane z 18 R zatwierdzonych (R-019 robocze pominięte); ev: T-11 R-009 Z (AC-009-3/4), T-12 R-010 B (AC-010-3); odczyty: AC-001-5; typy zadań wg stanu v3.3.1 | PRD.md
 2026-10-04 | validate | przebieg 6: 0 BLOCK, 1 WARN (W9: Pojazd nieaktywny, Stan licznika), gotowość 95% (18/19, R-019 robocze); TRACEABILITY: 6 nowych AC; BR-012 Wymagania = R-009 | PRD.md
+2026-10-04 | board sync | odpowiedź Q-045 z tablicy -> D-028 (pojazd nieaktywny bez pól EV w formularzu nowego miesiąca); R-019 AC-019-2, AC-019-3, zatwierdzone; ENTITIES Pojazd; PRD §6; tablica p60 | [Biz] board.json qq045
+2026-10-04 | spec --agent | 03-spec/agent zregenerowane z 19 R zatwierdzonych; nowa funkcja pojazd-nieaktywny (T-19 R-019, Z) | PRD.md
+2026-10-04 | validate | przebieg 7: 0 BLOCK, 1 WARN (W9: Pojazd nieaktywny, Stan licznika), gotowość 100% (19/19); TRACEABILITY: AC-019-2, AC-019-3, T-19 | PRD.md

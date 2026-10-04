@@ -284,3 +284,13 @@ Zrodlo: [Biz] session-2026-10-04.md, D-027
 Wplyw: BR-012 (nowe brzmienie); A-014 obalone; R-009 (AC-009-3, AC-009-4); R-010, R-001 (km i oszczędności przez BR-011) - PRD §6.
 Zamyka pytanie: -
 Otwiera pytania: -
+
+## D-028 | 2026-10-04 | Pojazd nieaktywny w formularzu odczytu
+Pytanie: Q-045 - przy których autach właściciel wpisuje dane EV w odczycie miesiąca.
+Decyzja: Pojazd aktywny ma pola EV w formularzu odczytu każdego miesiąca; gdy auto stało, pola zostają puste i odczyt się zapisuje. Pojazd nieaktywny nie ma pól EV w formularzu odczytu nowego miesiąca; jego dane z miesięcy, w których je wpisano, są widoczne i edytowalne. Pole „okres posiadania do” bez zmian, niezwiązane z nieaktywnością.
+Powod: właściciel wpisuje dane przy autach, którymi jeździł w danym miesiącu; auto, które stało, dalej jest aktywne (właściciel instalacji, tablica 2026-10-04). Ukrycie pól pojazdu nieaktywnego - wniosek prowadzącego z odpowiedzi, zatwierdzony przez właściciela („tak”).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq045
+Wplyw: R-019 (AC-019-2, AC-019-3, status zatwierdzone); R-001 (formularz odczytu) - PRD §6; ENTITIES.md Pojazd.
+Zamyka pytanie: Q-045
+Otwiera pytania: -

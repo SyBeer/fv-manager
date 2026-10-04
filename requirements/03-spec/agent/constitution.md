@@ -2,7 +2,7 @@
 
 # Constitution - FV Manager
 
-Niezmienne zasady dla agenta budującego. Źródło prawdy: `03-spec/PRD.md` - generowane tylko z wymagań zatwierdzonych (18). Nie buduj wymagań roboczych: R-019.
+Niezmienne zasady dla agenta budującego. Źródło prawdy: `03-spec/PRD.md` - generowane tylko z wymagań zatwierdzonych (19). Nie buduj wymagań roboczych: -.
 
 ## Aktor
 Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, pojazdy, ceny paliwa i RCE, ustawia okresy rozliczeniowe, importuje/eksportuje dane, sprawdza ROI i oszczędności (02-domain/ACTORS.md).
@@ -54,7 +54,7 @@ Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, po
 | BR-009 | (techniczna) Jeżeli dane pobierane są z Home Assistant, to najpierw ze Statistics API, a gdy ich brak - z History API (ok. 10 dni wstecz); wartości w Wh są zamieniane na kWh. | [Dok] README.md, Home Assistant | A-010 | R-001, R-015 | robocze |
 | BR-010 | Jeżeli koszt etapu inwestycji jest ujemny, to etap jest dofinansowaniem i zmniejsza łączną inwestycję; koszt może być zerowy, dodatni albo ujemny. | [Biz] session-2026-10-04.md, Q-021, Q-022 (D-014 zmieniona przez D-016) | - | R-005, R-006 | robocze |
 | BR-011 | Jeżeli w odczycie miesiąca dla pojazdu jest stan licznika, to km miesiąca = stan licznika − poprzedni stan (poprzedni miesiąc z odczytem, a w pierwszym miesiącu przebieg startowy); km wpisane ręcznie mają pierwszeństwo. | [Biz] board.json, qq042 (D-026); [App] src/main.py:294-326 _inject_odometer_km | - | R-001, R-010 | robocze |
-| BR-012 | Jeżeli właściciel zmienia przebieg startowy pojazdu, to przed zapisem aplikacja pyta, czy przesunąć wszystkie zapisane stany licznika o różnicę (nowa − stara wartość); tak - stany licznika przesunięte, km bez zmian; nie - zmienia się tylko przebieg startowy, a stany licznika niższe niż nowa wartość są usuwane (dane ładowania zostają). | [Biz] session-2026-10-04.md, D-027 | - | R-009, R-010 | robocze |
+| BR-012 | Jeżeli właściciel zmienia przebieg startowy pojazdu, to przed zapisem aplikacja pyta, czy przesunąć wszystkie zapisane stany licznika o różnicę (nowa − stara wartość); tak - stany licznika przesunięte, km bez zmian; nie - zmienia się tylko przebieg startowy, a stany licznika niższe niż nowa wartość są usuwane (dane ładowania zostają). | [Biz] session-2026-10-04.md, D-027 | - | R-009 | robocze |
 
 ## Zasady pracy
 - Każda zmiana kodu wskazuje R-xxx i AC-xxx-n, które realizuje; test nazywa się od AC (np. `test_AC_006_3_...`).

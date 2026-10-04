@@ -270,15 +270,17 @@ Kryteria akceptacji:
 - AC-018-3: Given baza z wypełnionymi polami Tesli, When aplikacja się uruchamia, Then odczyty, pojazdy i pozostałe dane właściciela zostają nienaruszone.
 
 ### R-019 Pojazd nieaktywny
-Opis:              Właściciel instalacji oznacza pojazd jako nieaktywny (np. po sprzedaży albo wymianie auta). Dane pojazdu nieaktywnego dalej wchodzą do oszczędności EV i ROI. Zachowanie formularza odczytu i listy pojazdów dla pojazdu nieaktywnego - kryterium dopisywane po Q-045 (nie blokuje).
-Zrodlo:            [Biz] board.json, qq041 (D-025)
+Opis:              Właściciel instalacji oznacza pojazd jako nieaktywny (np. po sprzedaży albo wymianie auta). Dane pojazdu nieaktywnego dalej wchodzą do oszczędności EV i ROI. Pojazd nieaktywny nie ma pól EV w formularzu odczytu nowego miesiąca; jego zapisane dane są widoczne i edytowalne. Pojazd aktywny, który w miesiącu stał, ma puste pola (D-028).
+Zrodlo:            [Biz] board.json, qq041 (D-025); [Biz] board.json, qq045 (D-028)
 Zalozenia:         -
 Reguly:            -
-Status:            robocze
+Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-019-1: Given pojazd z odczytami EV za 2025.01-2025.12, When właściciel oznacza go jako nieaktywny, Then Oszczędność EV z FV z tych miesięcy dalej wchodzi do ROI (R-006), a karty /ev dalej liczą jego oszczędność.
+- AC-019-2: Given pojazdy A (aktywny) i B (nieaktywny), When właściciel otwiera formularz odczytu 2026.10, Then widzi pola EV tylko dla A, a odczyt z pustymi polami EV pojazdu A zapisuje się.
+- AC-019-3: Given pojazd B (nieaktywny) z danymi EV za 2025.06, When właściciel edytuje odczyt 2025.06, Then pola EV pojazdu B są widoczne z zapisanymi wartościami.
 
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
@@ -321,6 +323,7 @@ wypelniana automatycznie)
 - 2026-10-04: D-022 (zmienia D-005) -> R-016: bez A-001, dodane AC-016-5. Zatwierdzone przez właściciela instalacji.
 - 2026-10-04: D-023 -> R-010: dodane AC-010-3 (jedna reguła ceny paliwa dla /ev i ROI); R-006, R-008: liczby ROI mogą się zmienić. D-024 -> R-011: dodane AC-011-4. D-025 -> nowe R-019 (robocze, czeka na Q-045); R-010 obejmuje pojazdy nieaktywne. D-026 (BR-011) -> R-001, R-010 (Reguly: BR-011). BR-012 (A-014 niepotwierdzone) -> R-009. Zgoda właściciela instalacji („tak”, sync tablicy); kod v3.3.1 nie spełnia AC-010-3, AC-019-1.
 - 2026-10-04: D-027 (BR-012 nowe brzmienie, A-014 obalone) -> R-009: opis, dodane AC-009-3, AC-009-4; R-010, R-001: km i oszczędności przeliczane po zmianie przebiegu startowego. D-026 (BR-011) -> R-001: dodane AC-001-5. R-019: AC-019-2 (zaślepka) usunięte, kryterium formularza po Q-045. Zatwierdzone przez właściciela instalacji (/sdd:spec, „tak”); kod v3.3.1 nie spełnia AC-009-3, AC-009-4, AC-019-1.
+- 2026-10-04: D-028 -> R-019: opis, dodane AC-019-2, AC-019-3, status zatwierdzone; R-001: formularz odczytu bez pól EV pojazdu nieaktywnego. Zatwierdzone przez właściciela instalacji (sync tablicy, „tak”); kod v3.3.1 nie spełnia AC-019-1..AC-019-3.
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)
