@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Poprawiono
+- **ROI w sensorze HA (`/api/summary`) i na liście inwestycji (`/inwestycje`) liczony tak samo jak na `/roi` i dashboardzie** — wcześniej oba miejsca pomijały okresy net-billingu, ceny RCE i współczynnik puli z ustawień, a `/api/summary` dodatkowo w ogóle nie wliczał oszczędności EV z ładowania domowego. Wspólna funkcja `_roi_state()`, test `tests/test_roi_consistency.py`
+
 ## [3.2.4] — 2026-08-30
 
 ### Zmieniono

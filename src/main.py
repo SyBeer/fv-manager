@@ -493,6 +493,28 @@ def _validate_reading(
     return None
 
 
+async def _roi_state(db: aiosqlite.Connection) -> tuple[dict | None, list[dict], list[dict]]:
+    """ROI z pełnym kompletem parametrów (net-billing, RCE, współczynnik puli, EV) — jak na /roi.
+
+    Zwraca (roi, readings z ev_savings_pln, investments); roi = None gdy brak odczytów lub inwestycji.
+    """
+    readings = await _get_readings(db)
+    investments = await _get_investments(db)
+    ev_settings = await _get_ev_settings(db)
+    fuel_prices = await _get_fuel_prices(db)
+    vehicles = await _get_vehicles(db)
+    ev_monthly = await _get_ev_monthly_all(db)
+    billing_periods = await _get_billing_periods(db)
+    rce_prices = await _get_rce_prices(db)
+
+    ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
+    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
+    total = sum(i["cost_pln"] for i in investments)
+    nm_ratio = ev_settings.get("net_metering_ratio") or 0.80
+    roi = calc_roi(readings, total, _default_price(), nm_ratio, billing_periods, rce_prices) if readings and total > 0 else None
+    return roi, readings, investments
+
+
 # ── Pages ─────────────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
@@ -869,18 +891,10 @@ async def delete_reading(request: Request, reading_id: int):
 async def investments_list(request: Request):
     db = await get_db()
     try:
-        investments = await _get_investments(db)
-        readings = await _get_readings(db)
-        ev_settings = await _get_ev_settings(db)
-        fuel_prices = await _get_fuel_prices(db)
-        vehicles = await _get_vehicles(db)
-        ev_monthly = await _get_ev_monthly_all(db)
+        roi, _, investments = await _roi_state(db)
     finally:
         await db.close()
-    ev_monthly = _inject_odometer_km(ev_monthly, vehicles)
-    readings = _ev_enrich(readings, ev_settings, fuel_prices, vehicles, ev_monthly)
     total = sum(i["cost_pln"] for i in investments)
-    roi = calc_roi(readings, total) if readings and total > 0 else None
     return _t(request, "investments.html", {"investments": investments, "total": total, "roi": roi})
 
 
@@ -2104,14 +2118,11 @@ async def api_summary():
     """JSON endpoint for Home Assistant sensors."""
     db = await get_db()
     try:
-        readings = await _get_readings(db)
-        investments = await _get_investments(db)
+        roi, readings, _ = await _roi_state(db)
     finally:
         await db.close()
 
-    total = sum(i["cost_pln"] for i in investments)
-    roi = calc_roi(readings, total) if readings and total > 0 else {}
     last = readings[-1] if readings else {}
-    return JSONResponse({**roi, "last_period": last.get("period"), "last_production_kwh": last.get("production_kwh")})
+    return JSONResponse({**(roi or {}), "last_period": last.get("period"), "last_production_kwh": last.get("production_kwh")})
 
 
