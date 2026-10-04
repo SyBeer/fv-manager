@@ -211,7 +211,7 @@ Kryteria akceptacji:
 - AC-014-2: Given ekran przed potwierdzeniem, When właściciel go czyta, Then tekst wymienia wszystkie usuwane rodzaje danych i zaleca pobranie kopii (/backup/full).
 
 ### R-015 Integracja z Home Assistant
-Opis:              Właściciel instalacji wpisuje encje HA (produkcja PV, pobór z sieci, oddanie do sieci) i testuje połączenie. HA odczytuje podsumowanie ROI z /api/summary, liczone tak samo jak na /roi.
+Opis:              Właściciel instalacji wpisuje encje HA (produkcja PV, pobór z sieci, oddanie do sieci) i testuje połączenie. HA może odczytywać podsumowanie ROI z /api/summary, liczone tak samo jak na /roi (właściciel nie korzysta - zostaje jako test regresji, A-013).
 Zrodlo:            [Dok] README.md, Home Assistant, /api/ha-test, API JSON; [Biz] session-2026-10-04.md, Q-030
 Zalozenia:         A-010, A-013
 Reguly:            BR-009
@@ -219,13 +219,13 @@ Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
-- AC-015-1: Given wpisane encje produkcji, poboru i oddania, When właściciel klika „Testuj połączenie”, Then widzi wynik testu (sukces albo błąd).
+- AC-015-1: Given wpisane encje produkcji, poboru i oddania, When właściciel klika „Testuj połączenie”, Then widzi „OK — RRRR-MM: N kWh (okres: RRRR-MM)” dla bieżącego miesiąca albo komunikat błędu.
 - AC-015-2: Given dane ROI, When HA odpytuje /api/summary, Then „pozostało do zwrotu” jest równe wartości na /roi.
 
 ### R-016 Poprawki tekstów
-Opis:              Teksty metodologia.html, README i podtytuł tabeli wrażliwości na /roi zgodne z decyzjami: pula kumulowana w cyklu, RCE i ceny paliwa wpisywane ręcznie, daty net-billingu tylko w tekście, 7 stałych cen, CSV z separatorem „;” i polskimi nagłówkami.
-Zrodlo:            [Biz] board.json, qq001, qq002, qq003, qq004, qq005, qq008 (D-002, D-004, D-005, D-006, D-012, D-009)
-Zalozenia:         A-001
+Opis:              Teksty metodologia.html, README i podtytuł tabeli wrażliwości na /roi zgodne z decyzjami: pula kumulowana w cyklu, RCE i ceny paliwa wpisywane ręcznie, bez dat ustawowych net-billingu (model z okresów rozliczeniowych, daty z umowy - D-022), 7 stałych cen, CSV z separatorem „;” i polskimi nagłówkami.
+Zrodlo:            [Biz] board.json, qq001, qq002, qq003, qq004, qq005, qq008 (D-002, D-004, D-005, D-006, D-012, D-009); [Biz] session-2026-10-04.md, Q-037 (D-022)
+Zalozenia:         -
 Reguly:            -
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
@@ -235,6 +235,7 @@ Kryteria akceptacji:
 - AC-016-2: Given metodologia.html i README, When właściciel czyta opis puli, Then tekst mówi, że pula przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu.
 - AC-016-3: Given /roi i metodologia.html, When właściciel czyta opis analizy wrażliwości, Then podtytuł na /roi pokazuje współczynnik z ustawień zamiast „×0.8”, a metodologia opisuje 7 stałych cen zamiast „wzrost o 20%”.
 - AC-016-4: Given README, When właściciel czyta przykład CSV, Then przykład ma separator „;” i polskie nagłówki.
+- AC-016-5: Given metodologia.html, When właściciel czyta opis net-billingu, Then tekst nie podaje dat ustawowych i mówi, że model rozliczeń wynika z okresów rozliczeniowych ustawionych przez użytkownika, a daty zależą od umowy z operatorem.
 
 ### R-017 Okresy rozliczeniowe i ceny RCE
 Opis:              Właściciel instalacji na /pv ustawia okresy rozliczeniowe (data startu, opcjonalnie data końca, model: net-metering albo net-billing) i wpisuje ceny RCE (data, cena, źródło); może je usuwać. Model rozliczeń miesiąca wynika z okresu rozliczeniowego, w który miesiąc wpada; bez okresu obowiązuje net-metering. Brak ceny RCE w miesiącu net-billingu - Q-033.
@@ -297,6 +298,8 @@ wypelniana automatycznie)
 - 2026-10-04: D-019 (BR-007, doprecyzowuje D-013) -> R-007: AC-007-3 zmienione (tabela per scenariusz); R-008: dodane AC-008-3 (dashboard N > 36). Przejrzane i zatwierdzone przez właściciela instalacji w tej samej sesji.
 - 2026-10-04: walidacja -> R-007 AC-007-1 (tolerancja), R-008 AC-008-1 (konkretne karty) doprecyzowane; zatwierdzone przez właściciela instalacji.
 - 2026-10-04: D-020 -> nowe R-018, R-001 (opis), §4; D-021 (BR-006) -> R-005 (opis), R-006 dodane AC-006-5. Zatwierdzone przez właściciela instalacji (odpowiedzi z tablicy h01, h09).
+- 2026-10-04: A-013 potwierdzone -> R-015: AC-015-1 doprecyzowane (format wyniku testu), AC-015-2 zostaje jako regresja. Zatwierdzone przez właściciela instalacji.
+- 2026-10-04: D-022 (zmienia D-005) -> R-016: bez A-001, dodane AC-016-5. Zatwierdzone przez właściciela instalacji.
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

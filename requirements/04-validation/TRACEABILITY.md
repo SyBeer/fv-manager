@@ -2,7 +2,7 @@
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
 Kolumnę „Test” wypełnia dev: nazwa testu = AC-xxx-n (np. `test_AC_006_3_...`).
-Odcisk wymagan: sha256:cab14272559d4f2574b958d7df9f38ae8049d4c50a0af12604b8ea3c47de6c63
+Odcisk wymagan: sha256:f2cf1811909d8bf4c609fdb715161b93ee272033715d88b99abb9464e57e0538
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|
@@ -55,6 +55,7 @@ Odcisk wymagan: sha256:cab14272559d4f2574b958d7df9f38ae8049d4c50a0af12604b8ea3c4
 | R-016 | AC-016-2 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | |
 | R-016 | AC-016-3 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | |
 | R-016 | AC-016-4 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | |
+| R-016 | AC-016-5 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | |
 | R-017 | AC-017-1 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | |
 | R-017 | AC-017-2 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | |
 | R-017 | AC-017-3 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | |

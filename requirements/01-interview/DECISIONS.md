@@ -61,6 +61,7 @@ Zrodlo: [Biz] board.json, qq003 (warsztat 2026-10-03)
 Wplyw: A-001, GLOSSARY: Net-billing. Kandydat: poprawka metodologia.html.
 Zamyka pytanie: Q-003
 Otwiera pytania: -
+Zmieniona przez: D-022
 
 ## D-006 | 2026-10-03 | Ceny paliwa wpisywane ręcznie
 Pytanie: Q-005 - skąd pochodzą ceny paliwa?
@@ -222,4 +223,14 @@ Zdecydowal: właściciel instalacji
 Zrodlo: [Biz] board.json, h09 (2026-10-04)
 Wplyw: BR-006; R-005 (opis), R-006 (AC-006-5) - PRD §6.
 Zamyka pytanie: Q-032
+Otwiera pytania: -
+
+## D-022 | 2026-10-04 | Metodologia bez dat ustawowych net-billingu
+Pytanie: Q-037 - czy daty ustawowe net-billingu mają być w tekście metodologii?
+Decyzja: Tekst metodologia.html nie podaje dat ustawowych net-billingu. Pisze, że model rozliczeń wynika z okresów rozliczeniowych ustawionych przez użytkownika (D-004, D-005), a daty zależą od umowy z operatorem. Zmienia D-005 („daty ustawowe tylko w tekście metodologii, wg A-001”).
+Powod: daty ustawowe są złożone (od 1.07.2024 RCE godzinowe tylko dla przyłączonych od tej daty, wcześniejsi z wyborem RCEm/RCE) i nie dotyczą instalacji właściciela (net-metering); wybór wariantu (b) po sprawdzeniu źródeł zewnętrznych (właściciel instalacji, sesja 2026-10-04).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-04.md, Q-037
+Wplyw: R-016 (opis, Zalozenia, AC-016-5) - PRD §6; A-001 bez wymagań zależnych; zmienia D-005.
+Zamyka pytanie: Q-037
 Otwiera pytania: -

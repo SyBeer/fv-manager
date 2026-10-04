@@ -687,7 +687,21 @@
       "updated": "2026-10-04T08:59:48+02:00",
       "file": "02-domain/ENTITIES.md",
       "synced": "2026-10-04T09:08:32+02:00"
+    },
+    {
+      "id": "qq037",
+      "type": "hot",
+      "text": "Metodologia ma podawać daty ustawowe net-billingu (1.04.2022 przyłączenia, 1.07.2022 rozliczenia, 1.07.2024 ceny godzinowe RCE). Skąd znasz daty, które dotyczą Twojej umowy, i czy te daty mają być w tekście metodologii?",
+      "lane": "Do wyjaśnienia",
+      "col": 0,
+      "ref": "Q-037",
+      "source": "01-interview/QUESTIONS.md",
+      "file": "01-interview/QUESTIONS.md",
+      "by": "agent",
+      "created": "2026-10-04T14:43:48.157Z",
+      "updated": "2026-10-04T14:43:48.157Z",
+      "synced": "2026-10-04T14:43:48.157Z"
     }
   ],
-  "updated": "2026-10-04T14:38:07.421Z"
+  "updated": "2026-10-04T14:54:49.933Z"
 }

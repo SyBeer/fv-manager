@@ -59,3 +59,11 @@
 2026-10-04 | spec --agent | regeneracja: R-018 -> nowa funkcja tesla-wycofanie (T-18); inwestycje-roi i odczyty zaktualizowane (D-020, D-021) | PRD.md
 2026-10-04 | handover | Redmine fv-manager: nowe #34 (T-18, R-018), zaktualizowane #17..#33; TRACEABILITY.md: 56 AC; nowy odcisk w TRACEABILITY i raporcie validate | 03-spec/agent/*/tasks.md
 2026-10-04 | validate | raport: linia gotowości w formacie czytanym przez panel (78%); usunięta prognoza '94%' z zaleceń, którą panel brał za wynik | progress.js:262
+2026-10-04 | interview | QUESTIONS: Q-034..Q-037 potwierdzające A-011, A-012, A-013, A-001 (WARN 8: R-008, R-012, R-015, R-016) | validate-2026-10-04.md
+2026-10-04 | interview | A-011 potwierdzone (Q-034: wykres na /roi, miesiące na dashboardzie); kaskada: R-008 bez WARN 8, AC bez zmian | [Biz] session-2026-10-04.md, Q-034
+2026-10-04 | interview | A-012 potwierdzone (Q-035: kwota i wpływ na ROI przy edycji); kaskada: R-012 bez WARN 8, AC bez zmian | [Biz] session-2026-10-04.md, Q-035
+2026-10-04 | interview | A-013 potwierdzone (Q-036: encje z panelu Energy, Supervisor API, test połączenia; sensor nieużywany - zostaje jako regresja); R-015 AC-015-1 doprecyzowane, PRD §6 | [Biz] session-2026-10-04.md, Q-036
+2026-10-04 | interview | D-022 (metodologia bez dat ustawowych; zmienia D-005), Q-037 odpowiedziane; A-001 poprawione wg źródeł z internetu [Dok], bez wymagań zależnych; R-016 bez A-001 + AC-016-5, PRD §6 | [Biz] session-2026-10-04.md, Q-037
+2026-10-04 | spec --agent | regeneracja po A-013, D-022: home-assistant (R-015 AC-015-1), teksty (R-016 AC-016-5) | PRD.md
+2026-10-04 | validate | przebieg 4: 0 BLOCK, WARN tylko słownik (11 pojęć); gotowość 100% (18/18) | PRD.md, ASSUMPTIONS.md, DECISIONS.md, QUESTIONS.md
+2026-10-04 | handover | Redmine: zaktualizowane #32 (R-015), #33 (R-016); TRACEABILITY.md: 57 AC; nowy odcisk | 03-spec/agent/*/tasks.md
