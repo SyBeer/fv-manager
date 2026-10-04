@@ -2,7 +2,7 @@
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
 Kolumnę „Test” wypełnia dev: nazwa testu = AC-xxx-n (np. `test_AC_006_3_...`).
-Odcisk wymagan: sha256:f2cf1811909d8bf4c609fdb715161b93ee272033715d88b99abb9464e57e0538
+Odcisk wymagan: sha256:29b90e213b1e4620efeccc50f70c2040f60a3b696b3cee7da2d801a2deef10ae
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|

@@ -67,3 +67,6 @@
 2026-10-04 | spec --agent | regeneracja po A-013, D-022: home-assistant (R-015 AC-015-1), teksty (R-016 AC-016-5) | PRD.md
 2026-10-04 | validate | przebieg 4: 0 BLOCK, WARN tylko słownik (11 pojęć); gotowość 100% (18/18) | PRD.md, ASSUMPTIONS.md, DECISIONS.md, QUESTIONS.md
 2026-10-04 | handover | Redmine: zaktualizowane #32 (R-015), #33 (R-016); TRACEABILITY.md: 57 AC; nowy odcisk | 03-spec/agent/*/tasks.md
+2026-10-04 | domain | GLOSSARY: 11 nowych haseł zatwierdzonych (Odczyt miesiąca, Autokonsumpcja, Etap inwestycji, Dofinansowanie, Łączna inwestycja, Pozostało do zwrotu, Oszczędność PV miesiąca, Zwrot inwestycji, Degradacja paneli, Przebieg startowy, Ładowanie publiczne) - zatwierdził właściciel instalacji | [Biz] czat sesji 2026-10-04
+2026-10-04 | spec --agent | constitution.md zregenerowane (słownik 20 haseł) | GLOSSARY.md
+2026-10-04 | validate | przebieg 5: 0 BLOCK, 0 WARN, gotowość 100% (18/18); nowy odcisk w raporcie i TRACEABILITY | GLOSSARY.md
