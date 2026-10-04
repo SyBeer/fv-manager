@@ -231,6 +231,7 @@
       <tr>
         <td>
           <a href="{{ rp }}/ev/pojazdy/{{ v.id }}" style="color:var(--text); text-decoration:none; font-weight:600; hover:color:var(--accent);">{{ v.name }}</a>
+          {% if not v.is_active %}<span class="badge-yellow" style="font-size:.7rem; margin-left:.35rem;" title="Bez pól EV w nowym odczycie; dane dalej liczą się do oszczędności">nieaktywny</span>{% endif %}
           {% if v.notes %}<div style="font-size:.75rem; color:var(--text-3);">{{ v.notes }}</div>{% endif %}
         </td>
         <td style="color:var(--c-blue-2);">{{ v.efficiency_kwh_per_100km }}</td>
@@ -263,6 +264,13 @@
               <button type="submit" class="btn btn-primary" style="font-size:.8rem; align-self:flex-start;"><i class="ph-bold ph-floppy-disk"></i> Zapisz</button>
             </form>
           </details>
+          <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/aktywnosc" style="display:inline;">
+            <input type="hidden" name="is_active" value="{{ '0' if v.is_active else '1' }}">
+            <button class="btn btn-ghost" style="font-size:.7rem; padding:.2rem .5rem;"
+                    title="{{ 'Oznacz jako nieaktywny (np. po sprzedaży) - dane dalej liczą się do oszczędności' if v.is_active else 'Przywróć jako aktywny' }}">
+              <i class="ph-bold {{ 'ph-eye-slash' if v.is_active else 'ph-eye' }}"></i>
+            </button>
+          </form>
           <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ v.name }}? Usunie też historię EV tego pojazdu.')">
             <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-trash"></i></button>
           </form>

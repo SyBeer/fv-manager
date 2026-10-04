@@ -297,6 +297,25 @@ def _fuel_price_for_month(prices: list[dict], fuel_type: str | None, period: str
     return obj["price_per_liter"]
 
 
+def _vehicles_for_reading(vehicles: list[dict], period: str, ev_ids=()) -> list[dict]:
+    """Pojazdy z polami EV w formularzu odczytu (D-028): aktywne w okresie posiadania
+    oraz każdy pojazd, który ma już dane w tym odczycie (żeby zapis ich nie zgubił)."""
+    ev_ids = set(ev_ids)
+    in_period = {v["id"] for v in _vehicles_for_period(vehicles, period)}
+    return [v for v in vehicles
+            if v["id"] in ev_ids or (v.get("is_active", 1) and v["id"] in in_period)]
+
+
+def _form_vehicle_ids(form) -> set[int]:
+    """Id pojazdów, których pola EV były w przesłanym formularzu odczytu."""
+    ids = set()
+    for k in form.keys():
+        tail = k.rsplit("_", 1)[-1]
+        if k.startswith("ev_") and "_v_" in k and tail.isdigit():
+            ids.add(int(tail))
+    return ids
+
+
 async def _get_ev_monthly_all(db: aiosqlite.Connection) -> list[dict]:
     cur = await db.execute("SELECT * FROM ev_monthly ORDER BY period, vehicle_id")
     rows = await cur.fetchall()
@@ -690,7 +709,7 @@ async def new_reading_form(request: Request):
         await db.close()
     next_period = f"{next_year}.{str(next_month).zfill(2)}"
     return _t(request, "reading_form.html", {
-        "vehicles": _vehicles_for_period(vehicles, next_period),
+        "vehicles": _vehicles_for_reading(vehicles, next_period),
         "settings": settings,
         "next_year": next_year,
         "next_month": next_month,
@@ -722,7 +741,7 @@ async def create_reading(request: Request):
             await db.close()
         return _t(request, "reading_form.html", {
             "error": f"Błąd parsowania danych: {exc}",
-            "vehicles": _vehicles_for_period(vehicles, ""),
+            "vehicles": _vehicles_for_reading(vehicles, "", _form_vehicle_ids(form)),
             "settings": settings,
             "next_year": next_year,
             "next_month": next_month,
@@ -739,7 +758,7 @@ async def create_reading(request: Request):
         return _t(request, "reading_form.html", {
             "error": error,
             "form_data": dict(form),
-            "vehicles": _vehicles_for_period(vehicles, period),
+            "vehicles": _vehicles_for_reading(vehicles, period, _form_vehicle_ids(form)),
             "settings": settings,
             "next_year": year,
             "next_month": month,
@@ -759,7 +778,8 @@ async def create_reading(request: Request):
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
     # Pojazdy, które mają jakiekolwiek dane (domowe lub publiczne) w tym okresie.
-    all_vids = {vid for vid, _ in ev_entries} | pub_kwh_entries.keys() | pub_km_entries.keys() | pub_cost_entries.keys()
+    all_vids = ({vid for vid, _ in ev_entries} | km_entries.keys() | odometer_entries.keys()
+                | pub_kwh_entries.keys() | pub_km_entries.keys() | pub_cost_entries.keys())
     home_kwh = dict(ev_entries)
 
     db = await get_db()
@@ -807,7 +827,7 @@ async def edit_reading_form(request: Request, reading_id: int):
     reading_dict = dict(row)
     return _t(request, "reading_form.html", {
         "reading": reading_dict,
-        "vehicles": _vehicles_for_period(vehicles, reading_dict["period"]),
+        "vehicles": _vehicles_for_reading(vehicles, reading_dict["period"], ev_rows.keys()),
         "ev_rows": ev_rows,
         "settings": settings,
     })
@@ -840,7 +860,7 @@ async def update_reading(request: Request, reading_id: int):
         return _t(request, "reading_form.html", {
             "error": f"Błąd parsowania danych: {exc}",
             "reading": dict(reading) if reading else None,
-            "vehicles": _vehicles_for_period(vehicles, period),
+            "vehicles": _vehicles_for_reading(vehicles, period, _form_vehicle_ids(form)),
             "settings": settings,
         })
 
@@ -858,7 +878,7 @@ async def update_reading(request: Request, reading_id: int):
             "error": error,
             "reading": dict(reading) if reading else None,
             "form_data": dict(form),
-            "vehicles": _vehicles_for_period(vehicles, period),
+            "vehicles": _vehicles_for_reading(vehicles, period, _form_vehicle_ids(form)),
             "settings": settings,
         })
 
@@ -874,7 +894,8 @@ async def update_reading(request: Request, reading_id: int):
     legacy_kwh = _ff(form, "ev_kwh")
     ev_kwh_total = (sum(v for _, v in ev_entries) if ev_entries else legacy_kwh) or None
 
-    all_vids = {vid for vid, _ in ev_entries} | pub_kwh_entries.keys() | pub_km_entries.keys() | pub_cost_entries.keys()
+    all_vids = ({vid for vid, _ in ev_entries} | km_entries.keys() | odometer_entries.keys()
+                | pub_kwh_entries.keys() | pub_km_entries.keys() | pub_cost_entries.keys())
     home_kwh = dict(ev_entries)
 
     db = await get_db()
@@ -1386,7 +1407,8 @@ async def ev_page(request: Request):
 
         if not vehicle_rows:
             continue  # brak ceny paliwa rodzaju pojazdu - miesiąc bez oszczędności, jak w ROI
-        active_vids = [v["id"] for v in _vehicles_for_period(vehicles, r["period"])]
+        active_vids = [v["id"] for v in _vehicles_for_reading(
+            vehicles, r["period"], {e["vehicle_id"] for e in by_period.get(r["period"], [])})]
         monthly_ev.append({
             "period": r["period"],
             "ev_kwh": period_total_kwh,
@@ -1626,6 +1648,20 @@ async def create_vehicle(request: Request):
             (name, efficiency_kwh_per_100km, fuel_consumption_l_per_100km, fuel_type,
              notes, date_from_raw or None, date_to_raw or None, przebieg_km),
         )
+        await db.commit()
+    finally:
+        await db.close()
+    rp = request.scope.get("root_path", "")
+    return RedirectResponse(f"{rp}/ev", status_code=303)
+
+
+@app.post("/ev/pojazdy/{vid}/aktywnosc")
+async def set_vehicle_active(request: Request, vid: int):
+    """Pojazd aktywny / nieaktywny (D-025): nieaktywny dalej liczy się do oszczędności."""
+    form = await request.form()
+    db = await get_db()
+    try:
+        await db.execute("UPDATE vehicles SET is_active=? WHERE id=?", (1 if form.get("is_active") == "1" else 0, vid))
         await db.commit()
     finally:
         await db.close()
