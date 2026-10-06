@@ -304,3 +304,13 @@ Zrodlo: [Biz] session-2026-10-04.md, Q-044
 Wplyw: R-010 (nowe AC-010-4); R-006, R-008 (liczby ROI); uzupełnia D-023 - PRD §6.
 Zamyka pytanie: Q-044
 Otwiera pytania: -
+
+## D-030 | 2026-10-05 | Podsumowanie ROI dla Home Assistant (/api/summary) do usunięcia
+Pytanie: propozycja C z /sdd:spec (rejestr systemów, S-002) - co z wyjściem /api/summary, z którego właściciel nie korzysta.
+Decyzja: Wyjście do Home Assistant (/api/summary - podsumowanie ROI dla sensora HA) jest do usunięcia z aplikacji. Nie powstaje dla niego wymaganie kontraktu.
+Powod: właściciel nie korzysta z /api/summary (Q-030, session-2026-10-04.md); AC-015-2 było tylko testem regresji (A-013).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-05.md, propozycja C
+Wplyw: R-015 (opis i AC-015-2 o /api/summary) - PRD §6; kandydat K-20 w PRD §5a; SYSTEMS.md S-002 (wymiana my -> HA).
+Zamyka pytanie: -
+Otwiera pytania: -

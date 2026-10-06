@@ -73,6 +73,8 @@ Opis:              Właściciel instalacji importuje odczyty z pliku CSV (separa
 Zrodlo:            [Biz] board.json, qq008 (D-009)
 Zalozenia:         -
 Reguly:            BR-002
+Rodzaj:            kontrakt - wejscie
+System:            S-006 (Plik CSV)
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
@@ -196,6 +198,8 @@ Opis:              Właściciel instalacji eksportuje odczyty do CSV, pobiera pe
 Zrodlo:            [Dok] README.md, /odczyty/export.csv; [App] src/main.py:1161; [App] kod-v3.2.4-2026-09-27.md, Czyszczenie bazy
 Zalozenia:         -
 Reguly:            -
+Rodzaj:            kontrakt - wyjscie
+System:            S-006 (Plik CSV)
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
 Wlasciciel:        właściciel instalacji
 
@@ -283,6 +287,21 @@ Kryteria akceptacji:
 - AC-019-2: Given pojazdy A (aktywny) i B (nieaktywny), When właściciel otwiera formularz odczytu 2026.10, Then widzi pola EV tylko dla A, a odczyt z pustymi polami EV pojazdu A zapisuje się.
 - AC-019-3: Given pojazd B (nieaktywny) z danymi EV za 2025.06, When właściciel edytuje odczyt 2025.06, Then pola EV pojazdu B są widoczne z zapisanymi wartościami.
 
+### R-020 Kontrakt: liczniki energii z Home Assistant (wejście)
+Opis:              Aplikacja przyjmuje z Home Assistant wartości miesiąca dla Odczytu miesiąca: produkcję PV, pobór z sieci i oddanie do sieci, w kWh. Pobranie na żądanie właściciela przy wpisie odczytu za wybrany miesiąc. Gdy HA nie ma danych, właściciel wpisuje wartości ręcznie. Schemat techniczny (encje, API HA) - w budowie, BR-009.
+Zrodlo:            [Biz] session-2026-10-04.md, Q-030 (A-010); [Biz] session-2026-10-05.md, propozycja A; [App] src/main.py:2155-2190
+Zalozenia:         A-010, A-015, A-016
+Reguly:            BR-009
+Rodzaj:            kontrakt - wejscie
+System:            S-002 (Home Assistant)
+Status:            robocze
+Wlasciciel:        właściciel instalacji
+
+Kryteria akceptacji:
+- AC-020-1: Given encje produkcji, poboru i oddania są skonfigurowane, a HA ma dane za miesiąc 2026.09, When właściciel w formularzu odczytu za 2026.09 pobiera dane z HA, Then pola produkcja, pobrane i oddane mają wartości za 2026.09 w kWh i przed zapisem można je zmienić.
+- AC-020-2: Given zapisany odczyt za 2026.08, When mija dowolny czas bez działania właściciela, Then wartości odczytu 2026.08 się nie zmieniają (pobranie tylko na żądanie przy wpisie odczytu).
+- AC-020-3: Given HA nie zwraca danych za 2026.09, When właściciel pobiera dane z HA, Then widzi komunikat „Brak danych dla <encja> za 2026-09”, pola zostają puste do wpisania ręcznie, a odczyt z ręcznymi wartościami da się zapisać.
+
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
 - K-1 Ustawienie miesiąca startu cyklu rozliczeniowego (domyślnie kwiecień) - D-003, BR-001 → R-003.
@@ -305,6 +324,7 @@ Z /sdd:board sync 2026-10-04 (as-built, bez potwierdzenia [Biz] - numer R po zgo
 - K-17 Integracja HA: encje (produkcja PV, pobór, oddanie), test połączenia, sensor podsumowania ROI (/api/summary) - BR-009, A-002; tablica: p42, p43, p45; źródło: [Dok] README.md, Home Assistant, /api/ha-test, API JSON → R-015.
 Z /sdd:board sync 2026-10-04, proces „Pojazdy EV i paliwo” (as-built, bez potwierdzenia [Biz]):
 - K-18 Edycja i usuwanie pojazdu (okres posiadania od-do, notatki) - D-025, D-027; tablica: p50; źródło: [App] src/main.py:1651, 1664 → R-009 albo R-019.
+- K-20 Usunięcie wyjścia do Home Assistant (/api/summary, podsumowanie ROI dla sensora) - D-030; źródło: [Biz] session-2026-10-05.md → zmiana R-015 (opis, AC-015-2).
 - K-19 Poprawianie i usuwanie ceny paliwa, ekran „Ceny paliwa” (/ev/ceny-paliwa) - D-023, D-024; tablica: p57, p58; źródło: [App] src/main.py:1778, 1798, 1847 → R-011.
 
 ## 6. Do przegladu
@@ -326,6 +346,7 @@ wypelniana automatycznie)
 - 2026-10-04: D-027 (BR-012 nowe brzmienie, A-014 obalone) -> R-009: opis, dodane AC-009-3, AC-009-4; R-010, R-001: km i oszczędności przeliczane po zmianie przebiegu startowego. D-026 (BR-011) -> R-001: dodane AC-001-5. R-019: AC-019-2 (zaślepka) usunięte, kryterium formularza po Q-045. Zatwierdzone przez właściciela instalacji (/sdd:spec, „tak”); kod v3.3.1 nie spełnia AC-009-3, AC-009-4, AC-019-1.
 - 2026-10-04: D-028 -> R-019: opis, dodane AC-019-2, AC-019-3, status zatwierdzone; R-001: formularz odczytu bez pól EV pojazdu nieaktywnego. Zatwierdzone przez właściciela instalacji (sync tablicy, „tak”); kod v3.3.1 nie spełnia AC-019-1..AC-019-3.
 - 2026-10-04: D-029 (uzupełnia D-023) -> R-010: dodane AC-010-4 (miesiące przed pierwszą ceną paliwa liczone wg pierwszej ceny); R-006, R-008: liczby ROI. Zatwierdzone przez właściciela instalacji („tak”); kod v3.3.1 nie spełnia AC-010-4 na kartach /ev.
+- 2026-10-05: D-030 (/api/summary do usunięcia) -> R-015: opis i AC-015-2 (regresja /api/summary) do zmiany - kandydat K-20. R-004, R-013: dopisany rodzaj kontrakt (S-006), bez zmiany kryteriów; nowe R-020 (kontrakt HA, robocze; AC-020-2, AC-020-3 na A-016, A-015 niepotwierdzonych, Q-050). Zgoda właściciela instalacji (session-2026-10-05.md).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)
