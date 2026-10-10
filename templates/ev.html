@@ -23,7 +23,7 @@
 </div>
 {% endif %}
 
-{% set missing = vehicles | selectattr('przebieg_km', 'none') | list %}
+{% set missing = vehicles_manage | selectattr('przebieg_km', 'none') | list %}
 {% if missing %}
 <div class="card" style="margin-bottom:1rem; border-left:3px solid var(--c-yellow); color:var(--text-2); font-size:.85rem;">
   <i class="ph-bold ph-warning"></i> Pojazdy bez stanu początkowego licznika:
@@ -59,11 +59,15 @@
 {% if vehicles_summary %}
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:1.5rem;">
   {% for vs in vehicles_summary %}
+  {% if vs.id in deleted_ids %}
+  <div style="text-decoration:none;">
+  {% else %}
   <a href="{{ rp }}/ev/pojazdy/{{ vs.id }}" style="text-decoration:none;">
+  {% endif %}
     <div class="card" style="cursor:pointer; transition:border-color .15s;"
          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="font-weight:600; margin-bottom:.75rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        <i class="ph-bold ph-car"></i> {{ vs.name }}
+        <i class="ph-bold ph-car"></i> {{ vs.name }}{% if vs.id in deleted_ids %} <span class="badge-yellow" style="font-size:.7rem;" title="Pojazd usunięty - dane dalej liczą się do oszczędności">usunięty</span>{% endif %}
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:.4rem .75rem;">
         <div>
@@ -83,7 +87,7 @@
         <span style="color:var(--accent); font-size:.78rem; font-weight:600;">Szczegóły <i class="ph-bold ph-arrow-right"></i></span>
       </div>
     </div>
-  </a>
+  {% if vs.id in deleted_ids %}</div>{% else %}</a>{% endif %}
   {% endfor %}
 </div>
 {% endif %}
@@ -222,12 +226,12 @@
   <!-- Pojazdy -->
   <div class="card">
     <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;"><i class="ph-bold ph-car"></i> Pojazdy</h2>
-    {% if vehicles %}
+    {% if vehicles_manage %}
     <div class="table-wrap">
     <table style="margin-bottom:1rem;">
       <thead><tr><th>Nazwa</th><th>kWh/100km</th><th>L/100km</th><th>Paliwo</th><th>Od</th><th>Do</th><th>Przebieg [km]</th><th></th></tr></thead>
       <tbody>
-      {% for v in vehicles %}
+      {% for v in vehicles_manage %}
       <tr>
         <td>
           <a href="{{ rp }}/ev/pojazdy/{{ v.id }}" style="color:var(--text); text-decoration:none; font-weight:600; hover:color:var(--accent);">{{ v.name }}</a>
@@ -272,7 +276,7 @@
               <i class="ph-bold {{ 'ph-eye-slash' if v.is_active else 'ph-eye' }}"></i>
             </button>
           </form>
-          <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ v.name }}? Usunie też historię EV tego pojazdu.')">
+          <form method="post" action="{{ rp }}/ev/pojazdy/{{ v.id }}/usun" style="display:inline;" onsubmit="return confirm('Usunąć {{ v.name }}? Jeśli pojazd ma dane miesięczne, zapytam, co zrobić z historią.')">
             <button class="btn btn-red" style="font-size:.7rem; padding:.2rem .5rem;"><i class="ph-bold ph-trash"></i></button>
           </form>
           </div>

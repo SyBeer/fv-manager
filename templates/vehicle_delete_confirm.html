@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Usunięcie pojazdu — FV Manager{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:1rem;"><i class="ph-bold ph-trash"></i> Usunięcie pojazdu</h1>
+<div class="card" style="border-left:3px solid var(--c-yellow); max-width:640px;">
+  <p style="margin-bottom:.75rem;">
+    <strong>{{ name }}</strong> ma dane miesięczne za {{ n_months }} mies. (km, ładowanie, oszczędności EV).
+  </p>
+  <p style="color:var(--text-2); font-size:.9rem; margin-bottom:1rem;">
+    Domyślnie pojazd znika z listy, a jego dane zostają i dalej liczą się do oszczędności i ROI — tak jak dane pojazdu nieaktywnego.
+  </p>
+  <form method="post" action="{{ rp }}/ev/pojazdy/{{ vid }}/usun">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div style="display:flex; flex-direction:column; gap:.75rem;">
+      <button type="submit" name="history" value="keep" class="btn btn-primary" style="justify-content:flex-start;">
+        <i class="ph-bold ph-archive"></i>&nbsp;Usuń pojazd, zachowaj historię (oszczędności i ROI bez zmian)
+      </button>
+      <button type="submit" name="history" value="wipe" class="btn btn-red" style="justify-content:flex-start;"
+              onclick="return confirm('Skasować dane {{ n_months }} mies. pojazdu {{ name }}? Oszczędności EV i ROI zmniejszą się wstecz. Tego nie można cofnąć.')">
+        <i class="ph-bold ph-trash"></i>&nbsp;Usuń pojazd i skasuj historię ({{ n_months }} mies.) — oszczędności i ROI zmniejszą się
+      </button>
+      <a href="{{ rp }}/ev" class="btn btn-ghost" style="justify-content:flex-start;"><i class="ph-bold ph-x"></i>&nbsp;Anuluj</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

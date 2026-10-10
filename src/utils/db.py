@@ -89,7 +89,8 @@ async def init_db() -> None:
                 date_from TEXT,
                 date_to TEXT,
                 przebieg_km REAL,
-                is_active INTEGER NOT NULL DEFAULT 1
+                is_active INTEGER NOT NULL DEFAULT 1,
+                deleted_at TEXT
             );
 
             CREATE TABLE IF NOT EXISTS ev_monthly (
@@ -150,6 +151,13 @@ async def init_db() -> None:
         # Pojazd nieaktywny (D-025): dane dalej w oszczędnościach, bez pól w nowym odczycie.
         try:
             await db.execute("ALTER TABLE vehicles ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1")
+            await db.commit()
+        except Exception:
+            pass
+
+        # Pojazd usunięty z zachowaną historią (D-034): dane liczą się jak pojazdu nieaktywnego.
+        try:
+            await db.execute("ALTER TABLE vehicles ADD COLUMN deleted_at TEXT")
             await db.commit()
         except Exception:
             pass

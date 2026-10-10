@@ -1450,6 +1450,9 @@ async def ev_page(request: Request):
     return _t(request, "ev.html", {
         "settings": settings, "prices": prices, "latest_fuel": latest_fuel,
         "vehicles": vehicles,
+        # Usunięte z zachowaną historią (D-034): poza listą zarządzania, w kartach i edycji okresów zostają.
+        "vehicles_manage": [v for v in vehicles if not v.get("deleted_at")],
+        "deleted_ids": {v["id"] for v in vehicles if v.get("deleted_at")},
         "monthly_ev": list(reversed(monthly_ev)),
         "ev_raw": ev_raw,
         "total_ev_savings": round(total_ev_savings, 2),
@@ -1463,11 +1466,7 @@ async def ev_page(request: Request):
 async def vehicle_detail(request: Request, vehicle_id: int):
     db = await get_db()
     try:
-        cur = await db.execute("SELECT * FROM vehicles WHERE id=?", (vehicle_id,))
-        row = await cur.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="Pojazd nie znaleziony")
-        vehicle = dict(row)
+        vehicle = await _vehicle_or_404(db, vehicle_id)
 
         cur = await db.execute(
             "SELECT * FROM ev_monthly WHERE vehicle_id=? ORDER BY period ASC", (vehicle_id,)
@@ -1666,6 +1665,7 @@ async def set_vehicle_active(request: Request, vid: int):
     form = await request.form()
     db = await get_db()
     try:
+        await _vehicle_or_404(db, vid)
         await db.execute("UPDATE vehicles SET is_active=? WHERE id=?", (1 if form.get("is_active") == "1" else 0, vid))
         await db.commit()
     finally:
@@ -1674,16 +1674,41 @@ async def set_vehicle_active(request: Request, vid: int):
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
+async def _vehicle_or_404(db: aiosqlite.Connection, vid: int) -> dict:
+    """Pojazd do zarządzania; usunięty (deleted_at) albo brak = 404 (D-034)."""
+    cur = await db.execute("SELECT * FROM vehicles WHERE id=? AND deleted_at IS NULL", (vid,))
+    row = await cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Pojazd nie znaleziony")
+    return dict(row)
+
+
 @app.post("/ev/pojazdy/{vid}/usun")
 async def delete_vehicle(request: Request, vid: int):
+    """Usunięcie pojazdu (D-034): domyślnie dane miesięczne zostają i liczą się jak pojazdu
+    nieaktywnego; historia jest kasowana tylko po wyraźnym wyborze („wipe”)."""
+    form = await request.form()
+    history = form.get("history")
+    rp = request.scope.get("root_path", "")
     db = await get_db()
     try:
-        await db.execute("DELETE FROM ev_monthly WHERE vehicle_id=?", (vid,))
-        await db.execute("DELETE FROM vehicles WHERE id=?", (vid,))
+        vehicle = await _vehicle_or_404(db, vid)
+        cur = await db.execute("SELECT COUNT(*) AS n FROM ev_monthly WHERE vehicle_id=?", (vid,))
+        n_months = (await cur.fetchone())["n"]
+        if n_months and history not in ("keep", "wipe"):
+            return _t(request, "vehicle_delete_confirm.html", {
+                "vid": vid, "name": vehicle["name"], "n_months": n_months, "csrf_token": _csrf_generate(),
+            })
+        if n_months and history == "keep":
+            from datetime import datetime, timezone
+            await db.execute("UPDATE vehicles SET deleted_at=?, is_active=0 WHERE id=?",
+                             (datetime.now(timezone.utc).isoformat(timespec="seconds"), vid))
+        else:
+            await db.execute("DELETE FROM ev_monthly WHERE vehicle_id=?", (vid,))
+            await db.execute("DELETE FROM vehicles WHERE id=?", (vid,))
         await db.commit()
     finally:
         await db.close()
-    rp = request.scope.get("root_path", "")
     return RedirectResponse(f"{rp}/ev", status_code=303)
 
 
@@ -1701,9 +1726,7 @@ async def update_vehicle(request: Request, vid: int):
     rp = request.scope.get("root_path", "")
     db = await get_db()
     try:
-        cur = await db.execute("SELECT przebieg_km FROM vehicles WHERE id=?", (vid,))
-        row = await cur.fetchone()
-        current = row["przebieg_km"] if row else None
+        current = (await _vehicle_or_404(db, vid))["przebieg_km"]
         if przebieg_km is None:
             if current is None:
                 # Dotąd brak stanu początkowego — wymagaj wprowadzenia.
