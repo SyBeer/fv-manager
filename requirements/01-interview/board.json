@@ -123,6 +123,20 @@
       "synced": "2026-10-04T10:23:50+02:00"
     },
     {
+      "id": "p71",
+      "type": "cmd",
+      "text": "Uzupełnij później brakujące dane ładowania publicznego (edycja odczytu)",
+      "lane": "Miesięczny odczyt",
+      "col": 6,
+      "source": "[Biz] session-2026-10-08.md, Q-057 (SYSTEMS S-008)",
+      "ref": "R-001",
+      "file": "03-spec/PRD.md",
+      "by": "agent",
+      "created": "2026-10-08T21:00:00+02:00",
+      "updated": "2026-10-10T09:11:12.046Z",
+      "synced": "2026-10-08T21:00:00+02:00"
+    },
+    {
       "id": "p09",
       "type": "ev",
       "text": "Odczyt usunięty",
@@ -134,20 +148,6 @@
       "updated": "2026-10-03T23:58:25+02:00",
       "file": "02-domain/ENTITIES.md",
       "synced": "2026-10-04T09:08:32+02:00"
-    },
-    {
-      "id": "p71",
-      "type": "cmd",
-      "text": "Uzupełnij później brakujące dane ładowania publicznego (edycja odczytu)",
-      "lane": "Miesięczny odczyt",
-      "col": 7,
-      "source": "[Biz] session-2026-10-08.md, Q-057 (SYSTEMS S-008)",
-      "ref": "R-001",
-      "file": "03-spec/PRD.md",
-      "by": "agent",
-      "created": "2026-10-08T21:00:00+02:00",
-      "updated": "2026-10-10T09:06:38.065Z",
-      "synced": "2026-10-08T21:00:00+02:00"
     },
     {
       "id": "p10",
@@ -1144,5 +1144,5 @@
       "synced": "2026-10-08T21:00:00+02:00"
     }
   ],
-  "updated": "2026-10-10T09:06:38.066Z"
+  "updated": "2026-10-10T09:11:12.046Z"
 }
