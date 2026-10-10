@@ -147,3 +147,21 @@ def test_kopia_bez_kolumny_deleted_at_przywraca_sie(client, seed, query):
                     files={"file": ("kopia.json", json.dumps(backup), "application/json")}, follow_redirects=False)
     assert r.status_code in (200, 303)
     assert [v["deleted_at"] for v in query("SELECT deleted_at FROM vehicles ORDER BY id")] == [None, None]
+
+
+def test_dashboard_karta_usunietego_bez_linku(client, seed, post_form):
+    _seed(seed)
+    post_form("/ev/pojazdy/2/usun", {"history": "keep"})
+    html = client.get("/").text
+    assert "Auto B" in html and "usunięty" in html          # oszczędności dalej widoczne
+    assert "/ev/pojazdy/2\"" not in html                     # bez linku do strony 404
+    assert "/ev/pojazdy/2\"" not in client.get("/ev").text
+
+
+def test_edycja_miesiaca_usunietego_przez_strone_pojazdu_404(client, seed, query, post_form):
+    _seed(seed)
+    post_form("/ev/pojazdy/2/usun", {"history": "keep"})
+    r = post_form("/ev/pojazdy/2/monthly/2025.06/edytuj", {"kwh": "999"})
+    assert r.status_code == 404
+    assert query("SELECT kwh FROM ev_monthly WHERE vehicle_id=2 AND period='2025.06'")[0]["kwh"] == 180
+    assert post_form("/ev/pojazdy/77/monthly/2025.06/edytuj", {"kwh": "1"}).status_code == 404

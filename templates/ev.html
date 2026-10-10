@@ -84,7 +84,7 @@
         </div>
       </div>
       <div style="text-align:right; margin-top:.6rem;">
-        <span style="color:var(--accent); font-size:.78rem; font-weight:600;">Szczegóły <i class="ph-bold ph-arrow-right"></i></span>
+        {% if vs.id not in deleted_ids %}<span style="color:var(--accent); font-size:.78rem; font-weight:600;">Szczegóły <i class="ph-bold ph-arrow-right"></i></span>{% endif %}
       </div>
     </div>
   {% if vs.id in deleted_ids %}</div>{% else %}</a>{% endif %}

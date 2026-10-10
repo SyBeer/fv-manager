@@ -617,6 +617,7 @@ async def dashboard(request: Request):
         "roi": roi,
         "total_months": len(readings),
         "vehicles_summary": vehicles_summary,
+        "deleted_ids": {v["id"] for v in vehicles if v.get("deleted_at")},
         "pv_stats": pv_stats,
     })
 
@@ -1609,6 +1610,7 @@ async def edit_vehicle_monthly(request: Request, vehicle_id: int, period: str):
     public_cost = _ff(form, "public_cost_pln")
     db = await get_db()
     try:
+        await _vehicle_or_404(db, vehicle_id)
         await db.execute(
             "INSERT INTO ev_monthly (period, vehicle_id, kwh, km, odometer_km, public_kwh, public_km, public_cost_pln) "
             "VALUES (?,?,?,?,?,?,?,?) "

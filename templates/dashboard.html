@@ -94,11 +94,15 @@
 {% if vehicles_summary %}
 <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin-bottom:1.5rem;">
   {% for vs in vehicles_summary %}
+  {% if vs.id in deleted_ids %}
+  <div style="text-decoration:none;">
+  {% else %}
   <a href="{{ rp }}/ev/pojazdy/{{ vs.id }}" style="text-decoration:none;">
+  {% endif %}
     <div class="card" style="cursor:pointer; transition:border-color .15s;"
          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
       <div style="font-weight:600; margin-bottom:.75rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        <i class="ph-bold ph-car"></i> {{ vs.name }}
+        <i class="ph-bold ph-car"></i> {{ vs.name }}{% if vs.id in deleted_ids %} <span class="badge-yellow" style="font-size:.7rem;" title="Pojazd usunięty - dane dalej liczą się do oszczędności">usunięty</span>{% endif %}
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:.4rem .75rem;">
         <div>
@@ -115,7 +119,7 @@
         </div>
       </div>
     </div>
-  </a>
+  {% if vs.id in deleted_ids %}</div>{% else %}</a>{% endif %}
   {% endfor %}
 </div>
 {% endif %}
