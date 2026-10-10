@@ -1,4 +1,4 @@
-# FV Manager v3.4.0
+# FV Manager v3.5.0
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant.
@@ -110,6 +110,7 @@ notes                         TEXT
 date_from, date_to            TEXT                        -- okres używania
 przebieg_km                   REAL                        -- stan licznika przy dodaniu (wymagany)
 is_active                     INTEGER DEFAULT 1           -- 0 = nieaktywny: bez pól EV w nowym odczycie, dane dalej w oszczędnościach
+deleted_at                    TEXT                        -- usunięty z zachowaną historią (D-034): poza listą /ev, dane liczą się jak nieaktywnego
 ```
 
 ### `ev_monthly` — zużycie EV per pojazd per miesiąc
@@ -272,7 +273,7 @@ Dwie ścieżki (kolejność priorytetu):
 | `/ev/pojazdy/{id}` | GET | Szczegóły pojazdu — historia, km, koszty, oszczędności |
 | `/ev/pojazdy/{id}/edytuj` | POST | Edytuj pojazd; zmiana przebiegu startowego przy zapisanych stanach licznika pokazuje potwierdzenie: przesunąć stany o różnicę albo zmienić tylko start (niższe stany licznika usuwane) |
 | `/ev/pojazdy/{id}/aktywnosc` | POST | Pojazd aktywny / nieaktywny |
-| `/ev/pojazdy/{id}/usun` | POST | Usuń pojazd + jego ev_monthly |
+| `/ev/pojazdy/{id}/usun` | POST | Usuń pojazd: bez danych od razu; z danymi strona wyboru - `history=keep` (domyślnie, dane zostają) albo `history=wipe` (kasuje ev_monthly) |
 | `/ev/fuel-price` | POST | Dodaj cenę paliwa |
 | `/ev/fuel-price/{id}/usun` | POST | Usuń cenę paliwa |
 | `/import` | GET | Strona importu CSV |

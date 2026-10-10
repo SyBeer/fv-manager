@@ -128,3 +128,5 @@
 2026-10-10 | board | domknięcie przeglądu kompletności procesów vs kod v3.4.0: p86 (usuń odczyt), p87 (edycja danych auta poza odczytem), p88-p92 (szablon CSV, zdarzenia i raport importu, kopia, czyszczenie), p93 (ustawienia /pv zapisane), p94-p96 (aktor i zdarzenia HA); hot spoty qq061, qq062; /ev/theme (motyw UI) poza procesami | [App] src/main.py
 2026-10-10 | interview | nowe Q-061 (usunięcie odczytu a pula), Q-062 (dwie ścieżki edycji danych auta) | [App] src/main.py:932, 1605, 1753
 2026-10-10 | validate | przebieg 12: gotowość 100% (20/20), 0 BLOCK, WARN 18 (S-004, S-007); 04-validation/validate-2026-10-10.md | requirements/
+2026-10-10 | handover | Redmine: nowe #165 (T-21, R-009 AC-009-5/6), #166 (T-20, R-020); zaktualizowane #17, #18, #20, #27, #32; 04-validation/redmine-2026-10-10.json | 03-spec/PRD.md
+2026-10-10 | build | v3.5.0: usunięcie pojazdu bez kasowania historii (D-034), usunięcie /api/summary (D-030), testy R-020, AC-001-6, AC-002-5, AC-017-5; decyzje B-38..B-52 w 04-validation/build-2026-10-10.md; TRACEABILITY 74 AC z testami | 03-spec/PRD.md, testy 227

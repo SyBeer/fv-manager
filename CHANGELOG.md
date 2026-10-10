@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.5.0] — 2026-10-10
+
+Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-009, R-015, R-020; zadania Redmine #165, #32, #166, testy #17, #18, #20). Przegląd architektury przed budową i przegląd kodu po niej; decyzje budowy B-38..B-52: `requirements/04-validation/build-2026-10-10.md`.
+
+### ⚠️ Zmiana niezgodna wstecz
+- **Usunięto `/api/summary`** (sensor podsumowania ROI dla Home Assistant, D-030). Jeśli masz w HA REST sensor wskazujący na ten adres, przestanie działać - usuń go z `configuration.yaml`. Test połączenia z HA i pobieranie liczników przy wpisie odczytu działają bez zmian (R-015)
+
+### Zmieniono
+- **Usunięcie pojazdu nie kasuje już jego historii** (D-034, R-009). Pojazd z danymi miesięcznymi: aplikacja pyta - „Usuń pojazd, zachowaj historię” (domyślnie: pojazd znika z listy na /ev, jego dane dalej liczą się do oszczędności i ROI jak dane pojazdu nieaktywnego, karta oszczędności z etykietą „usunięty”) albo „Usuń pojazd i skasuj historię” (z dodatkowym potwierdzeniem). Pojazd bez danych usuwa się od razu. Migracja: kolumna `vehicles.deleted_at`
+
+### Dodano
+- Testy kontraktu liczników z Home Assistant (R-020) oraz testy AC-001-6 (kwota faktury poza obliczeniami), AC-002-5 (cena domyślna kWh), AC-017-5 (okres rozliczeniowy od środka miesiąca)
+
 ## [3.4.0] — 2026-10-04
 
 Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-009, R-010, R-019; zadania Redmine #27, #28, #111, testy #20, #29). Przed budową i po niej przegląd architektów; decyzje budowy B-24..B-37: `requirements/04-validation/build-2026-10-04.md`.
