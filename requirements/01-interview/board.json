@@ -1142,7 +1142,29 @@
       "created": "2026-10-08T21:00:00+02:00",
       "updated": "2026-10-08T21:00:00+02:00",
       "synced": "2026-10-08T21:00:00+02:00"
+    },
+    {
+      "id": "nmv26lyl9",
+      "lane": "Miesięczny odczyt",
+      "col": 8,
+      "source": "warsztat, dopisane w przeglądarce [Biz]",
+      "by": "człowiek",
+      "text": "1",
+      "type": "hot",
+      "created": "2026-10-10T09:18:17.186Z",
+      "updated": "2026-10-10T09:18:17.186Z"
+    },
+    {
+      "id": "nmv26m3e1",
+      "lane": "Miesięczny odczyt",
+      "col": 9,
+      "source": "warsztat, dopisane w przeglądarce [Biz]",
+      "by": "człowiek",
+      "text": "2",
+      "type": "hot",
+      "created": "2026-10-10T09:18:23.406Z",
+      "updated": "2026-10-10T09:18:23.406Z"
     }
   ],
-  "updated": "2026-10-10T09:11:12.046Z"
+  "updated": "2026-10-10T09:18:23.406Z"
 }
