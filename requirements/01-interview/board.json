@@ -1,6 +1,6 @@
 {
-  "title": "FV Manager - procesy w aplikacji (v3.4.0)",
-  "subtitle": "as-built z kodu v3.4.0 + decyzje z warsztatów 2026-10-03..08",
+  "title": "FV Manager - procesy w aplikacji (v3.5.0)",
+  "subtitle": "as-built z kodu v3.5.0 + decyzje z warsztatów 2026-10-03..10",
   "lanes": [
     "Miesięczny odczyt",
     "Rozliczenie miesiąca",
@@ -680,16 +680,16 @@
     {
       "id": "p45",
       "type": "rm",
-      "text": "Sensor podsumowania ROI w HA (/api/summary) - do usunięcia (D-030)",
+      "text": "Sensor podsumowania ROI w HA (/api/summary) - wycofany w v3.5.0 (D-030)",
       "lane": "Integracja Home Assistant",
       "col": 3,
-      "source": "[Biz] D-030 (session-2026-10-05.md); [Dok] README.md, API JSON",
+      "source": "[Biz] D-030 (session-2026-10-05.md); [Dok] README.md, API JSON; [App] CHANGELOG.md 3.5.0",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-08T20:30:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
       "ref": "D-030",
       "file": "01-interview/DECISIONS.md",
-      "synced": "2026-10-08T20:30:00+02:00"
+      "synced": "2026-10-10T16:00:00+02:00"
     },
     {
       "id": "p46",
@@ -1351,7 +1351,118 @@
       "synced": "2026-10-10T13:00:00+02:00",
       "ref": "R-020",
       "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p97",
+      "type": "ev",
+      "text": "Odczyt zmieniony (także uzupełnione ładowanie publiczne)",
+      "lane": "Miesięczny odczyt",
+      "col": 8,
+      "source": "[App] src/main.py:836",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "R-012",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p98",
+      "type": "ev",
+      "text": "Pojazd zmieniony",
+      "lane": "Pojazdy EV i paliwo",
+      "col": 8,
+      "source": "[App] src/main.py:1714",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "Q-041",
+      "file": "01-interview/session-2026-10-04.md"
+    },
+    {
+      "id": "p99",
+      "type": "ev",
+      "text": "Dane EV miesiąca zmienione",
+      "lane": "Pojazdy EV i paliwo",
+      "col": 15,
+      "source": "[App] src/main.py:1602, 1775",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "R-010",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p100",
+      "type": "ev",
+      "text": "Cena paliwa zmieniona / usunięta",
+      "lane": "Pojazdy EV i paliwo",
+      "col": 11,
+      "source": "[App] src/main.py:1847, 1916",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "file": "01-interview/session-2026-10-04.md"
+    },
+    {
+      "id": "p101",
+      "type": "ev",
+      "text": "Okres rozliczeniowy albo cena RCE usunięte",
+      "lane": "Ustawienia rozliczeń (/pv)",
+      "col": 4,
+      "source": "[App] src/main.py:2002, 2033",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "R-017",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p102",
+      "type": "rm",
+      "text": "Ekran Inwestycje (/inwestycje): lista etapów i łączna inwestycja",
+      "lane": "Inwestycje i ROI",
+      "col": 5,
+      "source": "[App] src/main.py:944",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "R-005",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p103",
+      "type": "rm",
+      "text": "Ekran ustawień rozliczeń (/pv): okresy rozliczeniowe, ceny RCE, ustawienia",
+      "lane": "Ustawienia rozliczeń (/pv)",
+      "col": 5,
+      "source": "[App] src/main.py:1931",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "R-017",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p104",
+      "type": "rm",
+      "text": "Metodologia (/metodologia): opis sposobu liczenia",
+      "lane": "Inwestycje i ROI",
+      "col": 9,
+      "source": "[App] src/main.py:2110; [Biz] D-022 (R-016)",
+      "by": "agent",
+      "created": "2026-10-10T16:00:00+02:00",
+      "updated": "2026-10-10T16:00:00+02:00",
+      "synced": "2026-10-10T16:00:00+02:00",
+      "ref": "R-016",
+      "file": "03-spec/PRD.md"
     }
   ],
-  "updated": "2026-10-10T13:00:00+02:00"
+  "updated": "2026-10-10T16:00:00+02:00"
 }

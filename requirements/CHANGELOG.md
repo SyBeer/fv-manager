@@ -131,3 +131,4 @@
 2026-10-10 | handover | Redmine: nowe #165 (T-21, R-009 AC-009-5/6), #166 (T-20, R-020); zaktualizowane #17, #18, #20, #27, #32; 04-validation/redmine-2026-10-10.json | 03-spec/PRD.md
 2026-10-10 | build | v3.5.0: usunięcie pojazdu bez kasowania historii (D-034), usunięcie /api/summary (D-030), testy R-020, AC-001-6, AC-002-5, AC-017-5; decyzje B-38..B-52 w 04-validation/build-2026-10-10.md; TRACEABILITY 74 AC z testami | 03-spec/PRD.md, testy 227
 2026-10-10 | config | zmiana SDD.yaml: copy | panel
+2026-10-10 | board | tablica procesów vs app v3.5.0: +5 zdarzeń (p97-p101), +3 widoki (p102 /inwestycje, p103 /pv, p104 /metodologia), p45 /api/summary oznaczona jako wycofana | [App] src/main.py
