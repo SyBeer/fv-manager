@@ -1194,10 +1194,13 @@
       "source": "[App] src/main.py:932-941",
       "by": "agent",
       "created": "2026-10-10T13:00:00+02:00",
-      "updated": "2026-10-10T13:00:00+02:00",
+      "updated": "2026-10-10T12:21:46.163Z",
       "synced": "2026-10-10T13:00:00+02:00",
       "ref": "Q-061",
-      "file": "01-interview/QUESTIONS.md"
+      "file": "01-interview/QUESTIONS.md",
+      "answeredAt": "2026-10-10T12:21:46.157Z",
+      "answer": "W każdym miesiącu pilnowałem ze mam",
+      "answeredBy": "właściciel instalacji"
     },
     {
       "id": "p87",
@@ -1464,5 +1467,5 @@
       "file": "03-spec/PRD.md"
     }
   ],
-  "updated": "2026-10-10T16:00:00+02:00"
+  "updated": "2026-10-10T12:21:46.163Z"
 }
