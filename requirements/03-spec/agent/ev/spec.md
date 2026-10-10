@@ -1,10 +1,10 @@
-<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-10 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Pojazdy EV i ceny paliwa
 
 ### R-009 Dodanie pojazdu
-Opis:              Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany. Przebieg startowy można później zmienić: aplikacja pyta, czy przesunąć zapisane stany licznika o różnicę (D-027).
-Zrodlo:            [App] src/main.py:1562, 1573; [Biz] session-2026-10-04.md, Q-029, D-027
+Opis:              Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany. Przebieg startowy można później zmienić: aplikacja pyta, czy przesunąć zapisane stany licznika o różnicę (D-027). Usunięcie pojazdu domyślnie zostawia jego dane miesięczne - liczą się jak dane pojazdu nieaktywnego; dane miesięczne kasuje dopiero wyraźne potwierdzenie (D-034).
+Zrodlo:            [App] src/main.py:1562, 1573; [Biz] session-2026-10-04.md, Q-029, D-027; [Biz] board.json, qq060; session-2026-10-10.md, Q-060 (D-034)
 Zalozenia:         A-009
 Reguly:            BR-008, BR-012
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
@@ -15,6 +15,8 @@ Kryteria akceptacji:
 - AC-009-2: Given formularz bez przebiegu startowego, When właściciel dodaje pojazd, Then pojazd nie zostaje dodany.
 - AC-009-3: Given pojazd z przebiegiem startowym 12 000 km i stanami licznika 13 000 (2026.01) i 14 200 (2026.02), When właściciel zmienia przebieg startowy na 12 500 km i wybiera przesunięcie stanów licznika („Tak”), Then stany licznika wynoszą 13 500 i 14 700, a km za te miesiące nadal 1 000 i 1 200.
 - AC-009-4: Given te same dane, When właściciel zmienia przebieg startowy na 13 500 km i wybiera „Nie”, Then stan licznika 13 000 za 2026.01 zostaje usunięty (kWh ładowania z 2026.01 zostają), a km za 2026.02 = 14 200 − 13 500 = 700.
+- AC-009-5: Given pojazd z danymi EV za 2025.01-2025.12, When właściciel usuwa pojazd bez potwierdzenia skasowania historii, Then pojazdu nie ma na liście /ev, a Oszczędność EV z FV w ROI (R-006) i oszczędności EV za 2025.01-2025.12 są takie jak przed usunięciem (jak pojazd nieaktywny, R-019) (D-034).
+- AC-009-6: Given te same dane, When właściciel usuwa pojazd i wyraźnie potwierdza skasowanie historii, Then dane miesięczne pojazdu za 2025.01-2025.12 są usunięte, a ROI (R-006) liczy się bez nich (D-034).
 
 ### R-010 Oszczędności EV
 Opis:              Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.

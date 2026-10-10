@@ -1,4 +1,4 @@
-<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-10 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Plan - Pojazd nieaktywny
 
@@ -8,9 +8,9 @@
 ## Encje do odczytu (02-domain/ENTITIES.md)
 ## Pojazd
 Pola: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy (wymagany), okres posiadania (od-do), notatki
-Stany: dodany, nieaktywny
-Przejscia: [*] -> dodany (Właściciel instalacji, tylko z przebiegiem startowym); dodany -> nieaktywny (Właściciel instalacji, D-025; dane dalej w oszczędnościach; bez pól EV w formularzu odczytu nowego miesiąca, D-028)
-Zrodlo: [App] src/main.py create_vehicle (/ev/pojazdy/nowy), update_vehicle; [Biz] D-025
+Stany: dodany, nieaktywny, usunięty
+Przejscia: [*] -> dodany (Właściciel instalacji, tylko z przebiegiem startowym); dodany -> nieaktywny (Właściciel instalacji, D-025; dane dalej w oszczędnościach; bez pól EV w formularzu odczytu nowego miesiąca, D-028); dodany / nieaktywny -> usunięty (Właściciel instalacji, D-034; domyślnie dane miesięczne zostają i liczą się jak dane pojazdu nieaktywnego; skasowanie danych miesięcznych tylko po wyraźnym potwierdzeniu)
+Zrodlo: [App] src/main.py create_vehicle (/ev/pojazdy/nowy), update_vehicle, delete_vehicle; [Biz] D-025, D-034
 Zakwestionowane:
 ## Odczyt miesiąca
 Pola: okres (RRRR.MM), produkcja, oddane, pobrane (S-002), cena kWh (S-003, BR-014), faktura - numer i kwota brutto, pomocnicze do odnalezienia faktury, poza obliczeniami (S-003, D-033); dane EV per pojazd (kWh domowe - S-009, km i stan licznika - S-007, ładowanie publiczne kWh i koszt - S-008)
