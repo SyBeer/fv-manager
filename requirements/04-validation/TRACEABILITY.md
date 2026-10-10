@@ -1,8 +1,8 @@
 # Śledzenie wymagań - R → AC → zadanie → test
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
-Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy dopisane w v3.4.0.
-Odcisk wymagan: sha256:0bad40296613c0343982cd2c070423cfd7ef8e1804700a3a2882fc809861f216
+Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy dopisane w v3.4.0. Handover 2026-10-10: nowe #165 (T-21, AC-009-5/6), #166 (T-20, R-020); #17, #18, #20, #27, #32 zaktualizowane - testy w v3.5.0.
+Odcisk wymagan: sha256:24dfe201980991ba281b996d7710fb63c867fef6a3e5e0d96188cee4146398a4
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|
@@ -11,10 +11,12 @@ Odcisk wymagan: sha256:0bad40296613c0343982cd2c070423cfd7ef8e1804700a3a2882fc809
 | R-001 | AC-001-3 | [#20](http://192.168.1.4:3001/issues/20) (T-04) | `test_r001_odczyt.py::test_AC_001_3_oddane_wieksze_niz_produkcja` |
 | R-001 | AC-001-4 | [#20](http://192.168.1.4:3001/issues/20) (T-04) | `test_r001_odczyt.py::test_AC_001_4_przyciski_pobierz_z_ha` |
 | R-001 | AC-001-5 | [#20](http://192.168.1.4:3001/issues/20) (T-04) | `test_r001_odczyt.py::test_AC_001_5_km_ze_stanu_licznika` |
+| R-001 | AC-001-6 | [#20](http://192.168.1.4:3001/issues/20) (T-04) | `test_r001_odczyt.py::test_AC_001_6_kwota_faktury_poza_obliczeniami` |
 | R-002 | AC-002-1 | [#18](http://192.168.1.4:3001/issues/18) (T-02) | `test_r002_r003_rozliczenie.py::test_AC_002_1_net_metering_pula` |
 | R-002 | AC-002-2 | [#18](http://192.168.1.4:3001/issues/18) (T-02) | `test_r002_r003_rozliczenie.py::test_AC_002_2_pula_zeruje_sie_w_kwietniu` |
 | R-002 | AC-002-3 | [#18](http://192.168.1.4:3001/issues/18) (T-02) | `test_r002_r003_rozliczenie.py::test_AC_002_3_net_billing_320_zl` |
 | R-002 | AC-002-4 | [#18](http://192.168.1.4:3001/issues/18) (T-02) | `test_r002_r003_rozliczenie.py::test_AC_002_4_cena_sprzedazy_nadpisuje_rce` |
+| R-002 | AC-002-5 | [#18](http://192.168.1.4:3001/issues/18) (T-02) | `test_r002_r003_rozliczenie.py::test_AC_002_5_brak_ceny_kwh_cena_domyslna` |
 | R-003 | AC-003-1 | [#19](http://192.168.1.4:3001/issues/19) (T-03) | `test_r002_r003_rozliczenie.py::test_AC_003_1_domyslnie_kwiecien` |
 | R-003 | AC-003-2 | [#19](http://192.168.1.4:3001/issues/19) (T-03) | `test_r002_r003_rozliczenie.py::test_AC_003_2_ustawiony_czerwiec_zeruje_pule_w_czerwcu` |
 | R-004 | AC-004-1 | [#21](http://192.168.1.4:3001/issues/21) (T-05) | `test_r004_import_csv.py::test_AC_004_1_dziesiec_poprawnych_wierszy` |
@@ -40,6 +42,8 @@ Odcisk wymagan: sha256:0bad40296613c0343982cd2c070423cfd7ef8e1804700a3a2882fc809
 | R-009 | AC-009-2 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | `test_r009_r010_r011_ev.py::test_AC_009_2_bez_przebiegu_nie_dodany` |
 | R-009 | AC-009-3 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | `test_r009_przebieg_startowy.py::test_AC_009_3_tak_przesuwa_stany_licznika_km_bez_zmian`, `::test_AC_009_3_zmiana_bez_wyboru_pokazuje_ostrzezenie_i_nie_zapisuje` |
 | R-009 | AC-009-4 | [#27](http://192.168.1.4:3001/issues/27) (T-11) | `test_r009_przebieg_startowy.py::test_AC_009_4_nie_usuwa_nizsze_stany_licznika_dane_ladowania_zostaja` |
+| R-009 | AC-009-5 | [#165](http://192.168.1.4:3001/issues/165) (T-21) | `test_r009_usuniecie_pojazdu.py::test_AC_009_5_usuniecie_bez_potwierdzenia_zostawia_dane` |
+| R-009 | AC-009-6 | [#165](http://192.168.1.4:3001/issues/165) (T-21) | `test_r009_usuniecie_pojazdu.py::test_AC_009_6_usuniecie_z_potwierdzeniem_kasuje_historie` |
 | R-010 | AC-010-1 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r009_r010_r011_ev.py::test_AC_010_1_oszczednosc_ev_z_fv_240_zl` |
 | R-010 | AC-010-2 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r009_r010_r011_ev.py::test_AC_010_2_ladowanie_publiczne_poza_roi` |
 | R-010 | AC-010-3 | [#28](http://192.168.1.4:3001/issues/28) (T-12) | `test_r010_cena_paliwa.py::test_AC_010_3_cena_od_wpisu_do_wpisu_tak_samo_ev_i_roi` |
@@ -56,7 +60,7 @@ Odcisk wymagan: sha256:0bad40296613c0343982cd2c070423cfd7ef8e1804700a3a2882fc809
 | R-014 | AC-014-1 | [#31](http://192.168.1.4:3001/issues/31) (T-15) | `test_r013_r014_dane.py::test_AC_014_1_wyczysc_baze_usuwa_wszystko_ustawienia_zostaja` |
 | R-014 | AC-014-2 | [#31](http://192.168.1.4:3001/issues/31) (T-15) | `test_r013_r014_dane.py::test_AC_014_2_tekst_wymienia_dane_i_zaleca_kopie` |
 | R-015 | AC-015-1 | [#32](http://192.168.1.4:3001/issues/32) (T-16) | `test_r015_home_assistant.py::test_AC_015_1_format_wyniku_testu`, `test_r015_home_assistant.py::test_AC_015_1_ekran_dopisuje_okres`, `test_r015_home_assistant.py::test_AC_015_1_bez_polaczenia_komunikat_bledu` |
-| R-015 | AC-015-2 | [#32](http://192.168.1.4:3001/issues/32) (T-16) | `test_roi_consistency.py::test_api_summary_matches_roi_page` |
+| R-015 | AC-015-2 | [#32](http://192.168.1.4:3001/issues/32) (T-16) | `test_r015_home_assistant.py::test_AC_015_2_api_summary_usuniety`, `::test_AC_015_2_api_summary_bez_wyjatku_auth_i_csrf`, `::test_AC_015_2_test_polaczenia_i_pobieranie_licznikow_bez_zmian` |
 | R-016 | AC-016-1 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | `test_r016_r018_teksty_tesla.py::test_AC_016_1_rce_i_paliwo_recznie` |
 | R-016 | AC-016-2 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | `test_r016_r018_teksty_tesla.py::test_AC_016_2_pula_w_cyklu` |
 | R-016 | AC-016-3 | [#33](http://192.168.1.4:3001/issues/33) (T-17) | `test_r016_r018_teksty_tesla.py::test_AC_016_3_wrazliwosc_7_cen_i_wspolczynnik` |
@@ -66,12 +70,16 @@ Odcisk wymagan: sha256:0bad40296613c0343982cd2c070423cfd7ef8e1804700a3a2882fc809
 | R-017 | AC-017-2 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | `test_r017_okresy_i_rce.py::test_AC_017_2_okres_net_billing_od_2024_07` |
 | R-017 | AC-017-3 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | `test_r017_okresy_i_rce.py::test_AC_017_3_ostatnia_cena_rce_do_konca_miesiaca` |
 | R-017 | AC-017-4 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | `test_r017_okresy_i_rce.py::test_AC_017_4_po_usunieciu_ceny_wraca_poprzednia` |
+| R-017 | AC-017-5 | [#17](http://192.168.1.4:3001/issues/17) (T-01) | `test_r017_okresy_i_rce.py::test_AC_017_5_okres_od_srodka_miesiaca` |
 | R-018 | AC-018-1 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | `test_r016_r018_teksty_tesla.py::test_AC_018_1_brak_tesla_w_kodzie` |
 | R-018 | AC-018-2 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | `test_r016_r018_teksty_tesla.py::test_AC_018_2_readme_i_changelog` |
 | R-018 | AC-018-3 | [#34](http://192.168.1.4:3001/issues/34) (T-18) | `test_r016_r018_teksty_tesla.py::test_AC_018_3_migracja_nie_rusza_danych` |
 | R-019 | AC-019-1 | [#111](http://192.168.1.4:3001/issues/111) (T-19) | `test_r019_pojazd_nieaktywny.py::test_AC_019_1_nieaktywny_dalej_w_roi_i_kartach_ev` |
 | R-019 | AC-019-2 | [#111](http://192.168.1.4:3001/issues/111) (T-19) | `test_r019_pojazd_nieaktywny.py::test_AC_019_2_formularz_nowego_miesiaca_bez_pol_nieaktywnego`, `::test_AC_019_2_odczyt_z_pustymi_polami_aktywnego_zapisuje_sie` |
 | R-019 | AC-019-3 | [#111](http://192.168.1.4:3001/issues/111) (T-19) | `test_r019_pojazd_nieaktywny.py::test_AC_019_3_edycja_odczytu_pokazuje_dane_nieaktywnego`, `::test_AC_019_3_zapis_edycji_zachowuje_dane_nieaktywnego` |
+| R-020 | AC-020-1 | [#166](http://192.168.1.4:3001/issues/166) (T-20) | `test_r020_kontrakt_ha.py::test_AC_020_1_liczniki_za_miesiac_w_kwh` |
+| R-020 | AC-020-2 | [#166](http://192.168.1.4:3001/issues/166) (T-20) | `test_r020_kontrakt_ha.py::test_AC_020_2_zapisany_odczyt_nie_nadpisuje_sie` |
+| R-020 | AC-020-3 | [#166](http://192.168.1.4:3001/issues/166) (T-20) | `test_r020_kontrakt_ha.py::test_AC_020_3_brak_danych_komunikat_i_wpis_reczny` |
 
 ## Zasada dla dev
 Zmiana wymagania po przekazaniu = zmiana `03-spec/PRD.md` (przez właściciela) i ponowny handover (/sdd:spec --agent, /sdd:handover) - nigdy zadanie „z boku” w Redmine.
