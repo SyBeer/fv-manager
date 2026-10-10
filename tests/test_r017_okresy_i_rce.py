@@ -45,3 +45,9 @@ def test_okres_rozliczeniowy_dodany_i_usuniety_przez_pv(client, query, post_form
     assert bp["model"] == "net_billing" and bp["end_date"] is None
     post_form(f"/pv/billing-period/{bp['id']}/usun")
     assert query("SELECT * FROM billing_periods") == []
+
+
+def test_AC_017_5_okres_od_srodka_miesiaca():
+    periods = [{"start_date": "2024-07-15", "end_date": None, "model": "net_billing"}]
+    assert _get_billing_model("2024.07", periods) == "net_metering"   # 1.07 jeszcze bez okresu (BR-013)
+    assert _get_billing_model("2024.08", periods) == "net_billing"

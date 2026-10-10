@@ -55,3 +55,27 @@ def test_AC_001_5_km_ze_stanu_licznika():
           {"period": "2026.02", "vehicle_id": 1, "km": None, "odometer_km": 14200.0}]
     km = {e["period"]: e["km"] for e in main._inject_odometer_km(ev, vehicles)}
     assert km == {"2026.01": 1000.0, "2026.02": 1200.0}
+
+
+def test_AC_001_6_kwota_faktury_poza_obliczeniami(client, seed, query, post_form):
+    import asyncio
+    import utils.db
+    seed("INSERT INTO investments (date, description, cost_pln) VALUES ('2026-01-01', 'Panele', 30000)")
+    post_form("/odczyty/nowy", {**_form(), "invoice_number": "FV/09/2026", "invoice_gross": "350"})
+
+    def state():
+        async def run():
+            db = await utils.db.get_db()
+            try:
+                roi, readings, _ = await main._roi_state(db)
+                er = await main._enriched_readings(db)
+                return er[0]["savings_pln"], roi["remaining_to_roi"]
+            finally:
+                await db.close()
+        return asyncio.run(run())
+    import main
+    before = state()
+    rid = query("SELECT id FROM readings")[0]["id"]
+    post_form(f"/odczyty/{rid}/edytuj", {**_form(), "invoice_number": "FV/09/2026", "invoice_gross": "400"})
+    assert query("SELECT invoice_gross FROM readings")[0]["invoice_gross"] == 400
+    assert state() == before

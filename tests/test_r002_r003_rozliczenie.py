@@ -81,3 +81,21 @@ def test_AC_003_pole_w_ustawieniach_pv(client):
     html = client.get("/pv").text
     assert 'name="cycle_start_month"' in html
     assert '<option value="4" selected>kwiecień</option>' in " ".join(html.split())
+
+
+def test_AC_002_5_brak_ceny_kwh_cena_domyslna(client, seed, monkeypatch):
+    import asyncio
+    import main
+    import utils.db
+    monkeypatch.setenv("DEFAULT_PRICE_KWH", "0.75")
+    seed("""INSERT INTO readings (period, year, month, production_kwh, sent_to_grid_kwh, taken_from_grid_kwh, price_per_kwh)
+            VALUES ('2025.06', 2025, 6, 200, 0, 100, NULL)""")
+
+    async def run():
+        db = await utils.db.get_db()
+        try:
+            return await main._enriched_readings(db)
+        finally:
+            await db.close()
+    (r,) = asyncio.run(run())
+    assert r["savings_pln"] == 150.0                     # 200 × 0,75 (BR-014)
