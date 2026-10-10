@@ -5,7 +5,7 @@ Dla kazdej encji: pola kluczowe, stany, przejscia (kto moze), diagram Mermaid.
 strukture encji - wpisz stany/przejscia i numer pytania. Puste = brak zastrzezen.
 
 ## Odczyt miesiąca
-Pola: okres (RRRR.MM), produkcja, oddane, pobrane, cena kWh, faktura; dane EV per pojazd (kWh domowe, km, stan licznika, ładowanie publiczne)
+Pola: okres (RRRR.MM), produkcja, oddane, pobrane (S-002), cena kWh (S-003, BR-014), faktura - numer i kwota brutto, pomocnicze do odnalezienia faktury, poza obliczeniami (S-003, D-033); dane EV per pojazd (kWh domowe - S-009, km i stan licznika - S-007, ładowanie publiczne kWh i koszt - S-008)
 Stany: zapisany (z danymi EV), usunięty
 Przejscia: [*] -> zapisany (Właściciel instalacji, po walidacji); zapisany -> zapisany (edycja, Właściciel instalacji); zapisany -> usunięty (Właściciel instalacji)
 Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów, main.py /odczyty/nowy; [Dok] README.md, /odczyty/{id}/usun
@@ -90,7 +90,7 @@ stateDiagram-v2
 Pola: data startu, model rozliczeń (net-metering / net-billing)
 Stany: ustawiony
 Przejscia: [*] -> ustawiony (Właściciel instalacji, D-004)
-Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Net-billing i RCE; [Biz] D-004
+Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Net-billing i RCE; [Biz] D-004; miesiąc liczony wg okresu obowiązującego 1. dnia miesiąca (D-032, BR-013)
 Zakwestionowane:
 
 ```mermaid

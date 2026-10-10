@@ -2,7 +2,7 @@
 
 ## 1. Cel
 Właściciel instalacji raz w miesiącu wpisuje odczyty za miniony miesiąc i sprawdza, ile instalacja już się zwróciła i ile oszczędza na samochodach. Efekt: zawsze aktualny ROI i oszczędności bez ręcznych obliczeń.
-Źródło: [Biz] QUESTIONS.md, Q-015; A-003 (niepotwierdzone).
+Źródło: [Biz] QUESTIONS.md, Q-015; A-003 (potwierdzone, session-2026-10-07.md).
 
 ## 2. Aktorzy
 Właściciel instalacji - zob. 02-domain/ACTORS.md.
@@ -19,20 +19,22 @@ Właściciel instalacji - zob. 02-domain/ACTORS.md.
 ## 4. Poza zakresem
 (rownie wazne jak zakres)
 - Strony /bateria i /ogrzewanie - makiety przyszłych funkcji (D-011).
-- Uwierzytelnianie ponad istniejący opcjonalny Basic Auth (FV_AUTH_PASSWORD), dopóki tryb standalone nie jest wystawiony poza sieć domową (A-002, niepotwierdzone).
+- Uwierzytelnianie ponad istniejący opcjonalny Basic Auth (FV_AUTH_PASSWORD), dopóki tryb standalone nie jest wystawiony poza sieć domową (A-002, potwierdzone, session-2026-10-07.md).
 - Automatyczne pobieranie cen RCE i cen paliwa - wpisywane ręcznie (D-004, D-006).
 - Wariant procentowy w analizie wrażliwości - 7 stałych cen (D-012).
 - Integracja z Tesla Fleet API - wycofana, API nie działało dobrze (D-020).
 - Osobna kategoria kosztów eksploatacji - wszystkie wydatki na instalację to etapy inwestycji (D-017).
+- Podsumowanie ROI dla Home Assistant (/api/summary) - usuwane, właściciel nie korzysta (D-030).
+- Zestawianie kwoty faktury z policzoną oszczędnością - numer i kwota faktury służą tylko do odnalezienia faktury (D-033).
 
 ## 5. Wymagania
 
 ### R-001 Wpisanie odczytu miesiąca
-Opis:              Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Integracja z Tesla Fleet API wycofana (D-020, R-018).
-Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030; [Biz] board.json, qq042 (D-026)
+Opis:              Właściciel instalacji wpisuje odczyt miesiąca (produkcja, oddane, pobrane, cena kWh, faktura, dane EV per pojazd) ręcznie albo pobiera produkcję i dane sieci z Home Assistant za wybrany miesiąc. Błędny odczyt nie zostaje zapisany. Integracja z Tesla Fleet API wycofana (D-020, R-018). Cenę kWh właściciel wpisuje z faktury na nowy okres; puste pole = cena domyślna kWh z konfiguracji add-onu (D-031, BR-014). Numer i kwota brutto faktury służą do odnalezienia faktury i nie wchodzą do obliczeń (D-033). Przejechane km właściciel przepisuje z aplikacji Tesla (S-007), kWh ładowania domowego - z domowych liczników energii (S-009), kWh i koszt ładowania publicznego - z aplikacji operatora ładowarki (S-008); brakujące dane ładowania publicznego uzupełnia później edycją odczytu.
+Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów; [Biz] session-2026-10-04.md, Q-024, Q-030; [Biz] board.json, qq042 (D-026); [Biz] session-2026-10-07.md, Q-047, Q-049, Q-052, Q-053; [Biz] session-2026-10-08.md, Q-056, Q-057
 Zalozenia:         A-004, A-010
-Reguly:            BR-003, BR-009, BR-011
-Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Reguly:            BR-003, BR-009, BR-011, BR-014
+Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
@@ -41,13 +43,14 @@ Kryteria akceptacji:
 - AC-001-3: Given oddane 500 kWh i produkcja 400 kWh, When właściciel zapisuje odczyt, Then odczyt nie zostaje zapisany, a formularz pokazuje błąd.
 - AC-001-4: Given skonfigurowane encje HA, When właściciel wybiera miesiąc i klika „pobierz z HA”, Then pola produkcja, oddane i pobrane wypełniają się bez ręcznego wpisywania.
 - AC-001-5: Given pojazd z przebiegiem startowym 12 000 km, When właściciel wpisuje stan licznika 13 000 za pierwszy miesiąc i 14 200 za kolejny, Then km miesięcy wynoszą 1 000 i 1 200 (BR-011).
+- AC-001-6: Given zapisany odczyt z numerem faktury i kwotą brutto 350 zł, When właściciel zmienia kwotę faktury na 400 zł, Then oszczędność PV miesiąca i pozostało do zwrotu się nie zmieniają (D-033).
 
 ### R-002 Oszczędność PV miesiąca
 Opis:              Dla każdego odczytu aplikacja liczy oszczędność PV miesiąca (kWh i zł) według modelu rozliczeń okresu rozliczeniowego: w net-meteringu z autokonsumpcji i puli net-meteringu (kumulowanej w cyklu rozliczeniowym), w net-billingu z autokonsumpcji i energii oddanej wycenionej po cenie RCE.
-Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering, calculations.py:94-159; [Biz] board.json, qq001 (D-002); [Biz] session-2026-10-04.md, Q-025
+Zrodlo:            [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering, calculations.py:94-159; [Biz] board.json, qq001 (D-002); [Biz] session-2026-10-04.md, Q-025; [Biz] session-2026-10-07.md, Q-047, Q-048
 Zalozenia:         A-005, A-006 (niepotwierdzone; Q-026 zaparkowane)
-Reguly:            BR-001, BR-004, BR-005
-Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Reguly:            BR-001, BR-004, BR-005, BR-013, BR-014
+Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
@@ -55,9 +58,10 @@ Kryteria akceptacji:
 - AC-002-2: Given miesiąc startu cyklu = kwiecień i pula 40 kWh z marca, When liczony jest kwiecień, Then pula startuje od 0.
 - AC-002-3: Given okres w net-billingu, autokonsumpcja 200 kWh, cena zakupu 1,00 zł, oddane 300 kWh, RCE 0,40 zł, When liczona jest oszczędność, Then oszczędność = 320 zł.
 - AC-002-4: Given net-billing i odczyt z ceną sprzedaży 0,50 zł, When liczona jest oszczędność, Then energia oddana jest wyceniona po 0,50 zł zamiast po RCE.
+- AC-002-5: Given okres w net-meteringu, pula 0, produkcja 200 kWh, oddane 0, odczyt bez ceny kWh i cena domyślna kWh 0,75 zł w konfiguracji, When liczona jest oszczędność, Then oszczędność PV miesiąca = 200 × 0,75 = 150 zł (BR-014).
 
 ### R-003 Ustawienie miesiąca startu cyklu rozliczeniowego
-Opis:              Właściciel instalacji ustawia miesiąc startu cyklu rozliczeniowego (domyślnie kwiecień); w tym miesiącu pula net-meteringu się zeruje. Stan docelowy - dziś kod zawsze przyjmuje kwiecień.
+Opis:              Właściciel instalacji ustawia miesiąc startu cyklu rozliczeniowego (domyślnie kwiecień); w tym miesiącu pula net-meteringu się zeruje. Działa od v3.3.0 (src/main.py:2028).
 Zrodlo:            [Biz] board.json, qq012 (D-003)
 Zalozenia:         -
 Reguly:            BR-001
@@ -69,7 +73,7 @@ Kryteria akceptacji:
 - AC-003-2: Given właściciel ustawił czerwiec, When liczony jest czerwiec, Then pula net-meteringu zeruje się w czerwcu, a nie w kwietniu.
 
 ### R-004 Import odczytów z CSV - cały plik albo nic
-Opis:              Właściciel instalacji importuje odczyty z pliku CSV (separator „;”, polskie nagłówki). Jeśli choć jeden wiersz jest błędny, nie zostaje zapisany żaden, a raport podaje numer wiersza i powód. Stan docelowy. Postępowanie z okresem, który już istnieje - Q-017.
+Opis:              Właściciel instalacji importuje odczyty z pliku CSV (separator „;”, polskie nagłówki). Jeśli choć jeden wiersz jest błędny, nie zostaje zapisany żaden, a raport podaje numer wiersza i powód (działa w v3.4.0, src/main.py:1191). Okres, który już istnieje, import pomija - Q-017 (zaparkowane).
 Zrodlo:            [Biz] board.json, qq008 (D-009)
 Zalozenia:         -
 Reguly:            BR-002
@@ -99,11 +103,11 @@ Kryteria akceptacji:
 - AC-005-6: Given etap serwisowy z kosztem 800 zł bez mocy, When liczona jest prognoza, Then prognoza się nie zmienia, a łączna inwestycja rośnie o 800 zł.
 
 ### R-006 Pozostało do zwrotu
-Opis:              Aplikacja liczy, ile zostało do zwrotu inwestycji: łączna inwestycja − Σ oszczędności PV − Σ Oszczędność EV z FV. Oszczędność z ładowania publicznego nie wchodzi do ROI. Etap inwestycji liczy się od miesiąca swojej daty (D-015; dziś błąd - wszystkie etapy od początku). Etap sprzed pierwszego odczytu liczy się od pierwszego miesiąca z odczytem (D-021). Termin zwrotu = karta „mies. do ROI”: pozostało do zwrotu / średnia miesięczna oszczędność z historii (D-018).
+Opis:              Aplikacja liczy, ile zostało do zwrotu inwestycji: łączna inwestycja − Σ oszczędności PV − Σ Oszczędność EV z FV. Oszczędność z ładowania publicznego nie wchodzi do ROI. Etap inwestycji liczy się od miesiąca swojej daty (D-015). Etap sprzed pierwszego odczytu liczy się od pierwszego miesiąca z odczytem (D-021). Termin zwrotu = karta „mies. do ROI”: pozostało do zwrotu / średnia miesięczna oszczędność z historii (D-018).
 Zrodlo:            [Biz] session-2026-10-04.md, Q-027; [Biz] board.json, qq006 (D-008); [Dok] README.md, calc_roi
 Zalozenia:         A-007
-Reguly:            BR-006, BR-010
-Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Reguly:            BR-006, BR-010, BR-014
+Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
@@ -114,7 +118,7 @@ Kryteria akceptacji:
 - AC-006-5: Given etap z datą 2021-09 i pierwszy odczyt za 2021.10, When wykres /roi pokazuje 2021.10, Then inwestycja obejmuje ten etap.
 
 ### R-007 Prognoza zwrotu
-Opis:              Aplikacja prognozuje 36 miesięcy z degradacją paneli (ustawienie, domyślnie 0,6% rocznie) i scenariuszami wzrostu ceny prądu kupowanego z sieci 0/3/7/12% rocznie. Gdy zwrot przypada po 36 miesiącach, wykres kończy się na 36. miesiącu, a tabela scenariuszy podaje „zwrot za N mies.” dla każdego scenariusza (D-013, D-019; stan docelowy).
+Opis:              Aplikacja prognozuje 36 miesięcy z degradacją paneli (ustawienie, domyślnie 0,6% rocznie) i scenariuszami wzrostu ceny prądu kupowanego z sieci 0/3/7/12% rocznie. Gdy zwrot przypada po 36 miesiącach, wykres kończy się na 36. miesiącu, a tabela scenariuszy podaje „zwrot za N mies.” dla każdego scenariusza (D-013, D-019; działa w v3.4.0, templates/roi.html:179).
 Zrodlo:            [App] src/main.py:995-1008, src/services/forecast.py; [App] src/main.py:1888; [Biz] session-2026-10-04.md, Q-028 (D-013)
 Zalozenia:         A-008 (niepotwierdzone; Q-028 zaparkowane)
 Reguly:            BR-007
@@ -168,7 +172,7 @@ Kryteria akceptacji:
 - AC-010-4: Given pojazd na PB95 z danymi EV od 2025.11, pierwsza cena PB95 6,00 zł wpisana 2026-02-10 i druga 6,50 zł wpisana 2026-05-20, When liczona jest oszczędność za 2025.11-2026.05, Then miesiące 2025.11-2026.04 liczą się po 6,00 zł, a 2026.05 po 6,50 zł - tak samo na kartach /ev i w ROI (D-029).
 
 ### R-011 Śledzenie cen paliwa
-Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma. Stan docelowy.
+Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma.
 Zrodlo:            [Biz] board.json, nmuspw64n (D-007); [Biz] board.json, qq005 (D-006); [Biz] board.json, qq040 (D-024)
 Zalozenia:         -
 Reguly:            -
@@ -209,7 +213,7 @@ Kryteria akceptacji:
 - AC-013-3: Given kopia JSON z 5 odczytami, aplikacja z 12 odczytami i degradacja ustawiona na 0,8, When właściciel przywraca dane z kopii, Then aplikacja ma 5 odczytów, a degradacja nadal wynosi 0,8.
 
 ### R-014 Wyczyść bazę
-Opis:              „Wyczyść bazę” usuwa wszystkie dane (odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe, ceny RCE); ustawienia zostają. Tekst przed potwierdzeniem wymienia wszystko, co znika, i zaleca kopię. Stan docelowy - dziś kod usuwa tylko odczyty.
+Opis:              „Wyczyść bazę” usuwa wszystkie dane (odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe, ceny RCE); ustawienia zostają. Tekst przed potwierdzeniem wymienia wszystko, co znika, i zaleca kopię (działa w v3.4.0, src/main.py:1230).
 Zrodlo:            [Biz] board.json, qq010 (D-010)
 Zalozenia:         -
 Reguly:            -
@@ -221,16 +225,16 @@ Kryteria akceptacji:
 - AC-014-2: Given ekran przed potwierdzeniem, When właściciel go czyta, Then tekst wymienia wszystkie usuwane rodzaje danych i zaleca pobranie kopii (/backup/full).
 
 ### R-015 Integracja z Home Assistant
-Opis:              Właściciel instalacji wpisuje encje HA (produkcja PV, pobór z sieci, oddanie do sieci) i testuje połączenie. HA może odczytywać podsumowanie ROI z /api/summary, liczone tak samo jak na /roi (właściciel nie korzysta - zostaje jako test regresji, A-013).
-Zrodlo:            [Dok] README.md, Home Assistant, /api/ha-test, API JSON; [Biz] session-2026-10-04.md, Q-030
+Opis:              Właściciel instalacji wpisuje encje HA (produkcja PV, pobór z sieci, oddanie do sieci) i testuje połączenie. Podsumowanie ROI dla HA (/api/summary) jest usuwane - właściciel z niego nie korzysta (D-030).
+Zrodlo:            [Dok] README.md, Home Assistant, /api/ha-test, API JSON; [Biz] session-2026-10-04.md, Q-030; [Biz] session-2026-10-05.md, propozycja C (D-030)
 Zalozenia:         A-010, A-013
 Reguly:            BR-009
-Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-015-1: Given wpisane encje produkcji, poboru i oddania, When właściciel klika „Testuj połączenie”, Then widzi „OK — RRRR-MM: N kWh (okres: RRRR-MM)” dla bieżącego miesiąca albo komunikat błędu.
-- AC-015-2: Given dane ROI, When HA odpytuje /api/summary, Then „pozostało do zwrotu” jest równe wartości na /roi.
+- AC-015-2: Given aplikacja po zmianie, When HA odpytuje /api/summary, Then aplikacja odpowiada „nie znaleziono” (404), a test połączenia i pobieranie liczników działają bez zmian (D-030).
 
 ### R-016 Poprawki tekstów
 Opis:              Teksty metodologia.html, README i podtytuł tabeli wrażliwości na /roi zgodne z decyzjami: pula kumulowana w cyklu, RCE i ceny paliwa wpisywane ręcznie, bez dat ustawowych net-billingu (model z okresów rozliczeniowych, daty z umowy - D-022), 7 stałych cen, CSV z separatorem „;” i polskimi nagłówkami.
@@ -248,11 +252,11 @@ Kryteria akceptacji:
 - AC-016-5: Given metodologia.html, When właściciel czyta opis net-billingu, Then tekst nie podaje dat ustawowych i mówi, że model rozliczeń wynika z okresów rozliczeniowych ustawionych przez użytkownika, a daty zależą od umowy z operatorem.
 
 ### R-017 Okresy rozliczeniowe i ceny RCE
-Opis:              Właściciel instalacji na /pv ustawia okresy rozliczeniowe (data startu, opcjonalnie data końca, model: net-metering albo net-billing) i wpisuje ceny RCE (data, cena, źródło); może je usuwać. Model rozliczeń miesiąca wynika z okresu rozliczeniowego, w który miesiąc wpada; bez okresu obowiązuje net-metering. Brak ceny RCE w miesiącu net-billingu - Q-033.
-Zrodlo:            [Biz] board.json, qq002 (D-004); [App] src/main.py:1838-1900; [App] src/services/calculations.py:57-91
+Opis:              Właściciel instalacji na /pv ustawia okresy rozliczeniowe (data startu, opcjonalnie data końca, model: net-metering albo net-billing) i wpisuje ceny RCE (data, cena, źródło); może je usuwać. Model rozliczeń miesiąca wynika z okresu rozliczeniowego obowiązującego 1. dnia tego miesiąca (D-032); bez okresu obowiązuje net-metering. Brak ceny RCE w miesiącu net-billingu - Q-033, Q-051 (zaparkowane); nakładające się okresy - Q-055 (zaparkowane, dziś wygrywa późniejszy start).
+Zrodlo:            [Biz] board.json, qq002 (D-004); [App] src/main.py:1838-1900; [App] src/services/calculations.py:57-91; [Biz] session-2026-10-07.md, Q-048 (D-032)
 Zalozenia:         -
-Reguly:            BR-005
-Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Reguly:            BR-005, BR-013
+Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
@@ -260,6 +264,7 @@ Kryteria akceptacji:
 - AC-017-2: Given okres net-billing od 2024-07-01 bez daty końca, When liczone są 2024.06 i 2024.08, Then 2024.06 jest w net-meteringu, a 2024.08 w net-billingu.
 - AC-017-3: Given ceny RCE 0,40 zł od 2024-07-01 i 0,30 zł od 2024-08-15, When liczony jest 2024.08 w net-billingu, Then energia oddana jest wyceniona po 0,30 zł (ostatnia cena z datą nie późniejszą niż koniec miesiąca).
 - AC-017-4: Given usunięta cena RCE 0,30 zł, When ponownie liczony jest 2024.08, Then energia oddana jest wyceniona po 0,40 zł.
+- AC-017-5: Given okres net-billing od 2024-07-15 bez daty końca, When liczone są 2024.07 i 2024.08, Then 2024.07 jest w net-meteringu, a 2024.08 w net-billingu (BR-013).
 
 ### R-018 Wycofanie integracji z Tesla Fleet API
 Opis:              Integracja z Tesla Fleet API zostaje wycofana: pozostałości (kolumny tesla_* w bazie, wzmianki w ev.html, opis w README) są usuwane, a CHANGELOG aplikacji opisuje wycofanie i powód. Dane właściciela zostają nienaruszone.
@@ -290,16 +295,16 @@ Kryteria akceptacji:
 ### R-020 Kontrakt: liczniki energii z Home Assistant (wejście)
 Opis:              Aplikacja przyjmuje z Home Assistant wartości miesiąca dla Odczytu miesiąca: produkcję PV, pobór z sieci i oddanie do sieci, w kWh. Pobranie na żądanie właściciela przy wpisie odczytu za wybrany miesiąc. Gdy HA nie ma danych, właściciel wpisuje wartości ręcznie. Schemat techniczny (encje, API HA) - w budowie, BR-009.
 Zrodlo:            [Biz] session-2026-10-04.md, Q-030 (A-010); [Biz] session-2026-10-05.md, propozycja A; [App] src/main.py:2155-2190
-Zalozenia:         A-010, A-015, A-016
+Zalozenia:         A-010, A-015, A-016 (potwierdzone)
 Reguly:            BR-009
 Rodzaj:            kontrakt - wejscie
 System:            S-002 (Home Assistant)
-Status:            robocze
+Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-020-1: Given encje produkcji, poboru i oddania są skonfigurowane, a HA ma dane za miesiąc 2026.09, When właściciel w formularzu odczytu za 2026.09 pobiera dane z HA, Then pola produkcja, pobrane i oddane mają wartości za 2026.09 w kWh i przed zapisem można je zmienić.
-- AC-020-2: Given zapisany odczyt za 2026.08, When mija dowolny czas bez działania właściciela, Then wartości odczytu 2026.08 się nie zmieniają (pobranie tylko na żądanie przy wpisie odczytu).
+- AC-020-2: Given zapisany odczyt za 2026.08 i zmienione później dane za 2026.08 w HA, When właściciel otwiera listę odczytów, Then wartości odczytu 2026.08 są takie jak przy zapisie (pobranie tylko na żądanie przy wpisie odczytu).
 - AC-020-3: Given HA nie zwraca danych za 2026.09, When właściciel pobiera dane z HA, Then widzi komunikat „Brak danych dla <encja> za 2026-09”, pola zostają puste do wpisania ręcznie, a odczyt z ręcznymi wartościami da się zapisać.
 
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
@@ -324,7 +329,6 @@ Z /sdd:board sync 2026-10-04 (as-built, bez potwierdzenia [Biz] - numer R po zgo
 - K-17 Integracja HA: encje (produkcja PV, pobór, oddanie), test połączenia, sensor podsumowania ROI (/api/summary) - BR-009, A-002; tablica: p42, p43, p45; źródło: [Dok] README.md, Home Assistant, /api/ha-test, API JSON → R-015.
 Z /sdd:board sync 2026-10-04, proces „Pojazdy EV i paliwo” (as-built, bez potwierdzenia [Biz]):
 - K-18 Edycja i usuwanie pojazdu (okres posiadania od-do, notatki) - D-025, D-027; tablica: p50; źródło: [App] src/main.py:1651, 1664 → R-009 albo R-019.
-- K-20 Usunięcie wyjścia do Home Assistant (/api/summary, podsumowanie ROI dla sensora) - D-030; źródło: [Biz] session-2026-10-05.md → zmiana R-015 (opis, AC-015-2).
 - K-19 Poprawianie i usuwanie ceny paliwa, ekran „Ceny paliwa” (/ev/ceny-paliwa) - D-023, D-024; tablica: p57, p58; źródło: [App] src/main.py:1778, 1798, 1847 → R-011.
 
 ## 6. Do przegladu
@@ -347,6 +351,16 @@ wypelniana automatycznie)
 - 2026-10-04: D-028 -> R-019: opis, dodane AC-019-2, AC-019-3, status zatwierdzone; R-001: formularz odczytu bez pól EV pojazdu nieaktywnego. Zatwierdzone przez właściciela instalacji (sync tablicy, „tak”); kod v3.3.1 nie spełnia AC-019-1..AC-019-3.
 - 2026-10-04: D-029 (uzupełnia D-023) -> R-010: dodane AC-010-4 (miesiące przed pierwszą ceną paliwa liczone wg pierwszej ceny); R-006, R-008: liczby ROI. Zatwierdzone przez właściciela instalacji („tak”); kod v3.3.1 nie spełnia AC-010-4 na kartach /ev.
 - 2026-10-05: D-030 (/api/summary do usunięcia) -> R-015: opis i AC-015-2 (regresja /api/summary) do zmiany - kandydat K-20. R-004, R-013: dopisany rodzaj kontrakt (S-006), bez zmiany kryteriów; nowe R-020 (kontrakt HA, robocze; AC-020-2, AC-020-3 na A-016, A-015 niepotwierdzonych, Q-050). Zgoda właściciela instalacji (session-2026-10-05.md).
+- 2026-10-08: D-031 (cena kWh: domyślna z konfiguracji add-onu, gdy odczyt jej nie ma; cena z faktury wpisywana w odczycie) -> R-001 (pole ceny kWh), R-002 (wycena oszczędności przy pustej cenie), R-006 (ROI) - do przejrzenia przy /sdd:spec. SYSTEMS.md S-003 „Przy awarii” uzupełnione.
+- 2026-10-08: D-032 (model rozliczeń miesiąca wg okresu obowiązującego 1. dnia miesiąca; zgodne z v3.4.0) -> R-017, R-002 - do przejrzenia przy /sdd:spec (kryterium dla okresu startującego w środku miesiąca); kod v3.4.0 już tak liczy. Q-055 (nakładające się okresy) zaparkowane.
+- 2026-10-08: D-033 (numer i kwota brutto faktury - pomocnicze, poza obliczeniami; zgodne z v3.4.0) -> R-001 (pola faktury w odczycie) - do przejrzenia przy /sdd:spec.
+- 2026-10-08: A-015 potwierdzone (brak danych z HA: komunikat, odczyt nie blokowany, liczby przepisywane ręcznie z aplikacji zewnętrznej) -> R-020 (AC-020-3 przestaje stać na niepotwierdzonym A-015), R-001, R-015 - do przejrzenia przy /sdd:spec. SYSTEMS.md S-002 „Przy awarii” uzupełnione; nowe Q-054 (jaka aplikacja zewnętrzna).
+- 2026-10-08: A-002 potwierdzone -> §4 (bez zmiany treści); A-003 potwierdzone -> §1 Cel, §3 Zakres (bez zmiany treści); A-016 potwierdzone -> R-020 (AC-020-2 przestaje stać na niepotwierdzonym A-016; z A-015 - R-020 bez niepotwierdzonych A). SYSTEMS.md S-007, S-008 (ręczne źródła pól EV) -> R-010, R-001 (Q-052, Q-053) - do przejrzenia przy /sdd:spec.
+- 2026-10-08: walidacja (WARN 7) -> R-020 AC-020-2 przepisane na konkretne zdarzenie (otwarcie listy odczytów po zmianie danych w HA). Zatwierdzone przez właściciela instalacji („tak”).
+- 2026-10-08: porządki po przeglądzie tablicy - z opisów R-003, R-004, R-006, R-007, R-011, R-014 i reguł BR-006, BR-007 usunięte nieaktualne „stan docelowy / dziś…” (zbudowane w v3.3.0-v3.4.0, sprawdzone w kodzie); bez zmiany AC. Nowe Q-060 (usunięcie pojazdu kasuje dane) -> R-009, R-010, R-006, R-019. Zgoda właściciela instalacji („rob”).
+- 2026-10-08: nowe BR-013 (D-032) -> R-017, R-002 (pole Reguly); BR-014 (D-031) -> R-001, R-002, R-006 (pole Reguly) - do dopisania przy /sdd:spec.
+- 2026-10-08: /sdd:spec - przegląd wykonany: R-001 (opis, BR-014, AC-001-6), R-002 (BR-013, BR-014, AC-002-5), R-006 (BR-014), R-015 (bez /api/summary, AC-015-2 zmienione; K-20 zrealizowany), R-017 (opis, BR-013, AC-017-5), R-020 zatwierdzone; R-010 przejrzane bez zmian; §1, §4 zaktualizowane. Zatwierdzone przez właściciela instalacji („tak”).
+- 2026-10-08: /sdd:board sync - Q-056/Q-057 -> R-001 opis źródeł danych EV (km - S-007, kWh domowe - S-009, publiczne - S-008, uzupełnianie później), bez zmiany AC; Q-058 -> ACTORS (jedyny użytkownik), wspiera A-002. Zgoda właściciela instalacji („tak”).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

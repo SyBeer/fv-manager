@@ -1,4 +1,4 @@
-<!-- GENEROWANE z PRD.md 2026-10-04 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Eksport, kopia, czyszczenie
 
@@ -16,7 +16,7 @@ Kryteria akceptacji:
 - AC-013-3: Given kopia JSON z 5 odczytami, aplikacja z 12 odczytami i degradacja ustawiona na 0,8, When właściciel przywraca dane z kopii, Then aplikacja ma 5 odczytów, a degradacja nadal wynosi 0,8.
 
 ### R-014 Wyczyść bazę
-Opis:              „Wyczyść bazę” usuwa wszystkie dane (odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe, ceny RCE); ustawienia zostają. Tekst przed potwierdzeniem wymienia wszystko, co znika, i zaleca kopię. Stan docelowy - dziś kod usuwa tylko odczyty.
+Opis:              „Wyczyść bazę” usuwa wszystkie dane (odczyty, etapy inwestycji, pojazdy i dane EV, ceny paliwa, okresy rozliczeniowe, ceny RCE); ustawienia zostają. Tekst przed potwierdzeniem wymienia wszystko, co znika, i zaleca kopię (działa w v3.4.0, src/main.py:1230).
 Zrodlo:            [Biz] board.json, qq010 (D-010)
 Zalozenia:         -
 Reguly:            -

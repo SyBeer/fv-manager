@@ -1,4 +1,4 @@
-<!-- GENEROWANE z PRD.md 2026-10-04 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Plan - Pojazdy EV i ceny paliwa
 
@@ -20,3 +20,11 @@ Stany: zapisana
 Przejscia: [*] -> zapisana (Właściciel instalacji, wpis ręczny, D-006)
 Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Ceny paliwa; [Biz] D-006; obowiązuje od daty wpisu do następnego wpisu (D-023); miesiące przed pierwszą ceną - wg pierwszej ceny (D-029)
 Zakwestionowane:
+
+## Integracje (02-domain/SYSTEMS.md)
+| ID | System | Wymiana | Przy awarii |
+|---|---|---|---|
+| S-005 | Źródło cen paliwa | cena paliwa - wpis ręczny, gdy się zmienia | miesiące przed pierwszą ceną - wg pierwszej ceny (D-029); między wpisami ostatnia (D-023) |
+| S-007 | Aplikacja Tesla (telefon) | km i stan licznika - wpis ręczny | ? (nie wystąpiło) |
+| S-008 | Aplikacja operatora ładowarki | kWh i koszt ładowania publicznego - wpis ręczny | pola puste, uzupełnienie później edycją odczytu |
+| S-009 | Domowe liczniki energii | kWh ładowania domowego - wpis ręczny | dotąd zawsze możliwy; inaczej szacunek kWh |

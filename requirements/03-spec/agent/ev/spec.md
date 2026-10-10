@@ -1,4 +1,4 @@
-<!-- GENEROWANE z PRD.md 2026-10-04 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Pojazdy EV i ceny paliwa
 
@@ -31,7 +31,7 @@ Kryteria akceptacji:
 - AC-010-4: Given pojazd na PB95 z danymi EV od 2025.11, pierwsza cena PB95 6,00 zł wpisana 2026-02-10 i druga 6,50 zł wpisana 2026-05-20, When liczona jest oszczędność za 2025.11-2026.05, Then miesiące 2025.11-2026.04 liczą się po 6,00 zł, a 2026.05 po 6,50 zł - tak samo na kartach /ev i w ROI (D-029).
 
 ### R-011 Śledzenie cen paliwa
-Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma. Stan docelowy.
+Opis:              Przy dodawaniu pierwszego samochodu właściciel instalacji decyduje, czy śledzi ceny paliwa. Jeśli tak - w menu pod EV jest pozycja „Ceny paliwa” (wpis ręczny: data, cena, typ, źródło); jeśli nie - pozycji nie ma.
 Zrodlo:            [Biz] board.json, nmuspw64n (D-007); [Biz] board.json, qq005 (D-006); [Biz] board.json, qq040 (D-024)
 Zalozenia:         -
 Reguly:            -

@@ -314,3 +314,33 @@ Zrodlo: [Biz] session-2026-10-05.md, propozycja C
 Wplyw: R-015 (opis i AC-015-2 o /api/summary) - PRD §6; kandydat K-20 w PRD §5a; SYSTEMS.md S-002 (wymiana my -> HA).
 Zamyka pytanie: -
 Otwiera pytania: -
+
+## D-031 | 2026-10-08 | Cena kWh: domyślna z konfiguracji, cena z faktury wpisywana w odczycie
+Pytanie: Q-047 - skąd cena kWh do odczytów i co, gdy pole jest puste.
+Decyzja: Gdy odczyt nie ma ceny kWh, aplikacja liczy oszczędność po cenie domyślnej, którą właściciel ustawia w konfiguracji add-onu. Gdy właściciel zna cenę z faktury na nowy okres, wpisuje ją w odczycie.
+Powod: „jakaś musi być” (właściciel instalacji, session-2026-10-07.md, Q-047).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-07.md, Q-047
+Wplyw: R-001, R-002, R-006 - PRD §6; SYSTEMS.md S-003 (Przy awarii).
+Zamyka pytanie: Q-047
+Otwiera pytania: -
+
+## D-032 | 2026-10-08 | Model rozliczeń miesiąca wg okresu obowiązującego 1. dnia miesiąca
+Pytanie: Q-048 - data startu okresu rozliczeniowego i rozliczenie miesiąca zmiany modelu.
+Decyzja: Model rozliczeń miesiąca (net-metering / net-billing) wynika z okresu rozliczeniowego obowiązującego 1. dnia tego miesiąca. Zgodne z działaniem aplikacji v3.4.0 (src/services/calculations.py:57 _get_billing_model).
+Powod: właściciel nie zna daty startu okresu z umowy z operatorem („Nie wiem, przyjmuj ... pierwszy dzień miesiąca”, session-2026-10-07.md, Q-048).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-07.md, Q-048; zapis potwierdzony też w session-2026-10-08.md (równoległa rozmowa, zdublowany wpis D-032 scalony 2026-10-08)
+Wplyw: R-017, R-002 - PRD §6; D-004 (bez zmiany).
+Zamyka pytanie: Q-048
+Otwiera pytania: Q-055 (nakładające się okresy rozliczeniowe)
+
+## D-033 | 2026-10-08 | Numer i kwota brutto faktury - dane pomocnicze do odnalezienia faktury
+Pytanie: Q-049 - do czego służą numer i kwota brutto faktury w odczycie.
+Decyzja: Numer i kwota brutto faktury w Odczycie miesiąca to dane pomocnicze do późniejszego odnalezienia faktury; nie wchodzą do obliczeń oszczędności ani ROI. Zgodne z działaniem aplikacji v3.4.0 (src/main.py:734).
+Powod: „potrzebuję jej po to, żeby później namierzyć tą fakturę łatwiej. Jeżeli będę potrzebował kiedyś to sprawdzić” (właściciel instalacji, session-2026-10-07.md, Q-049).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-07.md, Q-049
+Wplyw: R-001 - PRD §6; R-002 bez zmiany.
+Zamyka pytanie: Q-049
+Otwiera pytania: -
