@@ -7,7 +7,7 @@ owners:                # role biznesowe, ktore zatwierdzaja (rola, nie osoba)
     approves: [R, D, GLOSSARY, BR]
 gate_blocking_status: "blokuje go-live"   # etykieta pytan blokujacych
 backlog: redmine       # none | linear | jira | file
-copy: remote           # local | remote - remote: kopia requirements/ wysylana na serwer (origin), galaz sdd-kopia/...
+copy: local            # local | remote - remote: kopia requirements/ wysylana na serwer (origin), galaz sdd-kopia/...
 redmine_url: "http://192.168.1.4:3001"
 redmine_project: "fv-manager"
 redmine_ac_field: "Kryteria akceptacji"   # pole wlasne Redmine na kryteria (wymagane przy zmianie statusu)
