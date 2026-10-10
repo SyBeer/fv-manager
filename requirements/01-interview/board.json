@@ -1003,8 +1003,11 @@
       "file": "01-interview/QUESTIONS.md",
       "by": "agent",
       "created": "2026-10-08T21:00:00+02:00",
-      "updated": "2026-10-08T21:00:00+02:00",
-      "synced": "2026-10-08T21:00:00+02:00"
+      "updated": "2026-10-10T09:58:53.403Z",
+      "synced": "2026-10-08T21:00:00+02:00",
+      "answeredAt": "2026-10-10T09:58:53.399Z",
+      "answer": "nie - usuniecie nie powinno domyślnie kasować historii. Dopiero po wyraźnym potwierdzeniu przez uzytkownika",
+      "answeredBy": "właściciel instalacji"
     },
     {
       "id": "p72",
@@ -1144,5 +1147,5 @@
       "synced": "2026-10-08T21:00:00+02:00"
     }
   ],
-  "updated": "2026-10-10T09:06:38.066Z"
+  "updated": "2026-10-10T09:58:53.403Z"
 }
