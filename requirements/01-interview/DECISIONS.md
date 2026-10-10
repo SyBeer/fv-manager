@@ -344,3 +344,13 @@ Zrodlo: [Biz] session-2026-10-07.md, Q-049
 Wplyw: R-001 - PRD §6; R-002 bez zmiany.
 Zamyka pytanie: Q-049
 Otwiera pytania: -
+
+## D-034 | 2026-10-10 | Usunięcie pojazdu domyślnie nie kasuje jego historii
+Pytanie: Q-060 - usunięcie pojazdu kasuje też wszystkie jego dane miesięczne (src/main.py:1677-1683).
+Decyzja: Usunięcie pojazdu domyślnie nie kasuje jego danych miesięcznych. Zostawione dane liczą się tak jak dane pojazdu nieaktywnego (D-025: wchodzą do Oszczędności EV z FV, Oszczędności EV vs paliwo i ROI). Dane miesięczne pojazdu są kasowane dopiero po wyraźnym potwierdzeniu przez właściciela. Zmienia działanie v3.4.0 (DELETE FROM ev_monthly bez pytania).
+Powod: „usunięcie nie powinno domyślnie kasować historii. Dopiero po wyraźnym potwierdzeniu przez użytkownika”; „jeżeli dane zostają, działaj tak jak dane pojazdu deaktywowanego” (właściciel instalacji, 2026-10-10).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] board.json, qq060; [Biz] session-2026-10-10.md, Q-060
+Wplyw: R-009 (brak AC usuwania pojazdu), R-010, R-006 (oszczędności i ROI nie spadają wstecz bez potwierdzenia), R-019 (pojazd usunięty z danymi = jak nieaktywny), R-008 (liczby ROI); ENTITIES.md Pojazd: stan usunięty - PRD §6.
+Zamyka pytanie: Q-060
+Otwiera pytania: -

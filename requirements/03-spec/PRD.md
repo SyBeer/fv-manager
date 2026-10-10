@@ -361,6 +361,7 @@ wypelniana automatycznie)
 - 2026-10-08: nowe BR-013 (D-032) -> R-017, R-002 (pole Reguly); BR-014 (D-031) -> R-001, R-002, R-006 (pole Reguly) - do dopisania przy /sdd:spec.
 - 2026-10-08: /sdd:spec - przegląd wykonany: R-001 (opis, BR-014, AC-001-6), R-002 (BR-013, BR-014, AC-002-5), R-006 (BR-014), R-015 (bez /api/summary, AC-015-2 zmienione; K-20 zrealizowany), R-017 (opis, BR-013, AC-017-5), R-020 zatwierdzone; R-010 przejrzane bez zmian; §1, §4 zaktualizowane. Zatwierdzone przez właściciela instalacji („tak”).
 - 2026-10-08: /sdd:board sync - Q-056/Q-057 -> R-001 opis źródeł danych EV (km - S-007, kWh domowe - S-009, publiczne - S-008, uzupełnianie później), bez zmiany AC; Q-058 -> ACTORS (jedyny użytkownik), wspiera A-002. Zgoda właściciela instalacji („tak”).
+- 2026-10-10: D-034 (usunięcie pojazdu domyślnie zostawia dane miesięczne, liczone jak pojazd nieaktywny; skasowanie danych tylko po wyraźnym potwierdzeniu) -> R-009 (brak AC usuwania), R-010, R-006, R-008 (oszczędności i ROI bez spadku wstecz), R-019 (relacja z pojazdem nieaktywnym) - do przejrzenia przy /sdd:spec; ENTITIES Pojazd: nowy stan usunięty. Kod v3.4.0 nie spełnia (src/main.py:1677 kasuje ev_monthly bez pytania).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

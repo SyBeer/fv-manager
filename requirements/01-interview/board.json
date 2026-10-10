@@ -993,23 +993,6 @@
       "synced": "2026-10-08T21:00:00+02:00"
     },
     {
-      "id": "qq060",
-      "type": "hot",
-      "text": "Usunięcie pojazdu kasuje też wszystkie jego dane miesięczne, więc oszczędności i ROI spadają wstecz. Kiedy ostatnio usuwałeś auto z aplikacji i co chciałeś wtedy osiągnąć?",
-      "lane": "Pojazdy EV i paliwo",
-      "col": 7,
-      "ref": "Q-060",
-      "source": "[App] src/main.py:1677-1683 vs [Biz] D-025",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-10-08T21:00:00+02:00",
-      "updated": "2026-10-10T09:58:53.403Z",
-      "synced": "2026-10-08T21:00:00+02:00",
-      "answeredAt": "2026-10-10T09:58:53.399Z",
-      "answer": "nie - usuniecie nie powinno domyślnie kasować historii. Dopiero po wyraźnym potwierdzeniu przez uzytkownika",
-      "answeredBy": "właściciel instalacji"
-    },
-    {
       "id": "p72",
       "type": "cmd",
       "text": "Wpisz dane auta za miesiąc w odczycie: km albo stan licznika, kWh ładowania w domu, ładowanie publiczne (kWh, km, koszt)",
@@ -1046,7 +1029,8 @@
       "source": "[App] src/services/calculations.py:275",
       "by": "agent",
       "created": "2026-10-08T21:00:00+02:00",
-      "updated": "2026-10-08T21:00:00+02:00"
+      "updated": "2026-10-08T21:00:00+02:00",
+      "synced": "2026-10-10T12:00:00+02:00"
     },
     {
       "id": "p76",
@@ -1145,7 +1129,48 @@
       "created": "2026-10-08T21:00:00+02:00",
       "updated": "2026-10-08T21:00:00+02:00",
       "synced": "2026-10-08T21:00:00+02:00"
+    },
+    {
+      "id": "p83",
+      "type": "cmd",
+      "col": 7,
+      "text": "Usuń pojazd",
+      "source": "[App] src/main.py:1677; [Biz] session-2026-10-10.md, Q-060",
+      "ref": "D-034",
+      "file": "01-interview/DECISIONS.md",
+      "lane": "Pojazdy EV i paliwo",
+      "by": "agent",
+      "created": "2026-10-10T12:00:00+02:00",
+      "updated": "2026-10-10T12:00:00+02:00",
+      "synced": "2026-10-10T12:00:00+02:00"
+    },
+    {
+      "id": "p84",
+      "type": "pol",
+      "col": 8,
+      "text": "Usunięcie pojazdu domyślnie zostawia jego dane miesięczne - liczą się jak dane pojazdu nieaktywnego; dane kasuje dopiero wyraźne potwierdzenie",
+      "source": "[Biz] session-2026-10-10.md, Q-060 (board.json qq060)",
+      "ref": "D-034",
+      "file": "01-interview/DECISIONS.md",
+      "lane": "Pojazdy EV i paliwo",
+      "by": "agent",
+      "created": "2026-10-10T12:00:00+02:00",
+      "updated": "2026-10-10T12:00:00+02:00",
+      "synced": "2026-10-10T12:00:00+02:00"
+    },
+    {
+      "id": "p85",
+      "type": "ev",
+      "col": 9,
+      "text": "Pojazd usunięty (dane zostawione albo skasowane po potwierdzeniu)",
+      "source": "[Biz] D-034",
+      "file": "02-domain/ENTITIES.md",
+      "lane": "Pojazdy EV i paliwo",
+      "by": "agent",
+      "created": "2026-10-10T12:00:00+02:00",
+      "updated": "2026-10-10T12:00:00+02:00",
+      "synced": "2026-10-10T12:00:00+02:00"
     }
   ],
-  "updated": "2026-10-10T09:58:53.403Z"
+  "updated": "2026-10-10T10:03:00.910Z"
 }
