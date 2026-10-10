@@ -1,7 +1,7 @@
-"""ROI liczony jednakowo na wszystkich ekranach (/roi, /inwestycje, /api/summary).
+"""ROI liczony jednakowo na wszystkich ekranach (/roi, /inwestycje).
 
 Spec: ten sam stan bazy = ta sama kwota oszczędności i „pozostało do zwrotu”
-na stronie ROI, na liście inwestycji i w sensorze HA. Wszystkie miejsca biorą
+na stronie ROI i na liście inwestycji. Wszystkie miejsca biorą
 pod uwagę: okresy net-billingu, ceny RCE, współczynnik puli z ustawień
 i oszczędność EV z ładowania domowego.
 """
@@ -62,17 +62,6 @@ async def _reference_roi() -> dict:
     total = sum(i["cost_pln"] for i in investments)
     return calc_roi(readings, total, main._default_price(),
                     ev_settings["net_metering_ratio"], billing_periods, rce_prices)
-
-
-async def test_api_summary_matches_roi_page(client):
-    expected = await _reference_roi()
-    assert expected["total_ev_savings_pln"] > 0  # dane testowe obejmują EV
-
-    got = client.get("/api/summary").json()
-
-    for key in ("total_savings_pln", "total_fv_savings_pln",
-                "total_ev_savings_pln", "remaining_to_roi", "months_to_roi"):
-        assert got[key] == expected[key], key
 
 
 async def test_investments_page_matches_roi_page(client):

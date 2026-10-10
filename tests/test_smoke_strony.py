@@ -36,7 +36,7 @@ def full(client, seed):
 
 @pytest.mark.parametrize("path", ["/", "/odczyty", "/odczyty/nowy", "/inwestycje", "/roi", "/ev",
                                   "/ev/pojazdy/1", "/ev/ceny-paliwa", "/pv", "/import", "/metodologia",
-                                  "/odczyty/export.csv", "/backup/full", "/api/summary"])
+                                  "/odczyty/export.csv", "/backup/full"])
 def test_strona_otwiera_sie(full, path):
     r = full.get(path)
     assert r.status_code == 200, (path, r.text[:300])

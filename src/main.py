@@ -121,9 +121,6 @@ class BasicAuthMiddleware(BaseHTTPMiddleware):
         if not password:
             return await call_next(request)
 
-        if request.scope.get("path", "").startswith("/api/summary"):
-            return await call_next(request)
-
         auth = request.headers.get("Authorization", "")
         if auth.startswith("Basic "):
             try:
@@ -166,7 +163,7 @@ def _csrf_verify(signed_token: str) -> bool:
 
 
 class CSRFMiddleware(BaseHTTPMiddleware):
-    EXEMPT_PATHS = {"/api/summary", "/api/ha-fetch", "/api/ha-test",
+    EXEMPT_PATHS = {"/api/ha-fetch", "/api/ha-test",
                     "/api/roi-preview", "/api/ha-solar-fetch", "/api/ha-grid-fetch",
                     "/backup/full"}
 
@@ -2264,20 +2261,3 @@ async def roi_preview(data: dict):
     except Exception as exc:
         logger.exception("roi_preview error: %s", exc)
         return JSONResponse({"error": str(exc)}, status_code=500)
-
-
-# ── API ───────────────────────────────────────────────────────────────────────
-
-@app.get("/api/summary")
-async def api_summary():
-    """JSON endpoint for Home Assistant sensors."""
-    db = await get_db()
-    try:
-        roi, readings, _ = await _roi_state(db)
-    finally:
-        await db.close()
-
-    last = readings[-1] if readings else {}
-    return JSONResponse({**(roi or {}), "last_period": last.get("period"), "last_production_kwh": last.get("production_kwh")})
-
-

@@ -28,4 +28,19 @@ def test_encje_z_panelu_energy_zapisywane(client, query, post_form):
     assert s == {"ha_solar_entity": "sensor.solar_production", "ha_grid_consumed_entity": "sensor.energy_1_8_0",
                  "ha_grid_returned_entity": "sensor.energy_2_8_0"}
 
-# AC-015-2 (sensor /api/summary = /roi): tests/test_roi_consistency.py::test_api_summary_matches_roi_page
+
+
+def test_AC_015_2_api_summary_usuniety(client):
+    # D-030: sensor podsumowania ROI w HA wycofany - bez hasła 404 (z FV_AUTH_PASSWORD byłoby 401).
+    assert client.get("/api/summary").status_code == 404
+
+
+def test_AC_015_2_api_summary_bez_wyjatku_auth_i_csrf():
+    import inspect
+    assert "/api/summary" not in main.CSRFMiddleware.EXEMPT_PATHS
+    assert "/api/summary" not in inspect.getsource(main.BasicAuthMiddleware)
+
+
+def test_AC_015_2_test_polaczenia_i_pobieranie_licznikow_bez_zmian(client):
+    assert "error" in client.get("/api/ha-test").json()
+    assert client.get("/api/ha-solar-fetch", params={"period": "2026.09"}).status_code == 400

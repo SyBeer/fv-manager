@@ -281,7 +281,6 @@ Dwie ścieżki (kolejność priorytetu):
 
 | URL | Metoda | Opis |
 |-----|--------|------|
-| `/api/summary` | GET | ROI summary dla Home Assistant sensor |
 | `/api/roi-preview` | POST | ROI before/after dla modal edycji odczytu |
 | `/api/ha-test` | GET | Test połączenia HA + ostatnia produkcja |
 | `/api/ha-solar-fetch?period=YYYY.MM` | GET | Pobierz produkcję PV z HA za miesiąc |
