@@ -124,3 +124,7 @@
 2026-10-10 | config | zmiana SDD.yaml: copy | panel
 2026-10-10 | interview | D-034 (usunięcie pojazdu nie kasuje domyślnie historii; zostawione dane jak pojazd nieaktywny), Q-060 odpowiedziane, ENTITIES Pojazd: stan usunięty, PRD §6 kaskada R-009/R-010/R-006/R-008/R-019, session-2026-10-10.md | [Biz] board.json qq060; session-2026-10-10.md
 2026-10-10 | board | nowe karteczki p83 (Usuń pojazd), p84 (reguła D-034), p85 (Pojazd usunięty); qq060 i p74 zsynchronizowane | [Biz] D-034; [App] src/main.py:1677
+2026-10-10 | spec | R-009: opis i źródło (D-034), dodane AC-009-5, AC-009-6; 03-spec/agent/ev (spec, plan, tasks: nowe T-21) oraz plany dane, pojazd-nieaktywny, tesla-wycofanie (stan „usunięty” pojazdu) zregenerowane; PRD §6 wpis D-034 przejrzany | zgoda właściciela instalacji („tak”)
+2026-10-10 | board | domknięcie przeglądu kompletności procesów vs kod v3.4.0: p86 (usuń odczyt), p87 (edycja danych auta poza odczytem), p88-p92 (szablon CSV, zdarzenia i raport importu, kopia, czyszczenie), p93 (ustawienia /pv zapisane), p94-p96 (aktor i zdarzenia HA); hot spoty qq061, qq062; /ev/theme (motyw UI) poza procesami | [App] src/main.py
+2026-10-10 | interview | nowe Q-061 (usunięcie odczytu a pula), Q-062 (dwie ścieżki edycji danych auta) | [App] src/main.py:932, 1605, 1753
+2026-10-10 | validate | przebieg 12: gotowość 100% (20/20), 0 BLOCK, WARN 18 (S-004, S-007); 04-validation/validate-2026-10-10.md | requirements/

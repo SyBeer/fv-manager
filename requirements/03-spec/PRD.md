@@ -144,8 +144,8 @@ Kryteria akceptacji:
 - AC-008-3: Given zwrot przypada po 48 miesiącach, When właściciel otwiera dashboard, Then widzi „Do zwrotu inwestycji 48 mies.”.
 
 ### R-009 Dodanie pojazdu
-Opis:              Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany. Przebieg startowy można później zmienić: aplikacja pyta, czy przesunąć zapisane stany licznika o różnicę (D-027).
-Zrodlo:            [App] src/main.py:1562, 1573; [Biz] session-2026-10-04.md, Q-029, D-027
+Opis:              Właściciel instalacji dodaje pojazd: nazwa, zużycie kWh/100 km, spalanie odpowiednika l/100 km, rodzaj paliwa, przebieg startowy. Bez przebiegu startowego pojazd nie zostaje dodany. Przebieg startowy można później zmienić: aplikacja pyta, czy przesunąć zapisane stany licznika o różnicę (D-027). Usunięcie pojazdu domyślnie zostawia jego dane miesięczne - liczą się jak dane pojazdu nieaktywnego; dane miesięczne kasuje dopiero wyraźne potwierdzenie (D-034).
+Zrodlo:            [App] src/main.py:1562, 1573; [Biz] session-2026-10-04.md, Q-029, D-027; [Biz] board.json, qq060; session-2026-10-10.md, Q-060 (D-034)
 Zalozenia:         A-009
 Reguly:            BR-008, BR-012
 Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
@@ -156,6 +156,8 @@ Kryteria akceptacji:
 - AC-009-2: Given formularz bez przebiegu startowego, When właściciel dodaje pojazd, Then pojazd nie zostaje dodany.
 - AC-009-3: Given pojazd z przebiegiem startowym 12 000 km i stanami licznika 13 000 (2026.01) i 14 200 (2026.02), When właściciel zmienia przebieg startowy na 12 500 km i wybiera przesunięcie stanów licznika („Tak”), Then stany licznika wynoszą 13 500 i 14 700, a km za te miesiące nadal 1 000 i 1 200.
 - AC-009-4: Given te same dane, When właściciel zmienia przebieg startowy na 13 500 km i wybiera „Nie”, Then stan licznika 13 000 za 2026.01 zostaje usunięty (kWh ładowania z 2026.01 zostają), a km za 2026.02 = 14 200 − 13 500 = 700.
+- AC-009-5: Given pojazd z danymi EV za 2025.01-2025.12, When właściciel usuwa pojazd bez potwierdzenia skasowania historii, Then pojazdu nie ma na liście /ev, a Oszczędność EV z FV w ROI (R-006) i oszczędności EV za 2025.01-2025.12 są takie jak przed usunięciem (jak pojazd nieaktywny, R-019) (D-034).
+- AC-009-6: Given te same dane, When właściciel usuwa pojazd i wyraźnie potwierdza skasowanie historii, Then dane miesięczne pojazdu za 2025.01-2025.12 są usunięte, a ROI (R-006) liczy się bez nich (D-034).
 
 ### R-010 Oszczędności EV
 Opis:              Aplikacja liczy oszczędność EV miesiąca jako koszt paliwa odpowiednika (km / 100 × spalanie × cena paliwa) minus koszt energii ładowania. Oszczędność EV z FV (ładowanie domowe) wchodzi do ROI; Oszczędność EV vs paliwo (domowe + publiczne) jest na kartach /ev i nie wchodzi do ROI.
@@ -361,7 +363,7 @@ wypelniana automatycznie)
 - 2026-10-08: nowe BR-013 (D-032) -> R-017, R-002 (pole Reguly); BR-014 (D-031) -> R-001, R-002, R-006 (pole Reguly) - do dopisania przy /sdd:spec.
 - 2026-10-08: /sdd:spec - przegląd wykonany: R-001 (opis, BR-014, AC-001-6), R-002 (BR-013, BR-014, AC-002-5), R-006 (BR-014), R-015 (bez /api/summary, AC-015-2 zmienione; K-20 zrealizowany), R-017 (opis, BR-013, AC-017-5), R-020 zatwierdzone; R-010 przejrzane bez zmian; §1, §4 zaktualizowane. Zatwierdzone przez właściciela instalacji („tak”).
 - 2026-10-08: /sdd:board sync - Q-056/Q-057 -> R-001 opis źródeł danych EV (km - S-007, kWh domowe - S-009, publiczne - S-008, uzupełnianie później), bez zmiany AC; Q-058 -> ACTORS (jedyny użytkownik), wspiera A-002. Zgoda właściciela instalacji („tak”).
-- 2026-10-10: D-034 (usunięcie pojazdu domyślnie zostawia dane miesięczne, liczone jak pojazd nieaktywny; skasowanie danych tylko po wyraźnym potwierdzeniu) -> R-009 (brak AC usuwania), R-010, R-006, R-008 (oszczędności i ROI bez spadku wstecz), R-019 (relacja z pojazdem nieaktywnym) - do przejrzenia przy /sdd:spec; ENTITIES Pojazd: nowy stan usunięty. Kod v3.4.0 nie spełnia (src/main.py:1677 kasuje ev_monthly bez pytania).
+- 2026-10-10: D-034 (usunięcie pojazdu domyślnie zostawia dane miesięczne, liczone jak pojazd nieaktywny; skasowanie danych tylko po wyraźnym potwierdzeniu) -> R-009 (brak AC usuwania), R-010, R-006, R-008 (oszczędności i ROI bez spadku wstecz), R-019 (relacja z pojazdem nieaktywnym) - do przejrzenia przy /sdd:spec; ENTITIES Pojazd: nowy stan usunięty. Kod v3.4.0 nie spełnia (src/main.py:1677 kasuje ev_monthly bez pytania). Przegląd: R-009 opis, źródło, dodane AC-009-5, AC-009-6; R-010, R-006, R-008, R-019 bez zmian kryteriów (AC-009-5 odwołuje się do R-019). Zatwierdzone przez właściciela instalacji („tak”, 2026-10-10).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)
