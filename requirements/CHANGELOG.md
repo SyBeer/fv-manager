@@ -142,3 +142,4 @@
 2026-10-12 | interview | D-036 (pula: oddane w całości, 0,8 przy wyciąganiu); Q-067 odpowiedziane; GLOSSARY Pula zatwierdzone; BR-004, AC-002-1, AC-002-2, AC-021-1..3 przepisane; PRD §6 | [Biz] session-2026-10-12.md
 2026-10-12 | board | nowy tor „Wirtualny magazyn”: p105-p110, qq063, qq066; p11 wg D-036 | [Biz] session-2026-10-12.md
 2026-10-12 | spec --agent | regeneracja: constitution (21 R, Pula, BR-001, BR-004), rozliczenia (AC-002-1, AC-002-2, T-02), nowe magazyn/ (R-021, T-22) | 03-spec/PRD.md
+2026-10-12 | handover | przygotowany 04-validation/redmine-2026-10-12.json: nowe T-22 (R-021), aktualizacja #18 (T-02, AC-002-1/2 wg D-036); wysyłka do Redmine czeka (wymaga terminala) | 03-spec/PRD.md
