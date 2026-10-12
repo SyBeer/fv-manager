@@ -309,6 +309,19 @@ Kryteria akceptacji:
 - AC-020-2: Given zapisany odczyt za 2026.08 i zmienione później dane za 2026.08 w HA, When właściciel otwiera listę odczytów, Then wartości odczytu 2026.08 są takie jak przy zapisie (pobranie tylko na żądanie przy wpisie odczytu).
 - AC-020-3: Given HA nie zwraca danych za 2026.09, When właściciel pobiera dane z HA, Then widzi komunikat „Brak danych dla <encja> za 2026-09”, pola zostają puste do wpisania ręcznie, a odczyt z ręcznymi wartościami da się zapisać.
 
+### R-021 Stan wirtualnego magazynu na dashboardzie
+Opis:              Dashboard pokazuje stan wirtualnego magazynu: ile kWh zostało w puli net-meteringu po ostatnim zapisanym odczycie, czyli ile energii właściciel może jeszcze odebrać z sieci w bieżącym cyklu rozliczeniowym. Wartość pochodzi z tego samego wyliczenia co oszczędność PV miesiąca (R-002); obliczenia się nie zmieniają. Stan magazynu to kWh do odebrania, a nie oszczędność w zł. Pokazanie stanu w miesiącach net-billingu - Q-066.
+Zrodlo:            [Biz] session-2026-10-12.md, pomysł, Q-064, Q-065; [App] src/services/calculations.py:43 (carry_over_out liczone, niewyświetlane)
+Zalozenia:         A-005
+Reguly:            BR-001, BR-004
+Status:            zatwierdzone (właściciel instalacji, 2026-10-12)
+Wlasciciel:        właściciel instalacji
+
+Kryteria akceptacji:
+- AC-021-1: Given okres w net-meteringu, współczynnik 0,80, pula 0 i ostatni odczyt: produkcja 500, oddane 300, pobrane 200 kWh, When właściciel otwiera dashboard, Then widzi stan wirtualnego magazynu 40 kWh.
+- AC-021-2: Given miesiąc startu cyklu = kwiecień, pula 40 kWh po marcu i ostatni odczyt za kwiecień: oddane 100, pobrane 50 kWh, When właściciel otwiera dashboard, Then widzi stan wirtualnego magazynu 30 kWh (pula z marca przepadła, BR-001).
+- AC-021-3: Given zapisany odczyt za 2026.08 i stan magazynu na dashboardzie 40 kWh, When właściciel zapisuje odczyt za 2026.09 z oddane 0 i pobrane 25 kWh, Then dashboard pokazuje 15 kWh.
+
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
 - K-1 Ustawienie miesiąca startu cyklu rozliczeniowego (domyślnie kwiecień) - D-003, BR-001 → R-003.
@@ -364,6 +377,7 @@ wypelniana automatycznie)
 - 2026-10-08: /sdd:spec - przegląd wykonany: R-001 (opis, BR-014, AC-001-6), R-002 (BR-013, BR-014, AC-002-5), R-006 (BR-014), R-015 (bez /api/summary, AC-015-2 zmienione; K-20 zrealizowany), R-017 (opis, BR-013, AC-017-5), R-020 zatwierdzone; R-010 przejrzane bez zmian; §1, §4 zaktualizowane. Zatwierdzone przez właściciela instalacji („tak”).
 - 2026-10-08: /sdd:board sync - Q-056/Q-057 -> R-001 opis źródeł danych EV (km - S-007, kWh domowe - S-009, publiczne - S-008, uzupełnianie później), bez zmiany AC; Q-058 -> ACTORS (jedyny użytkownik), wspiera A-002. Zgoda właściciela instalacji („tak”).
 - 2026-10-10: D-034 (usunięcie pojazdu domyślnie zostawia dane miesięczne, liczone jak pojazd nieaktywny; skasowanie danych tylko po wyraźnym potwierdzeniu) -> R-009 (brak AC usuwania), R-010, R-006, R-008 (oszczędności i ROI bez spadku wstecz), R-019 (relacja z pojazdem nieaktywnym) - do przejrzenia przy /sdd:spec; ENTITIES Pojazd: nowy stan usunięty. Kod v3.4.0 nie spełnia (src/main.py:1677 kasuje ev_monthly bez pytania). Przegląd: R-009 opis, źródło, dodane AC-009-5, AC-009-6; R-010, R-006, R-008, R-019 bez zmian kryteriów (AC-009-5 odwołuje się do R-019). Zatwierdzone przez właściciela instalacji („tak”, 2026-10-10).
+- 2026-10-12: nowe R-021 (stan wirtualnego magazynu na dashboardzie, robocze) - stoi na BR-001, BR-004, A-005; R-008 (dashboard) do przejrzenia przy /sdd:spec (nowy element dashboardu). GLOSSARY: „wirtualny magazyn” jako synonim puli net-meteringu. Szacunek faktury - Q-063 zaparkowane. Zgoda właściciela instalacji („Tak, zapisz”, session-2026-10-12.md).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

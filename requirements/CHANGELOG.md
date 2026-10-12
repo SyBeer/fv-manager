@@ -134,3 +134,6 @@
 2026-10-10 | board | tablica procesów vs app v3.5.0: +5 zdarzeń (p97-p101), +3 widoki (p102 /inwestycje, p103 /pv, p104 /metodologia), p45 /api/summary oznaczona jako wycofana | [App] src/main.py
 2026-10-12 | interview | pomysł: stan wirtualnego magazynu i szacunek faktury; Q-063 zaparkowane (czeka na fakturę), Q-064 otwarte | [Biz] session-2026-10-12.md
 2026-10-12 | interview | Q-064 odpowiedziane (stan magazynu informacyjnie), Q-065 otwarte | [Biz] session-2026-10-12.md
+2026-10-12 | interview | Q-065 odpowiedziane (Dashboard; oszczędności ≠ stan magazynu) | [Biz] session-2026-10-12.md
+2026-10-12 | interview | nowe R-021 (stan wirtualnego magazynu na dashboardzie, robocze, AC-021-1..3); GLOSSARY: synonim „wirtualny magazyn”; Q-066 zaparkowane; PRD §6 wpis | [Biz] session-2026-10-12.md
+2026-10-12 | interview | R-021 zatwierdzone (właściciel instalacji) | [Biz] session-2026-10-12.md
