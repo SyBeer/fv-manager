@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.6.0] — 2026-10-12
+
+Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-021, R-002, R-016; zadanie T-22 - Redmine wstrzymany). Przegląd architektury przed budową; decyzje budowy B-53..B-60: `requirements/04-validation/build-2026-10-12.md`.
+
+### Dodano
+- **Stan wirtualnego magazynu na dashboardzie** — karta „Do odebrania z magazynu: X kWh”: ile energii możesz jeszcze odebrać z sieci w bieżącym cyklu po ostatnim odczycie, już po współczynniku (R-021, D-035). W miesiącach net-billingu karty nie ma. Obliczenia, oszczędności i ROI bez zmian
+
+### Zmieniono
+- **Opis puli net-meteringu** w metodologii, README i pomocy pola „Współczynnik net-meteringu”: oddana energia wpada do puli w całości, pobór zdejmuje z niej pobrane ÷ współczynnik, do odebrania jest pula × współczynnik (np. 50 kWh w puli = 40 kWh do odebrania) (D-036, R-016)
+- `calc_monthly` zwraca przepływ puli: `pool_in_kwh`, `pool_drawn_kwh`, `pool_out_kwh` (R-002)
+
 ## [3.5.0] — 2026-10-10
 
 Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-009, R-015, R-020; zadania Redmine #165, #32, #166, testy #17, #18, #20). Przegląd architektury przed budową i przegląd kodu po niej; decyzje budowy B-38..B-52: `requirements/04-validation/build-2026-10-10.md`.

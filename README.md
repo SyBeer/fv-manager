@@ -1,4 +1,4 @@
-# FV Manager v3.5.0
+# FV Manager v3.6.0
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant.
@@ -9,7 +9,7 @@ Dostępna jako standalone FastAPI app oraz jako HA Add-on (ingress panel w sideb
 ## Założenia
 
 - Dane źródłowe pochodzą z **licznika dwukierunkowego** (forward = pobrane z sieci, reverse = oddane do sieci)
-- Model oszczędności oparty na **starym net-meteringu** (80% oddanej energii wraca do puli rozliczeniowej)
+- Model oszczędności oparty na **starym net-meteringu** (oddana energia trafia do puli w całości, odebrać można 80% - współczynnik z ustawień)
 - ROI = suma (oszczędności FV + oszczędności EV z ładowania **domowego**) vs suma nakładów inwestycyjnych
 - Break-even: ekstrapolacja liniowa na podstawie historycznej średniej miesięcznej
 - Obsługa **wielu etapów inwestycji** (panele, inwerter, magazyn, ładowarka EV)
@@ -175,20 +175,26 @@ taken_from_grid  = 100 kWh   (licznik forward 1.8.0)
 
 auto_consumption  = production - sent_to_grid     = 200 kWh  (zużyte wprost z PV)
 total_consumed    = auto_consumption + taken       = 300 kWh  (łączne zużycie domu)
-net_metering_pool = sent_to_grid × 0.80           = 240 kWh  (współczynnik puli z ustawień, domyślnie 0.80)
-available         = carry_over_in + pool           (pula z poprzednich miesięcy cyklu + bieżąca)
+pool_in_kwh       = sent_to_grid                  = 300 kWh  (oddane wpada do puli w całości)
+net_metering_pool = sent_to_grid × 0.80           = 240 kWh  (do odebrania z tego miesiąca; współczynnik z ustawień)
+available         = carry_over_in + net_metering_pool (do odebrania: z poprzednich miesięcy cyklu + bieżące)
 savings_kwh       = auto_consumption + min(available, taken_from_grid)
                   = 200 + min(240, 100)            = 300 kWh
-carry_over_out    = available - min(available, taken) = 140 kWh
+pool_drawn_kwh    = min(available, taken) ÷ 0.80  = 125 kWh  (pobór zdejmuje z puli pobrane ÷ współczynnik)
+pool_out_kwh      = carry_over_out ÷ 0.80          = 175 kWh  (zostaje w puli)
+carry_over_out    = available - min(available, taken) = 140 kWh  (do odebrania z magazynu, dashboard)
 savings_pln       = savings_kwh × price_per_kwh   = 225 zł   (jeśli cena znana)
 ```
 
-**Pula net-meteringu** (`enrich_readings_sequence`): niewykorzystana pula przechodzi na kolejny miesiąc
+**Pula net-meteringu (wirtualny magazyn)**: oddana energia wpada do puli w całości, pobór z sieci zdejmuje
+z niej pobrane ÷ współczynnik, a do odebrania jest stan puli × współczynnik - np. 50 kWh w puli = 40 kWh do odebrania.
+Dashboard pokazuje tę liczbę jako „Do odebrania z magazynu” (po ostatnim odczycie; w net-billingu karty nie ma).
+W łańcuchu miesięcy (`enrich_readings_sequence`) niewykorzystana pula przechodzi na kolejny miesiąc
 i zeruje się w miesiącu startu cyklu rozliczeniowego (ustawienie `cycle_start_month` na stronie PV, domyślnie kwiecień)
 oraz przy zmianie modelu rozliczeń. W miesiącach net-billingu oddana energia jest wyceniana po cenie RCE
 (wpisywanej ręcznie na stronie PV; cena sprzedaży z odczytu ma pierwszeństwo).
 
-Zwraca: `auto_consumption`, `total_consumed`, `net_metering_pool`, `savings_kwh`, `savings_pln`, `production_value_pln`
+Zwraca: `auto_consumption`, `total_consumed`, `net_metering_pool`, `savings_kwh`, `savings_pln`, `production_value_pln`, `carry_over_out`, `pool_in_kwh`, `pool_drawn_kwh`, `pool_out_kwh`
 
 ### ROI i break-even (`calc_roi`)
 
