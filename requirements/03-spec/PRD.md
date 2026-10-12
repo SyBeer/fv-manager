@@ -239,16 +239,16 @@ Kryteria akceptacji:
 - AC-015-2: Given aplikacja po zmianie, When HA odpytuje /api/summary, Then aplikacja odpowiada „nie znaleziono” (404), a test połączenia i pobieranie liczników działają bez zmian (D-030).
 
 ### R-016 Poprawki tekstów
-Opis:              Teksty metodologia.html, README i podtytuł tabeli wrażliwości na /roi zgodne z decyzjami: pula kumulowana w cyklu, RCE i ceny paliwa wpisywane ręcznie, bez dat ustawowych net-billingu (model z okresów rozliczeniowych, daty z umowy - D-022), 7 stałych cen, CSV z separatorem „;” i polskimi nagłówkami.
-Zrodlo:            [Biz] board.json, qq001, qq002, qq003, qq004, qq005, qq008 (D-002, D-004, D-005, D-006, D-012, D-009); [Biz] session-2026-10-04.md, Q-037 (D-022)
+Opis:              Teksty metodologia.html, README i podtytuł tabeli wrażliwości na /roi zgodne z decyzjami: pula kumulowana w cyklu (oddane w całości, współczynnik przy wyciąganiu - D-036), RCE i ceny paliwa wpisywane ręcznie, bez dat ustawowych net-billingu (model z okresów rozliczeniowych, daty z umowy - D-022), 7 stałych cen, CSV z separatorem „;” i polskimi nagłówkami.
+Zrodlo:            [Biz] board.json, qq001, qq002, qq003, qq004, qq005, qq008 (D-002, D-004, D-005, D-006, D-012, D-009); [Biz] session-2026-10-04.md, Q-037 (D-022); [Biz] session-2026-10-12.md, Q-067 (D-036)
 Zalozenia:         -
 Reguly:            -
-Status:            zatwierdzone (właściciel instalacji, 2026-10-04)
+Status:            zatwierdzone (właściciel instalacji, 2026-10-04; AC-016-2 wg D-036 2026-10-12)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
 - AC-016-1: Given metodologia.html, When właściciel czyta opis cen RCE i cen paliwa, Then tekst mówi, że wpisuje się je ręcznie.
-- AC-016-2: Given metodologia.html i README, When właściciel czyta opis puli, Then tekst mówi, że pula przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu.
+- AC-016-2: Given metodologia.html i README, When właściciel czyta opis puli, Then tekst mówi, że energia oddana wpada do puli w całości, przy poborze z puli schodzi pobrane ÷ współczynnik (do odebrania jest stan puli × współczynnik, np. 50 kWh w puli = 40 kWh do odebrania), a pula przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu (D-036).
 - AC-016-3: Given /roi i metodologia.html, When właściciel czyta opis analizy wrażliwości, Then podtytuł na /roi pokazuje współczynnik z ustawień zamiast „×0.8”, a metodologia opisuje 7 stałych cen zamiast „wzrost o 20%”.
 - AC-016-4: Given README, When właściciel czyta przykład CSV, Then przykład ma separator „;” i polskie nagłówki.
 - AC-016-5: Given metodologia.html, When właściciel czyta opis net-billingu, Then tekst nie podaje dat ustawowych i mówi, że model rozliczeń wynika z okresów rozliczeniowych ustawionych przez użytkownika, a daty zależą od umowy z operatorem.
@@ -381,6 +381,7 @@ wypelniana automatycznie)
 - 2026-10-12: GLOSSARY „Pula net-meteringu” zakwestionowane (Q-067, sprzeczne): właściciel - do magazynu wpada całe oddane, współczynnik 0,8 przy wyciąganiu; model - współczynnik przy wpływie. Wynik w kWh do odebrania ten sam, różni się liczba stanu magazynu. Do przeglądu: R-021 (AC-021-1..3 - liczby stanu), R-002 (AC-002-1 „do puli wpada 240 kWh”), BR-001, BR-004 (brzmienie), R-016 (AC-016-2 opis puli), A-005 (brzmienie zgodne z obiema wersjami). R-021 zablokowane do rozstrzygnięcia Q-067.
 - 2026-10-12: D-035 (dashboard pokazuje kWh do odebrania, po współczynniku) -> R-021: opis z etykietą „Do odebrania z magazynu”, AC-021-1..3 bez zmian (liczby do odebrania takie same w obu wersjach puli); R-021 nie czeka na Q-067. Pozostałe pozycje z wpisu wyżej (R-002 AC-002-1, BR-001, BR-004, R-016) czekają na Q-067. Zgoda właściciela instalacji („Tak, pokazuj ile mogę jeszcze odebrać”).
 - 2026-10-12: D-036 (pula: oddane w całości, współczynnik przy wyciąganiu; zamyka Q-067) -> GLOSSARY Pula zatwierdzone (nowa definicja), BR-004 brzmienie; R-002: AC-002-1, AC-002-2 przepisane (50 kWh w puli = 40 do odebrania) - wynik w kWh do odebrania i zł bez zmian, test AC-002-1 do przejrzenia w budowie (kod v3.5.0 przechowuje pulę po współczynniku: calculations.py:39-43); R-021: AC-021-1..3 z etykietą „Do odebrania z magazynu”; R-016 (AC-016-2, opis puli w metodologia.html i README) - tekst do zgodności z D-036. Zgoda właściciela instalacji („Wariant 1 - opisz magazyn tak jak ja”).
+- 2026-10-12: walidacja przebieg 13 (WARN 12) - przegląd: R-008 bez zmian kryteriów (kartę „Do odebrania z magazynu” opisuje R-021, AC-008-1..3 bez zmian); R-016: opis i AC-016-2 uzupełnione o pulę wg D-036 (oddane w całości, pobrane ÷ współczynnik). Zatwierdzone przez właściciela instalacji („tak, commituj i zdejmij oba WARN 12”).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

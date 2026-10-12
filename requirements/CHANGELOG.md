@@ -144,3 +144,6 @@
 2026-10-12 | spec --agent | regeneracja: constitution (21 R, Pula, BR-001, BR-004), rozliczenia (AC-002-1, AC-002-2, T-02), nowe magazyn/ (R-021, T-22) | 03-spec/PRD.md
 2026-10-12 | handover | przygotowany 04-validation/redmine-2026-10-12.json: nowe T-22 (R-021), aktualizacja #18 (T-02, AC-002-1/2 wg D-036); wysyłka do Redmine czeka (wymaga terminala) | 03-spec/PRD.md
 2026-10-12 | handover | wysyłka do Redmine wstrzymana decyzją właściciela („na razie redmine odpuszczamy”); plik redmine-2026-10-12.json zostaje do późniejszego push | [Biz] session-2026-10-12.md
+2026-10-12 | validate | przebieg 13: gotowość 100% (21/21), 0 BLOCK, WARN 12 (R-008, R-016 po D-036), WARN 18 (S-004, S-007); 04-validation/validate-2026-10-12.md | requirements/
+2026-10-12 | spec | przegląd po walidacji (WARN 12): R-008 bez zmian AC; R-016 opis i AC-016-2 wg D-036; regeneracja 03-spec/agent/teksty; PRD §6 wpis | [Biz] zgoda właściciela instalacji 2026-10-12
+2026-10-12 | validate | przebieg 13 po poprawce: gotowość 100% (21/21), 0 BLOCK, WARN 18 (S-004, S-007); WARN 12 zdjęty | requirements/
