@@ -1,4 +1,4 @@
-<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-12 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Rozliczenia i ustawienia
 
@@ -26,8 +26,8 @@ Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
-- AC-002-1: Given okres w net-meteringu, współczynnik 0,80, pula 0, produkcja 500, oddane 300, pobrane 200 kWh, When liczona jest oszczędność, Then autokonsumpcja = 200 kWh, do puli wpada 240 kWh, z puli zużyte 200 kWh, na kolejny miesiąc przechodzi 40 kWh.
-- AC-002-2: Given miesiąc startu cyklu = kwiecień i pula 40 kWh z marca, When liczony jest kwiecień, Then pula startuje od 0.
+- AC-002-1: Given okres w net-meteringu, współczynnik 0,80, pula 0, produkcja 500, oddane 300, pobrane 200 kWh, When liczona jest oszczędność, Then autokonsumpcja = 200 kWh, do puli wpada 300 kWh, pobór 200 kWh zdejmuje z puli 250 kWh, na kolejny miesiąc przechodzi 50 kWh w puli = 40 kWh do odebrania (D-036).
+- AC-002-2: Given miesiąc startu cyklu = kwiecień i pula 50 kWh z marca (40 kWh do odebrania), When liczony jest kwiecień, Then pula startuje od 0.
 - AC-002-3: Given okres w net-billingu, autokonsumpcja 200 kWh, cena zakupu 1,00 zł, oddane 300 kWh, RCE 0,40 zł, When liczona jest oszczędność, Then oszczędność = 320 zł.
 - AC-002-4: Given net-billing i odczyt z ceną sprzedaży 0,50 zł, When liczona jest oszczędność, Then energia oddana jest wyceniona po 0,50 zł zamiast po RCE.
 - AC-002-5: Given okres w net-meteringu, pula 0, produkcja 200 kWh, oddane 0, odczyt bez ceny kWh i cena domyślna kWh 0,75 zł w konfiguracji, When liczona jest oszczędność, Then oszczędność PV miesiąca = 200 × 0,75 = 150 zł (BR-014).

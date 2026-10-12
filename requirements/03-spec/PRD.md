@@ -54,8 +54,8 @@ Status:            zatwierdzone (właściciel instalacji, 2026-10-08)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
-- AC-002-1: Given okres w net-meteringu, współczynnik 0,80, pula 0, produkcja 500, oddane 300, pobrane 200 kWh, When liczona jest oszczędność, Then autokonsumpcja = 200 kWh, do puli wpada 240 kWh, z puli zużyte 200 kWh, na kolejny miesiąc przechodzi 40 kWh.
-- AC-002-2: Given miesiąc startu cyklu = kwiecień i pula 40 kWh z marca, When liczony jest kwiecień, Then pula startuje od 0.
+- AC-002-1: Given okres w net-meteringu, współczynnik 0,80, pula 0, produkcja 500, oddane 300, pobrane 200 kWh, When liczona jest oszczędność, Then autokonsumpcja = 200 kWh, do puli wpada 300 kWh, pobór 200 kWh zdejmuje z puli 250 kWh, na kolejny miesiąc przechodzi 50 kWh w puli = 40 kWh do odebrania (D-036).
+- AC-002-2: Given miesiąc startu cyklu = kwiecień i pula 50 kWh z marca (40 kWh do odebrania), When liczony jest kwiecień, Then pula startuje od 0.
 - AC-002-3: Given okres w net-billingu, autokonsumpcja 200 kWh, cena zakupu 1,00 zł, oddane 300 kWh, RCE 0,40 zł, When liczona jest oszczędność, Then oszczędność = 320 zł.
 - AC-002-4: Given net-billing i odczyt z ceną sprzedaży 0,50 zł, When liczona jest oszczędność, Then energia oddana jest wyceniona po 0,50 zł zamiast po RCE.
 - AC-002-5: Given okres w net-meteringu, pula 0, produkcja 200 kWh, oddane 0, odczyt bez ceny kWh i cena domyślna kWh 0,75 zł w konfiguracji, When liczona jest oszczędność, Then oszczędność PV miesiąca = 200 × 0,75 = 150 zł (BR-014).
@@ -310,17 +310,17 @@ Kryteria akceptacji:
 - AC-020-3: Given HA nie zwraca danych za 2026.09, When właściciel pobiera dane z HA, Then widzi komunikat „Brak danych dla <encja> za 2026-09”, pola zostają puste do wpisania ręcznie, a odczyt z ręcznymi wartościami da się zapisać.
 
 ### R-021 Stan wirtualnego magazynu na dashboardzie
-Opis:              Dashboard pokazuje stan wirtualnego magazynu jako „Do odebrania z magazynu: X kWh” - ile energii właściciel może jeszcze odebrać z sieci w bieżącym cyklu rozliczeniowym po ostatnim zapisanym odczycie, już po współczynniku net-meteringu (D-035). Ta liczba nie zależy od tego, czy współczynnik działa przy wpływie, czy przy wyciąganiu (Q-067). Wartość pochodzi z tego samego wyliczenia co oszczędność PV miesiąca (R-002); obliczenia się nie zmieniają. Stan magazynu to kWh do odebrania, a nie oszczędność w zł. Pokazanie stanu w miesiącach net-billingu - Q-066.
-Zrodlo:            [Biz] session-2026-10-12.md, pomysł, Q-064, Q-065, Q-067 (D-035); [App] src/services/calculations.py:43 (carry_over_out liczone, niewyświetlane)
+Opis:              Dashboard pokazuje stan wirtualnego magazynu jako „Do odebrania z magazynu: X kWh” - ile energii właściciel może jeszcze odebrać z sieci w bieżącym cyklu rozliczeniowym po ostatnim zapisanym odczycie, już po współczynniku net-meteringu (D-035): stan puli × współczynnik (D-036). Wartość pochodzi z tego samego wyliczenia co oszczędność PV miesiąca (R-002); obliczenia się nie zmieniają. Stan magazynu to kWh do odebrania, a nie oszczędność w zł. Pokazanie stanu w miesiącach net-billingu - Q-066.
+Zrodlo:            [Biz] session-2026-10-12.md, pomysł, Q-064, Q-065, Q-067 (D-035, D-036); [App] src/services/calculations.py:43 (carry_over_out liczone, niewyświetlane)
 Zalozenia:         A-005
 Reguly:            BR-001, BR-004
 Status:            zatwierdzone (właściciel instalacji, 2026-10-12)
 Wlasciciel:        właściciel instalacji
 
 Kryteria akceptacji:
-- AC-021-1: Given okres w net-meteringu, współczynnik 0,80, pula 0 i ostatni odczyt: produkcja 500, oddane 300, pobrane 200 kWh, When właściciel otwiera dashboard, Then widzi stan wirtualnego magazynu 40 kWh.
-- AC-021-2: Given miesiąc startu cyklu = kwiecień, pula 40 kWh po marcu i ostatni odczyt za kwiecień: oddane 100, pobrane 50 kWh, When właściciel otwiera dashboard, Then widzi stan wirtualnego magazynu 30 kWh (pula z marca przepadła, BR-001).
-- AC-021-3: Given zapisany odczyt za 2026.08 i stan magazynu na dashboardzie 40 kWh, When właściciel zapisuje odczyt za 2026.09 z oddane 0 i pobrane 25 kWh, Then dashboard pokazuje 15 kWh.
+- AC-021-1: Given okres w net-meteringu, współczynnik 0,80, pula 0 i ostatni odczyt: produkcja 500, oddane 300, pobrane 200 kWh, When właściciel otwiera dashboard, Then widzi „Do odebrania z magazynu: 40 kWh”.
+- AC-021-2: Given miesiąc startu cyklu = kwiecień, 40 kWh do odebrania po marcu i ostatni odczyt za kwiecień: oddane 100, pobrane 50 kWh, When właściciel otwiera dashboard, Then widzi „Do odebrania z magazynu: 30 kWh” (pula z marca przepadła, BR-001).
+- AC-021-3: Given zapisany odczyt za 2026.08 i na dashboardzie 40 kWh do odebrania z magazynu, When właściciel zapisuje odczyt za 2026.09 z oddane 0 i pobrane 25 kWh, Then dashboard pokazuje 15 kWh.
 
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
@@ -380,6 +380,7 @@ wypelniana automatycznie)
 - 2026-10-12: nowe R-021 (stan wirtualnego magazynu na dashboardzie, robocze) - stoi na BR-001, BR-004, A-005; R-008 (dashboard) do przejrzenia przy /sdd:spec (nowy element dashboardu). GLOSSARY: „wirtualny magazyn” jako synonim puli net-meteringu. Szacunek faktury - Q-063 zaparkowane. Zgoda właściciela instalacji („Tak, zapisz”, session-2026-10-12.md).
 - 2026-10-12: GLOSSARY „Pula net-meteringu” zakwestionowane (Q-067, sprzeczne): właściciel - do magazynu wpada całe oddane, współczynnik 0,8 przy wyciąganiu; model - współczynnik przy wpływie. Wynik w kWh do odebrania ten sam, różni się liczba stanu magazynu. Do przeglądu: R-021 (AC-021-1..3 - liczby stanu), R-002 (AC-002-1 „do puli wpada 240 kWh”), BR-001, BR-004 (brzmienie), R-016 (AC-016-2 opis puli), A-005 (brzmienie zgodne z obiema wersjami). R-021 zablokowane do rozstrzygnięcia Q-067.
 - 2026-10-12: D-035 (dashboard pokazuje kWh do odebrania, po współczynniku) -> R-021: opis z etykietą „Do odebrania z magazynu”, AC-021-1..3 bez zmian (liczby do odebrania takie same w obu wersjach puli); R-021 nie czeka na Q-067. Pozostałe pozycje z wpisu wyżej (R-002 AC-002-1, BR-001, BR-004, R-016) czekają na Q-067. Zgoda właściciela instalacji („Tak, pokazuj ile mogę jeszcze odebrać”).
+- 2026-10-12: D-036 (pula: oddane w całości, współczynnik przy wyciąganiu; zamyka Q-067) -> GLOSSARY Pula zatwierdzone (nowa definicja), BR-004 brzmienie; R-002: AC-002-1, AC-002-2 przepisane (50 kWh w puli = 40 do odebrania) - wynik w kWh do odebrania i zł bez zmian, test AC-002-1 do przejrzenia w budowie (kod v3.5.0 przechowuje pulę po współczynniku: calculations.py:39-43); R-021: AC-021-1..3 z etykietą „Do odebrania z magazynu”; R-016 (AC-016-2, opis puli w metodologia.html i README) - tekst do zgodności z D-036. Zgoda właściciela instalacji („Wariant 1 - opisz magazyn tak jak ja”).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

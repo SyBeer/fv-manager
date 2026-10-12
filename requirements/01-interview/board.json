@@ -9,6 +9,7 @@
     "Ustawienia rozliczeń (/pv)",
     "Import, eksport, kopia",
     "Integracja Home Assistant",
+    "Wirtualny magazyn",
     "Do wyjaśnienia"
   ],
   "notes": [
@@ -194,13 +195,13 @@
     {
       "id": "p11",
       "type": "pol",
-      "text": "Net-metering: autokonsumpcja + pula (oddane × współczynnik, domyślnie 0,80) zużyta na pobór",
+      "text": "Net-metering: oddane wpada do puli w całości; pobór pokryty z puli zdejmuje pobrane ÷ 0,80; oszczędność = autokonsumpcja + pobór pokryty z puli",
       "lane": "Rozliczenie miesiąca",
       "col": 0,
-      "source": "[App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering",
+      "source": "[App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering; [Biz] session-2026-10-12.md, Q-067 (D-036)",
       "by": "agent",
       "created": "2026-10-03T23:58:25+02:00",
-      "updated": "2026-10-08T18:39:52.254Z",
+      "updated": "2026-10-12T12:00:00+02:00",
       "ref": "BR-004",
       "file": "02-domain/RULES.md",
       "synced": "2026-10-04T09:25:02+02:00"
@@ -1465,7 +1466,116 @@
       "synced": "2026-10-10T16:00:00+02:00",
       "ref": "R-016",
       "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p105",
+      "type": "act",
+      "text": "Właściciel instalacji",
+      "lane": "Wirtualny magazyn",
+      "col": 0,
+      "source": "[Biz] session-2026-10-12.md",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "file": "02-domain/ACTORS.md"
+    },
+    {
+      "id": "p106",
+      "type": "ev",
+      "text": "Odczyt miesiąca zapisany (oddane, pobrane)",
+      "lane": "Wirtualny magazyn",
+      "col": 1,
+      "source": "[App] kod-v3.2.4-2026-09-27.md, main.py:715",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "ref": "R-001",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "p107",
+      "type": "pol",
+      "text": "Oddane wpada do magazynu w całości; pobór zdejmuje pobrane ÷ 0,80; do odebrania = stan × 0,80",
+      "lane": "Wirtualny magazyn",
+      "col": 2,
+      "source": "[Biz] session-2026-10-12.md, Q-067 (D-036)",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "ref": "BR-004",
+      "file": "02-domain/RULES.md"
+    },
+    {
+      "id": "p108",
+      "type": "pol",
+      "text": "W miesiącu startu cyklu (kwiecień) magazyn się zeruje",
+      "lane": "Wirtualny magazyn",
+      "col": 2,
+      "source": "[Biz] D-002, D-003",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "ref": "BR-001",
+      "file": "02-domain/RULES.md"
+    },
+    {
+      "id": "p109",
+      "type": "ev",
+      "text": "Stan magazynu przeliczony",
+      "lane": "Wirtualny magazyn",
+      "col": 3,
+      "source": "[App] src/services/calculations.py:39-43",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00"
+    },
+    {
+      "id": "p110",
+      "type": "rm",
+      "text": "Dashboard: „Do odebrania z magazynu: X kWh” (już po 0,80)",
+      "lane": "Wirtualny magazyn",
+      "col": 4,
+      "source": "[Biz] session-2026-10-12.md, Q-065, Q-067 (D-035)",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "ref": "R-021",
+      "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "qq063",
+      "type": "hot",
+      "text": "Szacunek faktury: które opłaty są stałe, a które zależą od kWh i od których? Czeka na fakturę rozliczeniową w 00-intake",
+      "lane": "Wirtualny magazyn",
+      "col": 5,
+      "source": "[Biz] session-2026-10-12.md",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "ref": "Q-063",
+      "file": "01-interview/QUESTIONS.md"
+    },
+    {
+      "id": "qq066",
+      "type": "hot",
+      "text": "Co pokazać jako stan magazynu, gdy ostatni odczyt jest w net-billingu? (zaparkowane - właściciel w net-meteringu)",
+      "lane": "Wirtualny magazyn",
+      "col": 5,
+      "source": "[Biz] session-2026-10-12.md",
+      "by": "agent",
+      "created": "2026-10-12T12:00:00+02:00",
+      "updated": "2026-10-12T12:00:00+02:00",
+      "synced": "2026-10-12T12:00:00+02:00",
+      "ref": "Q-066",
+      "file": "01-interview/QUESTIONS.md"
     }
   ],
-  "updated": "2026-10-10T12:21:46.163Z"
+  "updated": "2026-10-12T12:00:00+02:00"
 }
