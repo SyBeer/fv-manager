@@ -132,3 +132,5 @@
 2026-10-10 | build | v3.5.0: usunięcie pojazdu bez kasowania historii (D-034), usunięcie /api/summary (D-030), testy R-020, AC-001-6, AC-002-5, AC-017-5; decyzje B-38..B-52 w 04-validation/build-2026-10-10.md; TRACEABILITY 74 AC z testami | 03-spec/PRD.md, testy 227
 2026-10-10 | config | zmiana SDD.yaml: copy | panel
 2026-10-10 | board | tablica procesów vs app v3.5.0: +5 zdarzeń (p97-p101), +3 widoki (p102 /inwestycje, p103 /pv, p104 /metodologia), p45 /api/summary oznaczona jako wycofana | [App] src/main.py
+2026-10-12 | interview | pomysł: stan wirtualnego magazynu i szacunek faktury; Q-063 zaparkowane (czeka na fakturę), Q-064 otwarte | [Biz] session-2026-10-12.md
+2026-10-12 | interview | Q-064 odpowiedziane (stan magazynu informacyjnie), Q-065 otwarte | [Biz] session-2026-10-12.md
