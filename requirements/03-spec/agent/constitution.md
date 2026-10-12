@@ -1,8 +1,8 @@
-<!-- GENEROWANE z PRD.md 2026-10-08 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-12 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Constitution - FV Manager
 
-Niezmienne zasady dla agenta budującego. Źródło prawdy: `03-spec/PRD.md` - generowane tylko z wymagań zatwierdzonych (20). Nie buduj wymagań roboczych: -.
+Niezmienne zasady dla agenta budującego. Źródło prawdy: `03-spec/PRD.md` - generowane tylko z wymagań zatwierdzonych (21). Nie buduj wymagań roboczych: -.
 
 ## Aktor
 Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, pojazdy, ceny paliwa i RCE, ustawia okresy rozliczeniowe, importuje/eksportuje dane, sprawdza ROI i oszczędności. Jedyny użytkownik aplikacji - brak innych ról i uprawnień (02-domain/ACTORS.md, Q-058).
@@ -10,7 +10,7 @@ Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, po
 ## Słownik (zatwierdzony) - używaj tych nazw w kodzie, UI i testach
 | Pojęcie | Definicja | Synonimy | Przykład | Źródło | Status |
 |---|---|---|---|---|---|
-| Pula net-meteringu | Energia oddana do sieci × współczynnik (domyślnie 0,80, ustawienie net_metering_ratio), do odebrania w kolejnych miesiącach; przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu rozliczeniowego (BR-001). | pula, carry-over | oddane 100 kWh w maju → 80 kWh do odebrania do końca cyklu | [Biz] board.json, qq001 (D-002); [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering | zatwierdzone |
+| Pula net-meteringu | Energia oddana do sieci, gromadzona w całości (kWh oddane). Przy poborze z sieci z puli schodzi pobrane ÷ współczynnik (domyślnie 0,80, ustawienie net_metering_ratio), więc do odebrania jest stan puli × współczynnik („do odebrania z magazynu”, D-035, D-036). Przechodzi z miesiąca na miesiąc i zeruje się w miesiącu startu cyklu rozliczeniowego (BR-001). | pula, carry-over, wirtualny magazyn | oddane 300 kWh → w puli 300 kWh (240 do odebrania); pobór 200 kWh zdejmuje 250 → zostaje 50 kWh (40 do odebrania) | [Biz] board.json, qq001 (D-002); [Biz] session-2026-10-12.md, Q-067 (D-036); [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering | zatwierdzone |
 | Cykl rozliczeniowy | Roczny okres, po którym pula net-meteringu się zeruje; miesiąc startu ustawia użytkownik (domyślnie kwiecień). | rok rozliczeniowy | cykl kwiecień–marzec | [Biz] board.json, qq012 (D-003) | zatwierdzone |
 | Okres rozliczeniowy | Przedział czasu od daty startu, dla którego użytkownik ustawia model rozliczeń (net-metering albo net-billing). | billing period | od 2021-06 net-metering | [Biz] board.json, qq002 (D-004); [App] kod-v3.2.4-2026-09-27.md, Net-billing i RCE | zatwierdzone |
 | Net-metering | Model rozliczeń, w którym oddana energia trafia do puli net-meteringu i jest odbierana bez opłaty za energię. | stary system opustów | - | [Biz] board.json, qq002 (D-004) | zatwierdzone |
@@ -50,10 +50,10 @@ Jedyna rola: **Właściciel instalacji** - wpisuje odczyty, etapy inwestycji, po
 ## Reguły biznesowe (globalne)
 | ID | Reguła | Źródło | Założenia | Wymagania | Status |
 |---|---|---|---|---|---|
-| BR-001 | Jeżeli zaczyna się miesiąc startu cyklu rozliczeniowego (ustawienie użytkownika, domyślnie kwiecień) albo zmienia się model rozliczeń, to pula net-meteringu się zeruje; w pozostałych miesiącach niewykorzystana pula przechodzi na kolejny miesiąc. | [Biz] board.json, qq001, qq012 (D-002, D-003); [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering | - | R-002, R-003 | robocze |
+| BR-001 | Jeżeli zaczyna się miesiąc startu cyklu rozliczeniowego (ustawienie użytkownika, domyślnie kwiecień) albo zmienia się model rozliczeń, to pula net-meteringu się zeruje; w pozostałych miesiącach niewykorzystana pula przechodzi na kolejny miesiąc. | [Biz] board.json, qq001, qq012 (D-002, D-003); [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering | - | R-002, R-003, R-021 | robocze |
 | BR-002 | Jeżeli choć jeden wiersz importowanego pliku CSV ma zły format okresu (inny niż RRRR.MM), wartość ujemną albo energię oddaną większą niż produkcja, to żaden wiersz pliku nie jest zapisywany, a użytkownik dostaje raport: numer wiersza i powód. | [Biz] board.json, qq008; czat sesji 2026-10-03 (D-009) | - | R-004 | robocze |
 | BR-003 | Jeżeli okres ma format inny niż RRRR.MM, któraś wartość jest ujemna albo energia oddana jest większa niż produkcja, to odczyt nie zostaje zapisany, a formularz pokazuje błąd. | [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów | A-004 | R-001 | robocze |
-| BR-004 | Jeżeli okres jest rozliczany w net-meteringu, to oszczędność miesiąca = autokonsumpcja + część puli (oddane × współczynnik, domyślnie 0,80) zużyta na pobór. | [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering | A-005 | R-002 | robocze |
+| BR-004 | Jeżeli okres jest rozliczany w net-meteringu, to oddane trafia do puli w całości, a pobór pokryty z puli zdejmuje z niej pobrane ÷ współczynnik (domyślnie 0,80); oszczędność miesiąca = autokonsumpcja + pobór pokryty z puli (najwyżej stan puli × współczynnik). | [App] kod-v3.2.4-2026-09-27.md, Rozliczenie net-metering; [Biz] session-2026-10-12.md, Q-067 (D-036) | A-005 | R-002, R-021 | robocze |
 | BR-005 | Jeżeli okres jest rozliczany w net-billingu, to oszczędność miesiąca = autokonsumpcja × cena zakupu + oddane × cena RCE; cena sprzedaży wpisana w odczycie nadpisuje RCE. | [App] kod-v3.2.4-2026-09-27.md, calculations.py:94-159; [Biz] D-004 | A-006 | R-002, R-017 | robocze |
 | BR-006 | Pozostało do zwrotu = suma etapów inwestycji − Σ oszczędności FV − Σ „Oszczędność EV z FV”; miesiące do zwrotu = pozostało / średnia miesięczna oszczędność. Etap inwestycji liczy się od miesiąca swojej daty (D-015). Etap z datą sprzed pierwszego odczytu liczy się od pierwszego miesiąca z odczytem (D-021). | [Dok] README.md, calc_roi; [Biz] D-008; [Biz] D-015; [Biz] D-018 (miesiące do zwrotu); [Biz] D-021 | A-007 | R-006, R-008 | robocze |
 | BR-007 | Prognoza obejmuje 36 miesięcy, z degradacją paneli (domyślnie 0,6) i scenariuszami wzrostu cen 0/3/7/12%. Jeżeli zwrot przypada później niż 36 mies., to tabela scenariuszy podaje „zwrot za N mies.” dla każdego scenariusza, a dashboard liczbę miesięcy do zwrotu (D-013, D-019). | [App] src/main.py:995-1008, services/forecast.py; [Biz] D-013; [Biz] D-019 | A-008 | R-007, R-008 | robocze |

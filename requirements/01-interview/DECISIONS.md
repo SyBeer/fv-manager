@@ -354,3 +354,23 @@ Zrodlo: [Biz] board.json, qq060; [Biz] session-2026-10-10.md, Q-060
 Wplyw: R-009 (brak AC usuwania pojazdu), R-010, R-006 (oszczędności i ROI nie spadają wstecz bez potwierdzenia), R-019 (pojazd usunięty z danymi = jak nieaktywny), R-008 (liczby ROI); ENTITIES.md Pojazd: stan usunięty - PRD §6.
 Zamyka pytanie: Q-060
 Otwiera pytania: -
+
+## D-035 | 2026-10-12 | Dashboard pokazuje kWh do odebrania z magazynu (po współczynniku)
+Pytanie: Q-067 - współczynnik 0,8 przy wpływie do magazynu czy przy wyciąganiu (stan 40 vs 50 kWh).
+Decyzja: Stan wirtualnego magazynu na dashboardzie (R-021) to liczba kWh, którą właściciel może jeszcze odebrać z sieci, już po współczynniku net-meteringu (0,80). Ta liczba jest taka sama w obu wersjach liczenia puli, więc R-021 nie czeka na rozstrzygnięcie Q-067. Q-067 (definicja puli) zostaje otwarte do faktury rozliczeniowej.
+Powod: „Tak, pokazuj ile mogę jeszcze odebrać” (właściciel instalacji, 2026-10-12); właściciel nie wie, jak operator pokazuje stan magazynu.
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-12.md, Q-067
+Wplyw: R-021 (opis: etykieta „do odebrania”, AC bez zmian); GLOSSARY Pula nadal zakwestionowane (Q-067) - PRD §6.
+Zamyka pytanie: -
+Otwiera pytania: -
+
+## D-036 | 2026-10-12 | Pula: oddane wpada w całości, współczynnik 0,8 przy wyciąganiu
+Pytanie: Q-067 - współczynnik 0,8 przy wpływie do magazynu czy przy wyciąganiu.
+Decyzja: Pula net-meteringu (wirtualny magazyn) gromadzi energię oddaną w całości; pobór pokryty z puli zdejmuje z niej pobrane ÷ współczynnik (0,80). Do odebrania jest stan puli × współczynnik. Wynik w kWh do odebrania i w zł taki sam jak dotąd - zmienia się opis puli i liczba „surowa” w puli (np. 50 zamiast 40 kWh). Dashboard pokazuje kWh do odebrania (D-035).
+Powod: „Instalacja produkuje 300 - oddaje 300 do magazynu, ale z magazynu wyciągam 0,8. To prawie to samo na efekcie końcowym - ale jednak co innego w liczbach na przepływie”; wybór „Wariant 1 - opisz magazyn tak jak ja” (właściciel instalacji, 2026-10-12).
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-12.md, Q-067
+Wplyw: GLOSSARY Pula net-meteringu (definicja, zatwierdzone), BR-004 (brzmienie), R-002 (AC-002-1, AC-002-2 brzmienie), R-021 (AC-021-2 brzmienie), R-016 (opis puli w metodologii i README) - PRD §6.
+Zamyka pytanie: Q-067
+Otwiera pytania: -

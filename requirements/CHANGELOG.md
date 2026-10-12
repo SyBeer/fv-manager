@@ -132,3 +132,18 @@
 2026-10-10 | build | v3.5.0: usunięcie pojazdu bez kasowania historii (D-034), usunięcie /api/summary (D-030), testy R-020, AC-001-6, AC-002-5, AC-017-5; decyzje B-38..B-52 w 04-validation/build-2026-10-10.md; TRACEABILITY 74 AC z testami | 03-spec/PRD.md, testy 227
 2026-10-10 | config | zmiana SDD.yaml: copy | panel
 2026-10-10 | board | tablica procesów vs app v3.5.0: +5 zdarzeń (p97-p101), +3 widoki (p102 /inwestycje, p103 /pv, p104 /metodologia), p45 /api/summary oznaczona jako wycofana | [App] src/main.py
+2026-10-12 | interview | pomysł: stan wirtualnego magazynu i szacunek faktury; Q-063 zaparkowane (czeka na fakturę), Q-064 otwarte | [Biz] session-2026-10-12.md
+2026-10-12 | interview | Q-064 odpowiedziane (stan magazynu informacyjnie), Q-065 otwarte | [Biz] session-2026-10-12.md
+2026-10-12 | interview | Q-065 odpowiedziane (Dashboard; oszczędności ≠ stan magazynu) | [Biz] session-2026-10-12.md
+2026-10-12 | interview | nowe R-021 (stan wirtualnego magazynu na dashboardzie, robocze, AC-021-1..3); GLOSSARY: synonim „wirtualny magazyn”; Q-066 zaparkowane; PRD §6 wpis | [Biz] session-2026-10-12.md
+2026-10-12 | interview | R-021 zatwierdzone (właściciel instalacji) | [Biz] session-2026-10-12.md
+2026-10-12 | interview | GLOSSARY Pula net-meteringu zakwestionowane (Q-067 sprzeczne: współczynnik przy wpływie vs przy wyciąganiu); kaskada PRD §6 - R-021, R-002, R-016, BR-001, BR-004 | [Biz] session-2026-10-12.md
+2026-10-12 | interview | D-035 (dashboard: kWh do odebrania, po współczynniku); R-021 opis, nie czeka na Q-067; PRD §6 wpis | [Biz] session-2026-10-12.md
+2026-10-12 | interview | D-036 (pula: oddane w całości, 0,8 przy wyciąganiu); Q-067 odpowiedziane; GLOSSARY Pula zatwierdzone; BR-004, AC-002-1, AC-002-2, AC-021-1..3 przepisane; PRD §6 | [Biz] session-2026-10-12.md
+2026-10-12 | board | nowy tor „Wirtualny magazyn”: p105-p110, qq063, qq066; p11 wg D-036 | [Biz] session-2026-10-12.md
+2026-10-12 | spec --agent | regeneracja: constitution (21 R, Pula, BR-001, BR-004), rozliczenia (AC-002-1, AC-002-2, T-02), nowe magazyn/ (R-021, T-22) | 03-spec/PRD.md
+2026-10-12 | handover | przygotowany 04-validation/redmine-2026-10-12.json: nowe T-22 (R-021), aktualizacja #18 (T-02, AC-002-1/2 wg D-036); wysyłka do Redmine czeka (wymaga terminala) | 03-spec/PRD.md
+2026-10-12 | handover | wysyłka do Redmine wstrzymana decyzją właściciela („na razie redmine odpuszczamy”); plik redmine-2026-10-12.json zostaje do późniejszego push | [Biz] session-2026-10-12.md
+2026-10-12 | validate | przebieg 13: gotowość 100% (21/21), 0 BLOCK, WARN 12 (R-008, R-016 po D-036), WARN 18 (S-004, S-007); 04-validation/validate-2026-10-12.md | requirements/
+2026-10-12 | spec | przegląd po walidacji (WARN 12): R-008 bez zmian AC; R-016 opis i AC-016-2 wg D-036; regeneracja 03-spec/agent/teksty; PRD §6 wpis | [Biz] zgoda właściciela instalacji 2026-10-12
+2026-10-12 | validate | przebieg 13 po poprawce: gotowość 100% (21/21), 0 BLOCK, WARN 18 (S-004, S-007); WARN 12 zdjęty | requirements/
