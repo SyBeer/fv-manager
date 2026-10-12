@@ -310,8 +310,8 @@ Kryteria akceptacji:
 - AC-020-3: Given HA nie zwraca danych za 2026.09, When właściciel pobiera dane z HA, Then widzi komunikat „Brak danych dla <encja> za 2026-09”, pola zostają puste do wpisania ręcznie, a odczyt z ręcznymi wartościami da się zapisać.
 
 ### R-021 Stan wirtualnego magazynu na dashboardzie
-Opis:              Dashboard pokazuje stan wirtualnego magazynu: ile kWh zostało w puli net-meteringu po ostatnim zapisanym odczycie, czyli ile energii właściciel może jeszcze odebrać z sieci w bieżącym cyklu rozliczeniowym. Wartość pochodzi z tego samego wyliczenia co oszczędność PV miesiąca (R-002); obliczenia się nie zmieniają. Stan magazynu to kWh do odebrania, a nie oszczędność w zł. Pokazanie stanu w miesiącach net-billingu - Q-066.
-Zrodlo:            [Biz] session-2026-10-12.md, pomysł, Q-064, Q-065; [App] src/services/calculations.py:43 (carry_over_out liczone, niewyświetlane)
+Opis:              Dashboard pokazuje stan wirtualnego magazynu jako „Do odebrania z magazynu: X kWh” - ile energii właściciel może jeszcze odebrać z sieci w bieżącym cyklu rozliczeniowym po ostatnim zapisanym odczycie, już po współczynniku net-meteringu (D-035). Ta liczba nie zależy od tego, czy współczynnik działa przy wpływie, czy przy wyciąganiu (Q-067). Wartość pochodzi z tego samego wyliczenia co oszczędność PV miesiąca (R-002); obliczenia się nie zmieniają. Stan magazynu to kWh do odebrania, a nie oszczędność w zł. Pokazanie stanu w miesiącach net-billingu - Q-066.
+Zrodlo:            [Biz] session-2026-10-12.md, pomysł, Q-064, Q-065, Q-067 (D-035); [App] src/services/calculations.py:43 (carry_over_out liczone, niewyświetlane)
 Zalozenia:         A-005
 Reguly:            BR-001, BR-004
 Status:            zatwierdzone (właściciel instalacji, 2026-10-12)
@@ -379,6 +379,7 @@ wypelniana automatycznie)
 - 2026-10-10: D-034 (usunięcie pojazdu domyślnie zostawia dane miesięczne, liczone jak pojazd nieaktywny; skasowanie danych tylko po wyraźnym potwierdzeniu) -> R-009 (brak AC usuwania), R-010, R-006, R-008 (oszczędności i ROI bez spadku wstecz), R-019 (relacja z pojazdem nieaktywnym) - do przejrzenia przy /sdd:spec; ENTITIES Pojazd: nowy stan usunięty. Kod v3.4.0 nie spełnia (src/main.py:1677 kasuje ev_monthly bez pytania). Przegląd: R-009 opis, źródło, dodane AC-009-5, AC-009-6; R-010, R-006, R-008, R-019 bez zmian kryteriów (AC-009-5 odwołuje się do R-019). Zatwierdzone przez właściciela instalacji („tak”, 2026-10-10).
 - 2026-10-12: nowe R-021 (stan wirtualnego magazynu na dashboardzie, robocze) - stoi na BR-001, BR-004, A-005; R-008 (dashboard) do przejrzenia przy /sdd:spec (nowy element dashboardu). GLOSSARY: „wirtualny magazyn” jako synonim puli net-meteringu. Szacunek faktury - Q-063 zaparkowane. Zgoda właściciela instalacji („Tak, zapisz”, session-2026-10-12.md).
 - 2026-10-12: GLOSSARY „Pula net-meteringu” zakwestionowane (Q-067, sprzeczne): właściciel - do magazynu wpada całe oddane, współczynnik 0,8 przy wyciąganiu; model - współczynnik przy wpływie. Wynik w kWh do odebrania ten sam, różni się liczba stanu magazynu. Do przeglądu: R-021 (AC-021-1..3 - liczby stanu), R-002 (AC-002-1 „do puli wpada 240 kWh”), BR-001, BR-004 (brzmienie), R-016 (AC-016-2 opis puli), A-005 (brzmienie zgodne z obiema wersjami). R-021 zablokowane do rozstrzygnięcia Q-067.
+- 2026-10-12: D-035 (dashboard pokazuje kWh do odebrania, po współczynniku) -> R-021: opis z etykietą „Do odebrania z magazynu”, AC-021-1..3 bez zmian (liczby do odebrania takie same w obu wersjach puli); R-021 nie czeka na Q-067. Pozostałe pozycje z wpisu wyżej (R-002 AC-002-1, BR-001, BR-004, R-016) czekają na Q-067. Zgoda właściciela instalacji („Tak, pokazuj ile mogę jeszcze odebrać”).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

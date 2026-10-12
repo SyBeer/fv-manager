@@ -354,3 +354,13 @@ Zrodlo: [Biz] board.json, qq060; [Biz] session-2026-10-10.md, Q-060
 Wplyw: R-009 (brak AC usuwania pojazdu), R-010, R-006 (oszczędności i ROI nie spadają wstecz bez potwierdzenia), R-019 (pojazd usunięty z danymi = jak nieaktywny), R-008 (liczby ROI); ENTITIES.md Pojazd: stan usunięty - PRD §6.
 Zamyka pytanie: Q-060
 Otwiera pytania: -
+
+## D-035 | 2026-10-12 | Dashboard pokazuje kWh do odebrania z magazynu (po współczynniku)
+Pytanie: Q-067 - współczynnik 0,8 przy wpływie do magazynu czy przy wyciąganiu (stan 40 vs 50 kWh).
+Decyzja: Stan wirtualnego magazynu na dashboardzie (R-021) to liczba kWh, którą właściciel może jeszcze odebrać z sieci, już po współczynniku net-meteringu (0,80). Ta liczba jest taka sama w obu wersjach liczenia puli, więc R-021 nie czeka na rozstrzygnięcie Q-067. Q-067 (definicja puli) zostaje otwarte do faktury rozliczeniowej.
+Powod: „Tak, pokazuj ile mogę jeszcze odebrać” (właściciel instalacji, 2026-10-12); właściciel nie wie, jak operator pokazuje stan magazynu.
+Zdecydowal: właściciel instalacji
+Zrodlo: [Biz] session-2026-10-12.md, Q-067
+Wplyw: R-021 (opis: etykieta „do odebrania”, AC bez zmian); GLOSSARY Pula nadal zakwestionowane (Q-067) - PRD §6.
+Zamyka pytanie: -
+Otwiera pytania: -

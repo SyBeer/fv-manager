@@ -138,3 +138,4 @@
 2026-10-12 | interview | nowe R-021 (stan wirtualnego magazynu na dashboardzie, robocze, AC-021-1..3); GLOSSARY: synonim „wirtualny magazyn”; Q-066 zaparkowane; PRD §6 wpis | [Biz] session-2026-10-12.md
 2026-10-12 | interview | R-021 zatwierdzone (właściciel instalacji) | [Biz] session-2026-10-12.md
 2026-10-12 | interview | GLOSSARY Pula net-meteringu zakwestionowane (Q-067 sprzeczne: współczynnik przy wpływie vs przy wyciąganiu); kaskada PRD §6 - R-021, R-002, R-016, BR-001, BR-004 | [Biz] session-2026-10-12.md
+2026-10-12 | interview | D-035 (dashboard: kWh do odebrania, po współczynniku); R-021 opis, nie czeka na Q-067; PRD §6 wpis | [Biz] session-2026-10-12.md
