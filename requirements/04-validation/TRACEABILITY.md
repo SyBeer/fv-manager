@@ -1,8 +1,8 @@
 # Śledzenie wymagań - R → AC → zadanie → test
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
-Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy dopisane w v3.4.0. Handover 2026-10-10: nowe #165 (T-21, AC-009-5/6), #166 (T-20, R-020); #17, #18, #20, #27, #32 zaktualizowane - testy w v3.5.0.
-Odcisk wymagan: sha256:24dfe201980991ba281b996d7710fb63c867fef6a3e5e0d96188cee4146398a4
+Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy dopisane w v3.4.0. Handover 2026-10-10: nowe #165 (T-21, AC-009-5/6), #166 (T-20, R-020); #17, #18, #20, #27, #32 zaktualizowane - testy w v3.5.0. Handover 2026-10-12 (T-22 R-021, #18) przygotowany, wysyłka do Redmine wstrzymana - testy AC-021-1..3 w v3.6.0, AC-002-1/2 i AC-016-2 przepisane wg D-036.
+Odcisk wymagan: sha256:3e7f1930403d3cf050145500e9d1f2d974352a259801521f35d655ca91b9e3ad
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|
@@ -80,6 +80,9 @@ Odcisk wymagan: sha256:24dfe201980991ba281b996d7710fb63c867fef6a3e5e0d96188cee41
 | R-020 | AC-020-1 | [#166](http://192.168.1.4:3001/issues/166) (T-20) | `test_r020_kontrakt_ha.py::test_AC_020_1_liczniki_za_miesiac_w_kwh` |
 | R-020 | AC-020-2 | [#166](http://192.168.1.4:3001/issues/166) (T-20) | `test_r020_kontrakt_ha.py::test_AC_020_2_zapisany_odczyt_nie_nadpisuje_sie` |
 | R-020 | AC-020-3 | [#166](http://192.168.1.4:3001/issues/166) (T-20) | `test_r020_kontrakt_ha.py::test_AC_020_3_brak_danych_komunikat_i_wpis_reczny` |
+| R-021 | AC-021-1 | T-22 (Redmine: niewysłane) | `test_r021_magazyn.py::test_AC_021_1_po_odczycie_40_kwh` |
+| R-021 | AC-021-2 | T-22 (Redmine: niewysłane) | `test_r021_magazyn.py::test_AC_021_2_pula_z_marca_przepada_w_kwietniu` |
+| R-021 | AC-021-3 | T-22 (Redmine: niewysłane) | `test_r021_magazyn.py::test_AC_021_3_kolejny_odczyt_zmniejsza_magazyn` |
 
 ## Zasada dla dev
 Zmiana wymagania po przekazaniu = zmiana `03-spec/PRD.md` (przez właściciela) i ponowny handover (/sdd:spec --agent, /sdd:handover) - nigdy zadanie „z boku” w Redmine.
