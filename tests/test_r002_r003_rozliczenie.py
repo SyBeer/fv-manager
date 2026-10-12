@@ -12,18 +12,22 @@ def _r(period, prod, sent, taken, **kw):
 
 # ── R-002 ──
 def test_AC_002_1_net_metering_pula():
+    # D-036: oddane wpada do puli w całości, pobór zdejmuje pobrane ÷ współczynnik
     c = calc_monthly(500, 300, 200, 1.0, carry_over_in=0.0, net_metering_ratio=0.80)
     assert c["auto_consumption"] == 200
-    assert c["net_metering_pool"] == 240
-    assert c["savings_kwh"] == 200 + 200          # autokonsumpcja + 200 kWh z puli
-    assert c["carry_over_out"] == 40
+    assert c["pool_in_kwh"] == 300                # do puli wpada 300 kWh
+    assert c["pool_drawn_kwh"] == 250             # pobór 200 kWh zdejmuje z puli 250 kWh
+    assert c["pool_out_kwh"] == 50                # na kolejny miesiąc 50 kWh w puli
+    assert c["carry_over_out"] == 40              # = 40 kWh do odebrania
+    assert c["savings_kwh"] == 200 + 200          # autokonsumpcja + 200 kWh pokryte z puli
 
 
 def test_AC_002_2_pula_zeruje_sie_w_kwietniu():
     seq = enrich_readings_sequence(
         [_r("2024.03", 500, 300, 200), _r("2024.04", 0, 0, 100)], 0.80, 1.0, [], [], 4)
-    assert seq[0]["carry_over_out"] == 40
+    assert seq[0]["pool_out_kwh"] == 50 and seq[0]["carry_over_out"] == 40
     assert seq[1]["savings_kwh"] == 0              # pula z marca nie przechodzi na kwiecień
+    assert seq[1]["pool_out_kwh"] == 0
 
 
 def test_AC_002_3_net_billing_320_zl():

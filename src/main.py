@@ -610,6 +610,11 @@ async def dashboard(request: Request):
         "savings_12m": round(pv_savings_12m, 2),
         "avg_monthly_prod": round(pv_production_12m / len(last12), 1) if last12 else None,
     } if last12 else None
+    # R-021: stan wirtualnego magazynu po ostatnim odczycie (kWh do odebrania, D-035);
+    # w net-billingu puli nie ma - karta ukryta (Q-066 zaparkowane)
+    last = enriched[-1] if enriched else None
+    magazyn = {"kwh": last["carry_over_out"], "period": last["period"]} \
+        if last and last.get("model") == "net_metering" else None
 
     return _t(request, "dashboard.html", {
         "readings": last12,
@@ -619,6 +624,7 @@ async def dashboard(request: Request):
         "vehicles_summary": vehicles_summary,
         "deleted_ids": {v["id"] for v in vehicles if v.get("deleted_at")},
         "pv_stats": pv_stats,
+        "magazyn": magazyn,
     })
 
 

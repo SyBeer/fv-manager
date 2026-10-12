@@ -26,6 +26,11 @@ def test_AC_016_2_pula_w_cyklu(client):
     assert "przechodzi na kolejny miesiąc" in text and "miesiącu startu cyklu" in text
     readme = README.lower()
     assert "przechodzi na kolejny miesiąc" in readme and "miesiącu startu cyklu" in readme
+    # D-036: oddane w całości do puli, pobrane ÷ współczynnik, do odebrania = pula × współczynnik
+    for t in (text, readme):
+        assert "w całości" in t
+        assert "÷ współczynnik" in t
+        assert re.search(r"50 kwh w puli.{0,40}40 kwh do odebrania", t)
 
 
 def test_AC_016_3_wrazliwosc_7_cen_i_wspolczynnik(client, seed):

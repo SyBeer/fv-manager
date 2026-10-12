@@ -28,9 +28,14 @@ def calc_monthly(
 ) -> dict:
     """Oblicz miesięczne przepływy energii z kumulatywną pulą net-meteringu.
 
-    carry_over_in  — pula przeniesiona z poprzednich miesięcy bieżącego cyklu.
-    net_metering_ratio — ułamek oddanej energii wracający do puli (domyślnie 0.80).
-    Zwraca carry_over_out — pulę do przekazania do następnego miesiąca.
+    Pula (wirtualny magazyn, D-036): oddane wpada do puli w całości, pobór pokryty
+    z puli zdejmuje z niej pobrane ÷ współczynnik; do odebrania = pula × współczynnik.
+    Łańcuch miesięcy niesie wartość „do odebrania” (carry_over_*), wynik jest ten sam.
+
+    carry_over_in  — kWh do odebrania przeniesione z poprzednich miesięcy bieżącego cyklu.
+    net_metering_ratio — współczynnik puli net-meteringu (domyślnie 0.80).
+    Zwraca carry_over_out — kWh do odebrania na następny miesiąc (stan magazynu, R-021),
+    oraz pool_in_kwh / pool_drawn_kwh / pool_out_kwh — przepływ puli w kWh oddanych.
     """
     # Fix #4: clamp ujemnej autokonsumpcji — błędne dane wejściowe (sent > production)
     # nie powinny propagować ujemnych wartości przez całą kalkulację.
@@ -41,6 +46,7 @@ def calc_monthly(
     used = min(available, taken_from_grid)
     savings_kwh = auto_consumption + used
     carry_over_out = available - used
+    ratio = net_metering_ratio or 1.0
     savings_pln = savings_kwh * price_per_kwh if price_per_kwh else None
     production_value_pln = production * price_per_kwh if price_per_kwh else None
     return {
@@ -51,6 +57,9 @@ def calc_monthly(
         "savings_pln": round(savings_pln, 2) if savings_pln else None,
         "production_value_pln": round(production_value_pln, 2) if production_value_pln else None,
         "carry_over_out": round(carry_over_out, 3),
+        "pool_in_kwh": round(sent_to_grid, 3),
+        "pool_drawn_kwh": round(used / ratio, 3),
+        "pool_out_kwh": round(carry_over_out / ratio, 3),
     }
 
 
@@ -112,6 +121,9 @@ def calc_monthly_netbilling(
         "savings_pln": round(savings_pln, 2),
         "production_value_pln": round(production_value_pln, 2),
         "carry_over_out": 0.0,
+        "pool_in_kwh": 0.0,
+        "pool_drawn_kwh": 0.0,
+        "pool_out_kwh": 0.0,
         "net_billing_income_pln": round(sent_to_grid * rce, 2),
         "model": "net_billing",
     }
