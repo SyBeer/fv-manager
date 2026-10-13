@@ -152,3 +152,5 @@
 2026-10-13 | spec | nowe R-022 (zakładka „Wirtualny magazyn”, AC-022-1..4), R-023 (szacunek na dziś z HA, AC-023-1..5) zatwierdzone; §3 Zakres; SYSTEMS S-002 (bieżący miesiąc przy /magazyn); RULES BR-001/BR-004/BR-009, A-005 - pole Wymagania; PRD §6 wpis | [Biz] session-2026-10-13.md
 2026-10-13 | spec --agent | regeneracja: constitution (23 R, BR-001/004/009), magazyn/ (R-022 T-23, R-023 T-24) | 03-spec/PRD.md
 2026-10-13 | validate | przebieg 14: gotowość 100% (23/23), 0 BLOCK, WARN 18 (S-004, S-007); 04-validation/validate-2026-10-13.md | requirements/
+2026-10-13 | board | tor „Wirtualny magazyn”: p111-p117 (zakładka /magazyn, przepadło, szacunek na dziś), Integracja HA: p118; p110 z linkiem; qq063/qq066 przesunięte; tytuł v3.7.0 | [Biz] session-2026-10-13.md; [App] v3.7.0
+2026-10-13 | build | v3.7.0: zakładka /magazyn (R-022) i szacunek na dziś z HA (R-023); przegląd kodu - błąd wyrównania wykresu naprawiony (B-72); decyzje B-61..B-72 w 04-validation/build-2026-10-13.md; TRACEABILITY +AC-022-1..4, AC-023-1..5 | 03-spec/PRD.md, testy 250

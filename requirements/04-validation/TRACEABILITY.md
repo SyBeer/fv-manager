@@ -1,8 +1,8 @@
 # Śledzenie wymagań - R → AC → zadanie → test
 
 Handover 2026-10-04 do Redmine, projekt FV-Manager (http://192.168.1.4:3001/projects/fv-manager), zadania #17..#34.
-Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy dopisane w v3.4.0. Handover 2026-10-10: nowe #165 (T-21, AC-009-5/6), #166 (T-20, R-020); #17, #18, #20, #27, #32 zaktualizowane - testy w v3.5.0. Handover 2026-10-12 (T-22 R-021, #18) przygotowany, wysyłka do Redmine wstrzymana - testy AC-021-1..3 w v3.6.0, AC-002-1/2 i AC-016-2 przepisane wg D-036.
-Odcisk wymagan: sha256:3e7f1930403d3cf050145500e9d1f2d974352a259801521f35d655ca91b9e3ad
+Kolumna „Test” wypełniona po budowie v3.3.0 (2026-10-04): testy w `tests/`, nazwa = AC-xxx-n. Ponowny handover 2026-10-04: #20, #27, #28, #29 zaktualizowane (AC-001-5, AC-009-3, AC-009-4, AC-010-3, AC-011-4), nowe #111 R-019 (AC-019-1..AC-019-3) - testy dopisane w v3.4.0. Handover 2026-10-10: nowe #165 (T-21, AC-009-5/6), #166 (T-20, R-020); #17, #18, #20, #27, #32 zaktualizowane - testy w v3.5.0. Handover 2026-10-12 (T-22 R-021, #18) przygotowany, wysyłka do Redmine wstrzymana - testy AC-021-1..3 w v3.6.0, AC-002-1/2 i AC-016-2 przepisane wg D-036. Spec 2026-10-13: R-022 (T-23), R-023 (T-24) - testy w v3.7.0, bez handoveru.
+Odcisk wymagan: sha256:417bad6afdf534c235952f7a4f1233da2c82966a1100b27c55e841609c84f964
 
 | Wymaganie | Kryterium | Zadanie | Test |
 |---|---|---|---|
@@ -83,6 +83,15 @@ Odcisk wymagan: sha256:3e7f1930403d3cf050145500e9d1f2d974352a259801521f35d655ca9
 | R-021 | AC-021-1 | T-22 (Redmine: niewysłane) | `test_r021_magazyn.py::test_AC_021_1_po_odczycie_40_kwh` |
 | R-021 | AC-021-2 | T-22 (Redmine: niewysłane) | `test_r021_magazyn.py::test_AC_021_2_pula_z_marca_przepada_w_kwietniu` |
 | R-021 | AC-021-3 | T-22 (Redmine: niewysłane) | `test_r021_magazyn.py::test_AC_021_3_kolejny_odczyt_zmniejsza_magazyn` |
+| R-022 | AC-022-1 | T-23 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_022_1_wykres_stanu_40_70` |
+| R-022 | AC-022-2 | T-23 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_022_2_przeplyw_czerwca` |
+| R-022 | AC-022-3 | T-23 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_022_3_przepadlo_40` |
+| R-022 | AC-022-4 | T-23 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_022_4_do_wyzerowania_10_mies` |
+| R-023 | AC-023-1 | T-24 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_023_1_szacunek_60` |
+| R-023 | AC-023-2 | T-24 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_023_2_kwiecien_od_zera` |
+| R-023 | AC-023-3 | T-24 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_023_3_brak_danych_ha` |
+| R-023 | AC-023-4 | T-24 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_023_4_luka_w_odczytach` |
+| R-023 | AC-023-5 | T-24 (Redmine: niewysłane) | `test_r022_r023_magazyn_zakladka.py::test_AC_023_5_szacunek_nie_zapisuje` |
 
 ## Zasada dla dev
 Zmiana wymagania po przekazaniu = zmiana `03-spec/PRD.md` (przez właściciela) i ponowny handover (/sdd:spec --agent, /sdd:handover) - nigdy zadanie „z boku” w Redmine.
