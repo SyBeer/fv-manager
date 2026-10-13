@@ -15,6 +15,7 @@ Właściciel instalacji - zob. 02-domain/ACTORS.md.
 - Ustawienia rozliczeń.
 - Import, eksport, kopia danych.
 - Integracja z Home Assistant.
+- Wirtualny magazyn: stan po odczycie, szacunek na dziś, wykresy cyklu.
 
 ## 4. Poza zakresem
 (rownie wazne jak zakres)
@@ -322,6 +323,35 @@ Kryteria akceptacji:
 - AC-021-2: Given miesiąc startu cyklu = kwiecień, 40 kWh do odebrania po marcu i ostatni odczyt za kwiecień: oddane 100, pobrane 50 kWh, When właściciel otwiera dashboard, Then widzi „Do odebrania z magazynu: 30 kWh” (pula z marca przepadła, BR-001).
 - AC-021-3: Given zapisany odczyt za 2026.08 i na dashboardzie 40 kWh do odebrania z magazynu, When właściciel zapisuje odczyt za 2026.09 z oddane 0 i pobrane 25 kWh, Then dashboard pokazuje 15 kWh.
 
+### R-022 Zakładka „Wirtualny magazyn”
+Opis:              Zakładka /magazyn w menu pokazuje stan wirtualnego magazynu (puli net-meteringu) w kWh do odebrania (D-035, D-036): karty - do odebrania po ostatnim odczycie i liczba miesięcy do wyzerowania puli (miesiąc startu cyklu, BR-001); wykres stanu magazynu miesiąc po miesiącu w bieżącym cyklu rozliczeniowym na tle poprzedniego cyklu; wykres przepływu miesiąca - wpłynęło do magazynu (oddane × współczynnik), odebrane z magazynu (pobór pokryty z puli) i pobrane ponad pulę (pobór niepokryty z puli); podsumowanie cyklu (oddane, wpłynęło, odebrane, pobrane ponad pulę, przepadło przy zerowaniu) i tabela miesięcy. Wartości z tego samego wyliczenia co oszczędność PV miesiąca (R-002) - obliczenia się nie zmieniają. Miesiące w net-billingu - Q-066.
+Zrodlo:            [Biz] session-2026-10-13.md, pomysł, Q-068, Q-069, Q-070; [Biz] session-2026-10-12.md (D-035, D-036); [App] src/services/calculations.py (carry_over_out, pool_*)
+Zalozenia:         A-005
+Reguly:            BR-001, BR-004
+Status:            zatwierdzone (właściciel instalacji, 2026-10-13)
+Wlasciciel:        właściciel instalacji
+
+Kryteria akceptacji:
+- AC-022-1: Given miesiąc startu cyklu = kwiecień, współczynnik 0,80 i odczyty 2026.04 (oddane 300, pobrane 200 kWh) i 2026.05 (oddane 100, pobrane 50 kWh), When właściciel otwiera /magazyn, Then wykres stanu magazynu pokazuje 40 kWh za 2026.04 i 70 kWh za 2026.05.
+- AC-022-2: Given odczyty z AC-022-1 i odczyt 2026.06 (oddane 0, pobrane 100 kWh), When właściciel otwiera /magazyn, Then za 2026.06 widzi: odebrane z magazynu 70 kWh, pobrane ponad pulę 30 kWh, stan 0 kWh.
+- AC-022-3: Given 40 kWh do odebrania po odczycie 2026.03 i odczyt 2026.04 (oddane 0, pobrane 0), When właściciel otwiera /magazyn, Then podsumowanie cyklu 2025.04-2026.03 pokazuje „przepadło 40 kWh”.
+- AC-022-4: Given miesiąc startu cyklu = kwiecień i ostatni odczyt 2026.05, When właściciel otwiera /magazyn, Then karta pokazuje „do wyzerowania: 10 mies.”.
+
+### R-023 Szacunek stanu magazynu na dziś
+Opis:              Zakładka /magazyn pokazuje „szacunek na dziś”: stan po ostatnim odczycie powiększony o oddane × współczynnik i pomniejszony o pobrane w bieżącym miesiącu do dziś, z liczników Home Assistant (S-002) pobieranych przy otwarciu zakładki. Szacunek niczego nie zapisuje - odczyty i ich wartości zostają bez zmian (R-020). Gdy bieżący miesiąc jest miesiącem startu cyklu, szacunek liczy się od 0 (BR-001). Gdy brakuje odczytu za poprzedni miesiąc, szacunku nie ma - zakładka prosi o uzupełnienie odczytu. Gdy HA nie ma danych - komunikat, reszta zakładki działa.
+Zrodlo:            [Biz] session-2026-10-13.md, pomysł („na bieżąco”), Q-068; [App] src/services/ha_stats.py:259 get_current_month_energy
+Zalozenia:         A-005
+Reguly:            BR-001, BR-004, BR-009
+Status:            zatwierdzone (właściciel instalacji, 2026-10-13)
+Wlasciciel:        właściciel instalacji
+
+Kryteria akceptacji:
+- AC-023-1: Given 40 kWh do odebrania po odczycie 2026.09, dziś 2026-10-13 i w HA za październik do dziś: oddane 50, pobrane 20 kWh, When właściciel otwiera /magazyn, Then widzi „Szacunek na dziś: 60 kWh”.
+- AC-023-2: Given miesiąc startu cyklu = kwiecień, 40 kWh po odczycie 2026.03, dziś 2026-04-10 i w HA za kwiecień: oddane 10, pobrane 0 kWh, When właściciel otwiera /magazyn, Then widzi „Szacunek na dziś: 8 kWh” (pula z marca przepadła).
+- AC-023-3: Given ostatni odczyt 2026.09, dziś 2026-10-13 i HA bez danych, When właściciel otwiera /magazyn, Then widzi komunikat „Brak danych z Home Assistant”, a karty, wykresy i tabela są pokazane.
+- AC-023-4: Given ostatni odczyt 2026.08 i dziś 2026-10-13, When właściciel otwiera /magazyn, Then zamiast szacunku widzi „Uzupełnij odczyt za 2026.09”.
+- AC-023-5: Given zapisany odczyt 2026.09 i szacunek z HA na zakładce, When właściciel otwiera listę odczytów, Then wartości odczytu 2026.09 są takie jak przy zapisie.
+
 ## 5a. Kandydaci na wymagania (robocze, bez numerów R)
 Z warsztatu 2026-10-03. Numer R nadaje /sdd:spec po zgodzie właściciela.
 - K-1 Ustawienie miesiąca startu cyklu rozliczeniowego (domyślnie kwiecień) - D-003, BR-001 → R-003.
@@ -382,6 +412,7 @@ wypelniana automatycznie)
 - 2026-10-12: D-035 (dashboard pokazuje kWh do odebrania, po współczynniku) -> R-021: opis z etykietą „Do odebrania z magazynu”, AC-021-1..3 bez zmian (liczby do odebrania takie same w obu wersjach puli); R-021 nie czeka na Q-067. Pozostałe pozycje z wpisu wyżej (R-002 AC-002-1, BR-001, BR-004, R-016) czekają na Q-067. Zgoda właściciela instalacji („Tak, pokazuj ile mogę jeszcze odebrać”).
 - 2026-10-12: D-036 (pula: oddane w całości, współczynnik przy wyciąganiu; zamyka Q-067) -> GLOSSARY Pula zatwierdzone (nowa definicja), BR-004 brzmienie; R-002: AC-002-1, AC-002-2 przepisane (50 kWh w puli = 40 do odebrania) - wynik w kWh do odebrania i zł bez zmian, test AC-002-1 do przejrzenia w budowie (kod v3.5.0 przechowuje pulę po współczynniku: calculations.py:39-43); R-021: AC-021-1..3 z etykietą „Do odebrania z magazynu”; R-016 (AC-016-2, opis puli w metodologia.html i README) - tekst do zgodności z D-036. Zgoda właściciela instalacji („Wariant 1 - opisz magazyn tak jak ja”).
 - 2026-10-12: walidacja przebieg 13 (WARN 12) - przegląd: R-008 bez zmian kryteriów (kartę „Do odebrania z magazynu” opisuje R-021, AC-008-1..3 bez zmian); R-016: opis i AC-016-2 uzupełnione o pulę wg D-036 (oddane w całości, pobrane ÷ współczynnik). Zatwierdzone przez właściciela instalacji („tak, commituj i zdejmij oba WARN 12”).
+- 2026-10-13: nowe R-022 (zakładka „Wirtualny magazyn”) i R-023 (szacunek stanu na dziś z HA) - stoją na BR-001, BR-004, A-005; R-023 także BR-009 i S-002 (nowe użycie HA: bieżący miesiąc przy otwarciu zakładki, bez zapisu - R-020 AC-020-2 bez zmian, R-020 opis „pobranie przy wpisie odczytu” dotyczy zapisu odczytu). R-021 bez zmian (karta na dashboardzie zostaje). Zatwierdzone przez właściciela instalacji („tak, zapisz i buduj”, session-2026-10-13.md).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

@@ -1,12 +1,16 @@
-<!-- GENEROWANE z PRD.md 2026-10-12 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
+<!-- GENEROWANE z PRD.md 2026-10-13 - nie edytuj. Zmiana = zmiana 03-spec/PRD.md + /sdd:spec --agent -->
 
 # Plan - Wirtualny magazyn
 
 ## Kolejność
 1. R-021 Stan wirtualnego magazynu na dashboardzie - zmiana (nowy element dashboardu); zależy od: R-002 (T-02), R-003 (T-03), R-008 (T-10)
+2. R-022 Zakładka „Wirtualny magazyn” - zmiana (nowa zakładka); zależy od: R-021 (T-22), R-002 (T-02), R-003 (T-03)
+3. R-023 Szacunek stanu magazynu na dziś - zmiana (nowe użycie HA); zależy od: R-022 (T-23), R-020 (T-20)
 
 ## Uwagi do budowy
-- Liczba do pokazania = kWh do odebrania po ostatnim odczycie (stan puli × współczynnik, D-036). Kod v3.5.0 przechowuje pulę już po współczynniku (src/services/calculations.py:39-43, carry_over_out) - ta wartość jest liczbą do odebrania; zmiana sposobu przechowywania puli nie jest wymagana.
+- Liczba do pokazania = kWh do odebrania (stan puli × współczynnik, D-036). Kod przechowuje pulę po współczynniku (carry_over_out); przepływ puli w kWh oddanych: pool_in_kwh, pool_drawn_kwh, pool_out_kwh (v3.6.0).
+- Odebrane z magazynu = pobór pokryty z puli; pobrane ponad pulę = pobrane − odebrane; przepadło = stan do odebrania na koniec cyklu, zerowany w miesiącu startu cyklu albo przy zmianie modelu (BR-001).
+- Szacunek na dziś (R-023) nie zapisuje niczego do bazy (AC-020-2, AC-023-5).
 - Ostatni odczyt w okresie net-billingu - zachowanie nieustalone (Q-066, zaparkowane); nie wymyślaj go.
 
 ## Encje do odczytu (02-domain/ENTITIES.md)
@@ -18,4 +22,4 @@ Zrodlo: [App] kod-v3.2.4-2026-09-27.md, Walidacja odczytów, main.py /odczyty/no
 Zakwestionowane:
 
 ## Integracje
-Brak - wartość liczona z zapisanych odczytów.
+- S-002 Home Assistant (R-023): liczniki bieżącego miesiąca do dziś (oddane, pobrane) przy otwarciu /magazyn; przy braku danych - komunikat „Brak danych z Home Assistant”, reszta zakładki działa. Adapter: src/services/ha_stats.py get_current_month_energy (BR-009).
