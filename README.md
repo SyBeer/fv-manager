@@ -1,4 +1,4 @@
-# FV Manager v3.6.0
+# FV Manager v3.7.0
 
 Aplikacja webowa do zarządzania efektywnością kosztową instalacji fotowoltaicznej.
 Śledzi przepływy energii, oblicza ROI, integruje się z Home Assistant.
@@ -41,6 +41,7 @@ fv-manager/
 │   │   └── db.py                   # SQLite init i connection (aiosqlite)
 │   └── services/
 │       ├── calculations.py         # Kalkulacje: przepływy energii, ROI, EV savings
+│       ├── magazyn.py              # Wirtualny magazyn: przepływ puli, cykle, szacunek na dziś
 │       └── importer.py             # Import z Excela (legacy, nieużywany)
 ├── templates/
 │   ├── base.html                   # Layout: sidebar collapsible, mobile overlay
@@ -270,6 +271,7 @@ Dwie ścieżki (kolejność priorytetu):
 | `/inwestycje/nowa` | POST | Dodaj inwestycję |
 | `/inwestycje/{id}/edytuj` | GET/POST | Edycja inwestycji |
 | `/inwestycje/{id}/usun` | POST | Usuń inwestycję |
+| `/magazyn` | GET | Wirtualny magazyn: do odebrania po ostatnim odczycie, szacunek na dziś z HA (bez zapisu), wykresy stanu w cyklu i przepływu, podsumowanie cykli (przepadło), tabela miesięcy |
 | `/roi` | GET | ROI: wykres skumulowany (inwestycja schodkowo wg dat etapów), tabela wrażliwości, scenariusze |
 | `/ev` | GET | EV savings, pojazdy |
 | `/ev/ceny-paliwa` | GET | Ceny paliwa (gdy śledzenie włączone) |
@@ -310,6 +312,8 @@ URL bazowy: `http://supervisor/core`.
 2. Fallback: `GET /api/history/period` (History API — tylko ostatnie ~10 dni)
 3. Obsługuje konwersję Wh → kWh (gdy unit_class = `energy`)
 
+**Szacunek stanu magazynu na dziś (`/magazyn`):** przy otwarciu zakładki aplikacja pobiera liczniki bieżącego miesiąca (oddanie, pobór) do dziś; nic nie zapisuje. Gdy HA nie ma danych — komunikat, reszta zakładki działa.
+
 Encje do skonfigurowania w Ustawieniach (`/import`) → sekcja Home Assistant (w HA: panel Energy):
 - `ha_solar_entity` — sensor produkcji PV (np. `sensor.solaredge_energy_today`)
 - `ha_grid_consumed_entity` — sensor poboru z sieci (forward, 1.8.0)
@@ -342,7 +346,14 @@ Szablon do pobrania: `GET /import/template.csv`
 
 ### Dashboard (`/`)
 - Baner ROI: zielony (osiągnięty) lub żółty z progress bar i liczbą miesięcy do break-even
+- Karta „Do odebrania z magazynu” (link do `/magazyn`)
 - Tabela ostatnich 12 miesięcy: Okres, Produkcja, Autokonsumpcja, Oddane, Pobrane, Zużycie, Oszczędności PLN
+
+### Wirtualny magazyn (`/magazyn`)
+- Karty: do odebrania z magazynu po ostatnim odczycie, szacunek na dziś (ostatni odczyt + bieżący miesiąc z HA; w miesiącu startu cyklu od 0), do wyzerowania puli (miesiące)
+- Gdy brakuje odczytu za poprzedni miesiąc — „Uzupełnij odczyt za RRRR.MM” zamiast szacunku
+- Wykresy Chart.js: stan magazynu w bieżącym cyklu na tle poprzedniego; przepływ miesiąca (wpłynęło, odebrane, pobrane ponad pulę)
+- Podsumowanie cykli (oddane, wpłynęło, odebrane, pobrane ponad pulę, przepadło przy zerowaniu) i tabela miesięcy
 
 ### ROI (`/roi`)
 - Karty: łączna inwestycja, oszczędności FV+EV (breakdown), pozostało, śr./mies., mies. do ROI, produkcja łączna

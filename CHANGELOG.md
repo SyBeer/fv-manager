@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.7.0] — 2026-10-13
+
+Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-022, R-023; zadania T-23, T-24 - Redmine wstrzymany). Przegląd architektury przed budową i przegląd kodu po niej; decyzje budowy B-61..B-72: `requirements/04-validation/build-2026-10-13.md`.
+
+### Dodano
+- **Zakładka „Wirtualny magazyn” (`/magazyn`)** — stan magazynu (kWh do odebrania) po ostatnim odczycie, liczba miesięcy do wyzerowania puli, wykres stanu w bieżącym cyklu na tle poprzedniego, wykres przepływu miesiąca (wpłynęło, odebrane z magazynu, pobrane ponad pulę), podsumowanie cykli z energią, która przepadła przy zerowaniu, tabela miesięcy (R-022). Obliczenia bez zmian
+- **Szacunek stanu magazynu na dziś** — ostatni odczyt + oddane i pobrane bieżącego miesiąca z Home Assistant, pobierane przy otwarciu zakładki; nic się nie zapisuje. W miesiącu startu cyklu od 0; gdy brakuje odczytu za poprzedni miesiąc — „Uzupełnij odczyt za RRRR.MM” z liczbą brakujących miesięcy; gdy HA nie ma danych — komunikat (R-023)
+- Karta „Do odebrania z magazynu” na dashboardzie prowadzi do zakładki
+
 ## [3.6.0] — 2026-10-12
 
 Wydanie wg wymagań `requirements/03-spec/PRD.md` (R-021, R-002, R-016; zadanie T-22 - Redmine wstrzymany). Przegląd architektury przed budową; decyzje budowy B-53..B-60: `requirements/04-validation/build-2026-10-12.md`.
