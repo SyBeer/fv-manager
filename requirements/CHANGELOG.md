@@ -149,3 +149,6 @@
 2026-10-12 | validate | przebieg 13 po poprawce: gotowość 100% (21/21), 0 BLOCK, WARN 18 (S-004, S-007); WARN 12 zdjęty | requirements/
 2026-10-12 | build | v3.6.0: karta „Do odebrania z magazynu” (R-021, D-035), pula wg D-036 w testach AC-002-1/2 i tekstach (R-016); decyzje B-53..B-60 w 04-validation/build-2026-10-12.md; TRACEABILITY +AC-021-1..3; Redmine wstrzymany | 03-spec/PRD.md, testy 233
 2026-10-13 | interview | pomysł: zakładka „Wirtualny magazyn” z wykresami; Q-068, Q-069, Q-070 odpowiedziane; skok produkcji 2026.01-03 = rozbudowa instalacji (etap 2026-02-26) | [Biz] session-2026-10-13.md
+2026-10-13 | spec | nowe R-022 (zakładka „Wirtualny magazyn”, AC-022-1..4), R-023 (szacunek na dziś z HA, AC-023-1..5) zatwierdzone; §3 Zakres; SYSTEMS S-002 (bieżący miesiąc przy /magazyn); RULES BR-001/BR-004/BR-009, A-005 - pole Wymagania; PRD §6 wpis | [Biz] session-2026-10-13.md
+2026-10-13 | spec --agent | regeneracja: constitution (23 R, BR-001/004/009), magazyn/ (R-022 T-23, R-023 T-24) | 03-spec/PRD.md
+2026-10-13 | validate | przebieg 14: gotowość 100% (23/23), 0 BLOCK, WARN 18 (S-004, S-007); 04-validation/validate-2026-10-13.md | requirements/
