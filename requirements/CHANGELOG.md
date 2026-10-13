@@ -148,3 +148,4 @@
 2026-10-12 | spec | przegląd po walidacji (WARN 12): R-008 bez zmian AC; R-016 opis i AC-016-2 wg D-036; regeneracja 03-spec/agent/teksty; PRD §6 wpis | [Biz] zgoda właściciela instalacji 2026-10-12
 2026-10-12 | validate | przebieg 13 po poprawce: gotowość 100% (21/21), 0 BLOCK, WARN 18 (S-004, S-007); WARN 12 zdjęty | requirements/
 2026-10-12 | build | v3.6.0: karta „Do odebrania z magazynu” (R-021, D-035), pula wg D-036 w testach AC-002-1/2 i tekstach (R-016); decyzje B-53..B-60 w 04-validation/build-2026-10-12.md; TRACEABILITY +AC-021-1..3; Redmine wstrzymany | 03-spec/PRD.md, testy 233
+2026-10-13 | interview | pomysł: zakładka „Wirtualny magazyn” z wykresami; Q-068, Q-069, Q-070 odpowiedziane; skok produkcji 2026.01-03 = rozbudowa instalacji (etap 2026-02-26) | [Biz] session-2026-10-13.md
