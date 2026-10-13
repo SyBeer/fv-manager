@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Wirtualny magazyn — FV Manager{% endblock %}
+{% block content %}
+<h1 style="font-size:1.5rem; font-weight:700; margin-bottom:.4rem;">Wirtualny magazyn</h1>
+<p style="color:var(--text-3); font-size:.85rem; margin-bottom:1.5rem;">
+  Pula net-meteringu w kWh do odebrania: oddana energia wpada w całości, pobór zdejmuje pobrane ÷ {{ ratio }}
+  (<a href="{{ rp }}/metodologia" style="color:var(--accent);">jak liczymy</a>).
+</p>
+
+{% if not last %}
+<div class="card" style="text-align:center; padding:3rem;">
+  <div style="font-size:1.1rem; margin-bottom:1.5rem; color:var(--text-2);">Brak odczytów — stan magazynu pojawi się po pierwszym odczycie.</div>
+  <a href="{{ rp }}/odczyty/nowy" class="btn btn-primary">+ Dodaj odczyt</a>
+</div>
+{% else %}
+
+<!-- Karty -->
+<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
+      <i class="ph-bold ph-battery-charging"></i> Do odebrania z magazynu:
+    </div>
+    {% if last.stan is not none %}
+    <div style="color:var(--c-blue-2); font-size:1.5rem; font-weight:700;">{{ last.stan|fmtn }} kWh</div>
+    {% else %}
+    <div style="color:var(--text-3); font-size:1.1rem; font-weight:600;">net-billing — bez puli</div>
+    {% endif %}
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">po odczycie {{ last.period }}</div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
+      <i class="ph-bold ph-clock-countdown"></i> Szacunek na dziś
+    </div>
+    {% if plan.status == 'ok' and szacunek and not szacunek.error %}
+    <div style="color:var(--c-green); font-size:1.5rem; font-weight:700;"><span class="sr-only">Szacunek na dziś: </span>{{ szacunek.kwh|fmtn }} kWh</div>
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">
+      {{ plan.period }} do dziś z Home Assistant: oddane {{ szacunek.sent|fmtn }}, pobrane {{ szacunek.taken|fmtn }} kWh{% if szacunek.reset %}; nowy cykl — pula od 0{% endif %}. Szacunek, nie zapisuje się.
+    </div>
+    {% elif plan.status == 'ok' %}
+    <div style="color:var(--c-red-light); font-size:.95rem; font-weight:600;">Brak danych z Home Assistant</div>
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">Sprawdź encje oddania i poboru w <a href="{{ rp }}/import" style="color:var(--accent);">ustawieniach</a>.</div>
+    {% elif plan.status == 'brak_odczytu' %}
+    <div style="color:var(--c-yellow); font-size:.95rem; font-weight:600;">Uzupełnij odczyt za {{ plan.period }}</div>
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">{% if plan.brakuje > 1 %}Brak odczytów od {{ plan.od }} ({{ plan.brakuje }} mies.) — stan po {{ last.period }} jest nieaktualny. {% endif %}Szacunek liczy się od odczytu za poprzedni miesiąc.</div>
+    {% elif plan.status == 'odczyt_biezacy' %}
+    <div style="color:var(--text-2); font-size:.95rem; font-weight:600;">Odczyt za {{ plan.period }} jest wpisany</div>
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">Stan na dziś = stan po tym odczycie.</div>
+    {% else %}
+    <div style="color:var(--text-3); font-size:.95rem; font-weight:600;">Brak szacunku w net-billingu</div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div style="font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--text-3); margin-bottom:.4rem;">
+      <i class="ph-bold ph-calendar-x"></i> Zerowanie puli
+    </div>
+    <div style="color:var(--c-yellow); font-size:1.5rem; font-weight:700;">do wyzerowania: {{ do_wyzerowania }} mies.</div>
+    <div style="color:var(--text-3); font-size:.8rem; margin-top:.3rem;">cykl {{ chart.cykl }}; niewykorzystana pula przepada w miesiącu startu cyklu</div>
+  </div>
+</div>
+
+<script id="magazyn-data" type="application/json">{{ chart|tojson }}</script>
+
+<!-- Wykres stanu -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Stan magazynu w cyklu {{ chart.cykl }} (do odebrania, kWh)</h2>
+  <canvas id="stanChart" style="max-height:280px;"></canvas>
+</div>
+
+<!-- Wykres przepływu -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Przepływ miesiąca (kWh)</h2>
+  <canvas id="przeplywChart" style="max-height:280px;"></canvas>
+</div>
+
+<!-- Podsumowanie cykli -->
+<div class="card" style="margin-bottom:1.5rem;">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Podsumowanie cykli</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Cykl</th><th>Oddane</th><th>Wpłynęło (×{{ ratio }})</th><th>Odebrane</th><th>Pobrane ponad pulę</th><th>Przepadło</th>
+    </tr></thead>
+    <tbody>
+    {% for c in cykle %}
+    <tr>
+      <td>{{ c.cykl }}{% if loop.first %} <span style="color:var(--text-3); font-size:.75rem;">(bieżący)</span>{% endif %}</td>
+      <td>{{ c.oddane|fmtn }}</td>
+      <td>{{ c.wplynelo|fmtn }}</td>
+      <td>{{ c.odebrane|fmtn }}</td>
+      <td>{{ c.ponad_pule|fmtn }}</td>
+      <td>{% if c.przepadlo %}<span style="color:var(--c-red-light);">przepadło {{ c.przepadlo|fmtn }} kWh</span>{% else %}0{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- Tabela miesięcy -->
+<div class="card">
+  <h2 style="font-size:1rem; font-weight:600; margin-bottom:1rem;">Miesiące</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Okres</th><th>Oddane</th><th>Pobrane</th><th>Odebrane z magazynu</th><th>Pobrane ponad pulę</th><th>Stan po miesiącu</th>
+    </tr></thead>
+    <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.period }}</td>
+      <td>{{ r.oddane|fmtn }}</td>
+      <td>{{ r.pobrane|fmtn }}</td>
+      {% if r.model == 'net_metering' %}
+      <td>{{ r.odebrane|fmtn }}</td>
+      <td>{{ r.ponad_pule|fmtn }}</td>
+      <td>{{ r.stan|fmtn }}</td>
+      {% else %}
+      <td colspan="3" style="color:var(--text-3);">net-billing</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<style>.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}</style>
+<script>
+(function () {
+  const d = JSON.parse(document.getElementById('magazyn-data').textContent);
+  const cs = getComputedStyle(document.documentElement);
+  const v = (name, fb) => cs.getPropertyValue(name).trim() || fb;
+  const grid = v('--border', '#334155'), tick = v('--text-3', '#64748b');
+  const blue = v('--c-blue-2', '#60a5fa'), green = v('--c-green', '#22c55e'),
+        red = v('--c-red-light', '#f87171'), muted = v('--text-4', '#475569');
+  const scales = {
+    x: { ticks: { color: tick }, grid: { color: grid } },
+    y: { ticks: { color: tick }, grid: { color: grid }, beginAtZero: true },
+  };
+  const legend = { labels: { color: tick } };
+
+  const labels = d.stan.labels;
+  new Chart(document.getElementById('stanChart'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      { type: 'bar', label: 'Cykl ' + d.cykl, data: d.stan.biezacy, backgroundColor: blue },
+      { type: 'line', label: 'Cykl ' + d.poprzedni_cykl, data: d.stan.poprzedni, borderColor: muted,
+        borderDash: [5, 4], pointRadius: 2, spanGaps: false },
+    ] },
+    options: { responsive: true, plugins: { legend }, scales },
+  });
+
+  new Chart(document.getElementById('przeplywChart'), {
+    type: 'bar',
+    data: { labels: d.przeplyw.labels, datasets: [
+      { label: 'Wpłynęło do magazynu', data: d.przeplyw.wplynelo, backgroundColor: green, stack: 'in' },
+      { label: 'Odebrane z magazynu', data: d.przeplyw.odebrane, backgroundColor: blue, stack: 'out' },
+      { label: 'Pobrane ponad pulę', data: d.przeplyw.ponad_pule, backgroundColor: red, stack: 'out' },
+    ] },
+    options: { responsive: true, plugins: { legend }, scales: { ...scales, x: { ...scales.x, stacked: true }, y: { ...scales.y, stacked: true } } },
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

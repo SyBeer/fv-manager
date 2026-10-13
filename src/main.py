@@ -1,9 +1,11 @@
+import asyncio
 import calendar
 import os
 import re
 import secrets as _secrets
 import base64
 from contextlib import asynccontextmanager
+from datetime import date
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -57,6 +59,7 @@ from services.calculations import (
 )
 from services.forecast import forecast_months, breakeven_scenarios, breakeven_confidence_interval
 from services import ha_stats
+from services import magazyn as magazyn_svc
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR.parent / "templates"
@@ -2111,6 +2114,65 @@ async def heating_page(request: Request):
     })
 
 
+
+
+@app.get("/magazyn", response_class=HTMLResponse)
+async def magazyn_page(request: Request):
+    """Wirtualny magazyn: stan, wykresy cyklu, podsumowania (R-022) i szacunek na dziś z HA (R-023)."""
+    db = await get_db()
+    try:
+        readings = await _get_readings(db)
+        settings = await _get_ev_settings(db)
+        billing_periods = await _get_billing_periods(db)
+        rce_prices = await _get_rce_prices(db)
+    finally:
+        await db.close()
+
+    ratio = settings.get("net_metering_ratio") or 0.80
+    cycle = _cycle(settings)
+    enriched = enrich_readings_sequence(readings, ratio, _default_price(), billing_periods, rce_prices, cycle)
+    rows = magazyn_svc.monthly_rows(enriched, ratio)
+    today = _today()
+    plan = magazyn_svc.estimate_plan(rows, today, cycle,
+                                     _get_billing_model(f"{today.year}.{today.month:02d}", billing_periods))
+    szacunek = None
+    if plan["status"] == "ok":
+        szacunek = await _magazyn_estimate(settings, plan, today, ratio)
+    last = rows[-1] if rows else None
+    return _t(request, "magazyn.html", {
+        "last": last,
+        "do_wyzerowania": magazyn_svc.months_to_reset(last["period"], cycle) if last else None,
+        "rows": list(reversed(rows)),
+        "cykle": magazyn_svc.cycle_summaries(rows, cycle),
+        "chart": magazyn_svc.chart_data(rows, cycle),
+        "plan": plan,
+        "szacunek": szacunek,
+        "ratio": ratio,
+    })
+
+
+def _today() -> date:
+    """Dzisiejsza data (podmieniana w testach)."""
+    return date.today()
+
+
+async def _magazyn_estimate(settings: dict, plan: dict, today: date, ratio: float) -> dict:
+    """Szacunek na dziś z liczników HA bieżącego miesiąca; nic nie zapisuje (R-023, AC-023-5)."""
+    sent_e = settings.get("ha_grid_returned_entity") or ""
+    taken_e = settings.get("ha_grid_consumed_entity") or ""
+    if not sent_e or not taken_e:
+        return {"error": True}
+    try:
+        sent, taken = await asyncio.wait_for(asyncio.gather(
+            ha_stats.get_monthly_energy(sent_e, today.year, today.month),
+            ha_stats.get_monthly_energy(taken_e, today.year, today.month),
+        ), timeout=15)
+    except Exception:
+        sent = taken = None
+    if sent is None or taken is None:
+        return {"error": True}
+    return {"error": False, "kwh": magazyn_svc.estimate(plan["start"], sent, taken, ratio),
+            "sent": round(sent, 1), "taken": round(taken, 1), "reset": plan["reset"]}
 
 
 @app.get("/metodologia", response_class=HTMLResponse)
