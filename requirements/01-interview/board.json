@@ -1195,12 +1195,12 @@
       "source": "[App] src/main.py:932-941",
       "by": "agent",
       "created": "2026-10-10T13:00:00+02:00",
-      "updated": "2026-10-10T12:21:46.163Z",
+      "updated": "2026-10-25T10:51:09.956Z",
       "synced": "2026-10-10T13:00:00+02:00",
       "ref": "Q-061",
       "file": "01-interview/QUESTIONS.md",
-      "answeredAt": "2026-10-10T12:21:46.157Z",
-      "answer": "W każdym miesiącu pilnowałem ze mam",
+      "answeredAt": "2026-10-25T10:51:09.952Z",
+      "answer": "W każdym miesiącu pilnowałem żebym mial przynajmniej jeden wpis",
       "answeredBy": "właściciel instalacji"
     },
     {
@@ -1689,5 +1689,5 @@
       "file": "03-spec/PRD.md"
     }
   ],
-  "updated": "2026-10-13T12:00:00+02:00"
+  "updated": "2026-10-25T10:52:02.303Z"
 }
