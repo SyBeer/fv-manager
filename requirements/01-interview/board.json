@@ -1630,23 +1630,6 @@
       "file": "03-spec/PRD.md"
     },
     {
-      "id": "qq071",
-      "type": "hot",
-      "text": "Gdy ostatnio usunąłeś odczyt miesiąca z danymi auta, co potem zrobiłeś z tym miesiącem i co pokazywały karty /ev?",
-      "lane": "Miesięczny odczyt",
-      "col": 1,
-      "ref": "Q-071",
-      "source": "[App] src/main.py:939 delete_reading",
-      "file": "01-interview/QUESTIONS.md",
-      "by": "agent",
-      "created": "2026-11-02T21:55:19+01:00",
-      "updated": "2026-11-02T20:56:21.596Z",
-      "synced": "2026-11-02T21:58:31+01:00",
-      "answeredAt": "2026-11-02T20:56:21.591Z",
-      "answer": "nie uusunalem, co najwyżej modyfikowałem. Ale wpis w każdym miesiącu będzie.",
-      "answeredBy": "właściciel instalacji"
-    },
-    {
       "id": "qq072",
       "type": "hot",
       "text": "Gdy ostatnio modyfikowałeś odczyt, które pola zmieniałeś i czy był wśród nich miesiąc odczytu?",
@@ -1661,5 +1644,5 @@
       "synced": "2026-11-02T21:58:31+01:00"
     }
   ],
-  "updated": "2026-11-02T20:56:21.596Z"
+  "updated": "2026-11-02T21:00:53.960Z"
 }
