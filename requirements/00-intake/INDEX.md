@@ -1,0 +1,17 @@
+# Indeks surowca
+
+Status zrodla: `aktualne` | `zastapione przez <plik>` | `dotyczy innej wersji <X>` | `wycofane`
+Kierunek: `intencja` (co mielismy zbudowac) | `as-built` (jak dziala teraz) | `potwierdzenie` (biznes potwierdzil)
+
+Kierunek rozstrzyga tam, gdzie hierarchia wiarygodnosci nie wystarcza - dwa dokumenty `[Dok]`
+o tym samym module moga sie roznic tylko tym, ze jeden opisuje zamiar, a drugi stan faktyczny.
+Na pytanie "jak to dziala" wygrywa `as-built`, na "co mielismy zbudowac" - `intencja`.
+Rozjazd miedzy nimi to zawsze pytanie do biznesu, nie rozstrzygniecie po hierarchii.
+
+| Plik / zrodlo | Data | Typ | Wiarygodnosc | Kierunek | Status zrodla | Opis (1-2 zdania) | Uwagi |
+|---------------|------|-----|--------------|----------|---------------|-------------------|-------|
+| BUSINESS.md | 2026-05-23 (snapshot v1.12.0) | inne (opis funkcjonalny aplikacji) | [Dok] | as-built | dotyczy innej wersji v1.12.0 (D-001) | Opis funkcji v1.12.0: 7 modułów, model net-metering (80% puli, liczony per miesiąc), znane defekty i ryzyka, słownik 12 pojęć. Materiał wyjściowy do planowania v2.0. | Opisuje v1.12.0, a aplikacja jest w v3.2.4. Propozycja statusu `dotyczy innej wersji v1.12.0` (Q-007). Zawiera gotowy słownik (§6), który przyda się w /sdd:domain. Brak [Biz], więc brak kandydatów R/D. |
+| review-2026-05-12.md | 2026-05-12 | inne (przegląd architektury wygenerowany przez AI, 5 ról + krytyk) | [AI] | as-built | dotyczy innej wersji v1.12.0 (D-001) | Przegląd v1.12.0: ocena architektury, STRIDE, wymagania FR-001..FR-053 wyprowadzone z kodu, lista Won't Have, pytania do Product Ownera. | Opisuje v1.12.0 (Q-007). Częściowy duplikat BUSINESS.md (ta sama wersja, te same defekty). Autorzy sami zastrzegają, że widzieli ok. 60% kodu i część ustaleń to hipotezy. FR-003a, FR-021a i FR-060 to propozycje AI, nie decyzje biznesu. Jego 4 pytania do PO to dobry materiał do /sdd:interview. |
+| README.md | 2026-08-30 (v3.2.4) | inne (dokumentacja techniczna) | [Dok] | as-built | aktualne | Stan v3.2.4: założenia, schemat bazy (6 tabel), formuły obliczeń (calc_monthly, calc_roi, EV domowe/publiczne), endpointy, integracje HA i Tesla, format CSV. | Najnowsze źródło as-built. Część EV (domowe/publiczne) to duplikat metodologia.html. Brak [Biz], więc brak kandydatów R/D. |
+| metodologia.html | 2026-08-30 | inne (tekst ekranu „Jak liczymy” w aplikacji) | [Dok] | as-built | aktualne | Opis dla użytkownika: oszczędność PV, dwa modele rozliczeń (net-metering z roczną pulą, net-billing z RCE), oszczędności EV domowe i publiczne, ROI, źródła danych. | Tekst pokazywany w aplikacji, ale to deklaracja, a nie zaobserwowane działanie ([App]). Opisuje rzeczy, których nie ma w README: roczną kumulację puli, net-billing i automatyczne pobieranie RCE oraz cen paliw (Q-001, Q-002, Q-005). |
+| kod-v3.2.4-2026-09-27.md | 2026-09-27 (kod v3.2.4) | inne (odczyt kodu źródłowego) | [App] | as-built | aktualne | Statyczny odczyt kodu v3.2.4 z odnośnikami plik:linia: rozliczenia (roczna pula, net-billing, RCE), walidacja, wrażliwość, ceny paliwa, auth, czyszczenie bazy. | Kod, nie obserwacja uruchomionej aplikacji (to [App] z zastrzeżeniem). Pokazuje, że README.md jest nieaktualny w kilku miejscach (pula, net-billing, 8 cen, clear-db, format CSV) i że metodologia.html myli się co do automatycznego RCE i cen paliw. Nowe luki: cycle_start_month bez ustawienia (Q-012), zakres strony /bateria i /ogrzewanie (Q-013). |
