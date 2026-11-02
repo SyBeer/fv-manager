@@ -1641,10 +1641,24 @@
       "by": "agent",
       "created": "2026-11-02T21:55:19+01:00",
       "updated": "2026-11-02T20:56:21.596Z",
-      "synced": "2026-11-02T21:55:19+01:00",
+      "synced": "2026-11-02T21:58:31+01:00",
       "answeredAt": "2026-11-02T20:56:21.591Z",
       "answer": "nie uusunalem, co najwyżej modyfikowałem. Ale wpis w każdym miesiącu będzie.",
       "answeredBy": "właściciel instalacji"
+    },
+    {
+      "id": "qq072",
+      "type": "hot",
+      "text": "Gdy ostatnio modyfikowałeś odczyt, które pola zmieniałeś i czy był wśród nich miesiąc odczytu?",
+      "lane": "Miesięczny odczyt",
+      "col": 5,
+      "ref": "Q-072",
+      "source": "[App] src/main.py:919-923 update_reading",
+      "file": "01-interview/QUESTIONS.md",
+      "by": "agent",
+      "created": "2026-11-02T21:58:31+01:00",
+      "updated": "2026-11-02T21:58:31+01:00",
+      "synced": "2026-11-02T21:58:31+01:00"
     }
   ],
   "updated": "2026-11-02T20:56:21.596Z"

@@ -27,3 +27,4 @@ aplikacji powtarzaja ten sam blad. Potwierdza tylko `[Biz]`.
 | A-016 | Dane z Home Assistant pobierane są tylko na żądanie właściciela przy wpisie odczytu za wybrany miesiąc; aplikacja nie pobiera ich w tle i nie nadpisuje zapisanych odczytów. | potwierdzone | [Biz] session-2026-10-07.md, potwierdzenie hurtowe (właściciel instalacji); [App] src/main.py:2155-2190 (ha-grid-fetch, ha-solar-fetch wywoływane z formularza) | R-020 |
 | A-017 | Właściciel pilnuje, żeby każdy miesiąc miał co najmniej jeden wpis. | potwierdzone | [Biz] board.json, qq061; session-2026-11-02.md, Q-061 | - |
 | A-018 | Właściciel poprawia dane auta za miesiąc z obu ekranów: edycji odczytu i ekranu pojazdu. | potwierdzone | [Biz] board.json, qq062; session-2026-11-02.md, Q-062 | R-001 |
+| A-019 | Właściciel nie usuwał odczytów, co najwyżej je modyfikował; wpis w każdym miesiącu będzie. | potwierdzone | [Biz] board.json, qq071; session-2026-11-02.md, Q-071 | - |
