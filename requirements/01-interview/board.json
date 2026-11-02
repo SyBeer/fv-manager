@@ -1552,34 +1552,6 @@
       "file": "03-spec/PRD.md"
     },
     {
-      "id": "qq063",
-      "type": "hot",
-      "text": "Szacunek faktury: które opłaty są stałe, a które zależą od kWh i od których? Czeka na fakturę rozliczeniową w 00-intake",
-      "lane": "Wirtualny magazyn",
-      "col": 10,
-      "source": "[Biz] session-2026-10-12.md",
-      "by": "agent",
-      "created": "2026-10-12T12:00:00+02:00",
-      "updated": "2026-10-13T12:00:00+02:00",
-      "synced": "2026-10-12T12:00:00+02:00",
-      "ref": "Q-063",
-      "file": "01-interview/QUESTIONS.md"
-    },
-    {
-      "id": "qq066",
-      "type": "hot",
-      "text": "Co pokazać jako stan magazynu, gdy ostatni odczyt jest w net-billingu? (zaparkowane - właściciel w net-meteringu)",
-      "lane": "Wirtualny magazyn",
-      "col": 10,
-      "source": "[Biz] session-2026-10-12.md",
-      "by": "agent",
-      "created": "2026-10-12T12:00:00+02:00",
-      "updated": "2026-10-13T12:00:00+02:00",
-      "synced": "2026-10-12T12:00:00+02:00",
-      "ref": "Q-066",
-      "file": "01-interview/QUESTIONS.md"
-    },
-    {
       "id": "p111",
       "type": "cmd",
       "text": "Otwórz zakładkę Wirtualny magazyn (/magazyn)",
@@ -1692,5 +1664,5 @@
       "file": "03-spec/PRD.md"
     }
   ],
-  "updated": "2026-11-02T20:44:36.490Z"
+  "updated": "2026-11-02T20:51:24.499Z"
 }
