@@ -375,6 +375,8 @@ Z /sdd:board sync 2026-10-04 (as-built, bez potwierdzenia [Biz] - numer R po zgo
 Z /sdd:board sync 2026-10-04, proces „Pojazdy EV i paliwo” (as-built, bez potwierdzenia [Biz]):
 - K-18 Edycja i usuwanie pojazdu (okres posiadania od-do, notatki) - D-025, D-027; tablica: p50; źródło: [App] src/main.py:1651, 1664 → R-009 albo R-019.
 - K-19 Poprawianie i usuwanie ceny paliwa, ekran „Ceny paliwa” (/ev/ceny-paliwa) - D-023, D-024; tablica: p57, p58; źródło: [App] src/main.py:1778, 1798, 1847 → R-011.
+Z /sdd:board sync 2026-11-02:
+- K-21 Poprawa danych auta za miesiąc z ekranu pojazdu (kryterium akceptacji) - A-018; tablica: qq062; źródło: [Biz] session-2026-11-02.md, Q-062; [App] src/main.py:1611.
 
 ## 6. Do przegladu
 (lista R/AC dotknietych zmiana zalozen, decyzji albo zakwestionowaniem elementu modelu,
@@ -413,6 +415,7 @@ wypelniana automatycznie)
 - 2026-10-12: D-036 (pula: oddane w całości, współczynnik przy wyciąganiu; zamyka Q-067) -> GLOSSARY Pula zatwierdzone (nowa definicja), BR-004 brzmienie; R-002: AC-002-1, AC-002-2 przepisane (50 kWh w puli = 40 do odebrania) - wynik w kWh do odebrania i zł bez zmian, test AC-002-1 do przejrzenia w budowie (kod v3.5.0 przechowuje pulę po współczynniku: calculations.py:39-43); R-021: AC-021-1..3 z etykietą „Do odebrania z magazynu”; R-016 (AC-016-2, opis puli w metodologia.html i README) - tekst do zgodności z D-036. Zgoda właściciela instalacji („Wariant 1 - opisz magazyn tak jak ja”).
 - 2026-10-12: walidacja przebieg 13 (WARN 12) - przegląd: R-008 bez zmian kryteriów (kartę „Do odebrania z magazynu” opisuje R-021, AC-008-1..3 bez zmian); R-016: opis i AC-016-2 uzupełnione o pulę wg D-036 (oddane w całości, pobrane ÷ współczynnik). Zatwierdzone przez właściciela instalacji („tak, commituj i zdejmij oba WARN 12”).
 - 2026-10-13: nowe R-022 (zakładka „Wirtualny magazyn”) i R-023 (szacunek stanu na dziś z HA) - stoją na BR-001, BR-004, A-005; R-023 także BR-009 i S-002 (nowe użycie HA: bieżący miesiąc przy otwarciu zakładki, bez zapisu - R-020 AC-020-2 bez zmian, R-020 opis „pobranie przy wpisie odczytu” dotyczy zapisu odczytu). R-021 bez zmian (karta na dashboardzie zostaje). Zatwierdzone przez właściciela instalacji („tak, zapisz i buduj”, session-2026-10-13.md).
+- 2026-11-02: A-018 potwierdzone (dane auta poprawiane z obu ekranów) -> R-001: opisuje tylko edycję odczytu, poprawianie z ekranu pojazdu bez AC - kandydat K-21, do przejrzenia przy /sdd:spec. A-017 potwierdzone (każdy miesiąc ma co najmniej jeden wpis) -> brak R/AC; zgodne z zaparkowanym Q-046, warunek bez zmian. Zgoda właściciela instalacji („tak”).
 
 ## 7. Otwarte pytania blokujace
 (Q z etykieta blokujaca)

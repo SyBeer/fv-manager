@@ -1187,23 +1187,6 @@
       "file": "03-spec/PRD.md"
     },
     {
-      "id": "qq061",
-      "type": "hot",
-      "text": "Usunięcie odczytu ze środka cyklu przelicza pulę i oszczędności kolejnych miesięcy - brak R/AC. Co robiłeś ostatnio po usunięciu odczytu?",
-      "lane": "Miesięczny odczyt",
-      "col": 8,
-      "source": "[App] src/main.py:932-941",
-      "by": "agent",
-      "created": "2026-10-10T13:00:00+02:00",
-      "updated": "2026-10-25T10:51:09.956Z",
-      "synced": "2026-10-10T13:00:00+02:00",
-      "ref": "Q-061",
-      "file": "01-interview/QUESTIONS.md",
-      "answeredAt": "2026-10-25T10:51:09.952Z",
-      "answer": "W każdym miesiącu pilnowałem żebym mial przynajmniej jeden wpis",
-      "answeredBy": "właściciel instalacji"
-    },
-    {
       "id": "p87",
       "type": "cmd",
       "text": "Edytuj dane auta za miesiąc na stronie pojazdu albo w tabeli /ev (km, stan licznika, kWh, ładowanie publiczne)",
@@ -1216,23 +1199,6 @@
       "synced": "2026-10-10T13:00:00+02:00",
       "ref": "R-010",
       "file": "03-spec/PRD.md"
-    },
-    {
-      "id": "qq062",
-      "type": "hot",
-      "text": "Dwie ścieżki zmiany danych auta za miesiąc: edycja odczytu i ekran pojazdu / tabela /ev. Z którego ekranu poprawiałeś ostatnio?",
-      "lane": "Pojazdy EV i paliwo",
-      "col": 14,
-      "source": "[App] src/main.py:1605, 1753 vs p71",
-      "by": "agent",
-      "created": "2026-10-10T13:00:00+02:00",
-      "updated": "2026-11-02T20:44:36.489Z",
-      "synced": "2026-10-10T13:00:00+02:00",
-      "ref": "Q-062",
-      "file": "01-interview/QUESTIONS.md",
-      "answeredAt": "2026-11-02T20:44:36.482Z",
-      "answer": "Z obu",
-      "answeredBy": "właściciel instalacji"
     },
     {
       "id": "p88",
@@ -1662,7 +1628,24 @@
       "synced": "2026-10-13T12:00:00+02:00",
       "ref": "R-023",
       "file": "03-spec/PRD.md"
+    },
+    {
+      "id": "qq071",
+      "type": "hot",
+      "text": "Gdy ostatnio usunąłeś odczyt miesiąca z danymi auta, co potem zrobiłeś z tym miesiącem i co pokazywały karty /ev?",
+      "lane": "Miesięczny odczyt",
+      "col": 1,
+      "ref": "Q-071",
+      "source": "[App] src/main.py:939 delete_reading",
+      "file": "01-interview/QUESTIONS.md",
+      "by": "agent",
+      "created": "2026-11-02T21:55:19+01:00",
+      "updated": "2026-11-02T20:56:21.596Z",
+      "synced": "2026-11-02T21:55:19+01:00",
+      "answeredAt": "2026-11-02T20:56:21.591Z",
+      "answer": "nie uusunalem, co najwyżej modyfikowałem. Ale wpis w każdym miesiącu będzie.",
+      "answeredBy": "właściciel instalacji"
     }
   ],
-  "updated": "2026-11-02T20:51:24.499Z"
+  "updated": "2026-11-02T20:56:21.596Z"
 }
